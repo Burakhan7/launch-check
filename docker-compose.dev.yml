@@ -35,4 +35,6 @@ services:
     ports: ["6379:6379"]
 
   caddy:
+    environment:
+      DOMAIN: "http://localhost" # dev: düz HTTP, sertifika yok
     ports: ["8080:80"]

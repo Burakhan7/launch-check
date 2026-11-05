@@ -12,3 +12,6 @@ AGENTS.md'nin açık bıraktığı noktalarda verilen kararlar. En basit güvenl
 - **Worker ağ kısıtı:** Compose tek başına "sadece dış web'e çıkış" kuralını uygulayamaz (worker'ın Redis/Postgres'e de erişmesi gerekiyor). SSRF koruması uygulama katmanında (M2). Prod'da host firewall/egress kuralı ile private aralıklara çıkış ayrıca engellenecek (M7).
 - **Caddy logları:** IP alanları log filtresiyle siliniyor (veri minimizasyonu).
 - **Ruff RUF001-003 kapalı:** Türkçe karakterler yorum/metinlerde bilinçli kullanılıyor.
+- **JDK 21:** `python:3.12-slim` artık Debian trixie tabanlı ve orada openjdk-17 paketi yok. AGENTS.md "JDK 17+" dediği için 21 kullanılıyor. apktool 3.0.3, jadx 1.5.6 (2026-11-05 itibarıyla en son sürümler). apktool 3.x'in CLI farkları M4'te doğrulanacak.
+- **`strings` aracı yok:** Flutter `libapp.so` string çıkarımı Python'da yapılacak (binutils bağımlılığı gereksiz).
+- **Dev'de Caddy düz HTTP:** `DOMAIN=http://localhost` (dev compose). Prod'da gerçek alan adı ile otomatik HTTPS.
