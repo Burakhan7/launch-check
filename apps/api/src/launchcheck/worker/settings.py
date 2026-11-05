@@ -7,6 +7,7 @@ from arq.connections import RedisSettings
 
 from launchcheck.checks.base import TargetType
 from launchcheck.checks.registry import load_builtin_checks
+from launchcheck.collectors.apk_collector import ApkCollector
 from launchcheck.collectors.base import register_collector
 from launchcheck.collectors.web_collector import WebCollector
 from launchcheck.config import get_settings
@@ -25,6 +26,7 @@ async def startup(ctx: dict[str, Any]) -> None:
     register_collector(
         TargetType.WEB, WebCollector(_settings, UrlGuard(timeout_s=_settings.dns_timeout_s))
     )
+    register_collector(TargetType.APK, ApkCollector(_settings))
     ctx["sessionmaker"] = get_sessionmaker()
 
 

@@ -1,6 +1,10 @@
 """Periyodik bakım işleri."""
 
+import asyncio
+import shutil
+import time
 from datetime import timedelta
+from pathlib import Path
 
 from sqlalchemy import delete, select, update
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
@@ -38,3 +42,31 @@ async def fail_stale_scans(
         )
         await session.commit()
         return int(result.rowcount or 0)  # type: ignore[attr-defined]
+
+
+def _delete_old_entries(directory: Path, max_age_s: int) -> int:
+    if not directory.is_dir():
+        return 0
+    cutoff = time.time() - max_age_s
+    deleted = 0
+    for entry in directory.iterdir():
+        try:
+            if entry.stat().st_mtime >= cutoff:
+                continue
+            if entry.is_dir() and not entry.is_symlink():
+                shutil.rmtree(entry, ignore_errors=True)
+            else:
+                entry.unlink(missing_ok=True)
+            deleted += 1
+        except OSError:
+            continue
+    return deleted
+
+
+async def delete_orphan_uploads(upload_dir: Path, tmp_dir: Path, max_age_s: int) -> int:
+    """Worker çökmesi gibi durumlarda geride kalan APK'ları ve geçici klasörleri siler."""
+
+    def _run() -> int:
+        return _delete_old_entries(upload_dir, max_age_s) + _delete_old_entries(tmp_dir, max_age_s)
+
+    return await asyncio.to_thread(_run)

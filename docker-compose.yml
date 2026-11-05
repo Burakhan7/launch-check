@@ -25,6 +25,8 @@ services:
     depends_on:
       postgres: { condition: service_healthy }
       redis: { condition: service_healthy }
+    volumes:
+      - uploads:/var/lib/launchcheck/uploads
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request;urllib.request.urlopen('http://localhost:8000/api/health')"]
       interval: 10s
@@ -41,7 +43,10 @@ services:
       api: { condition: service_healthy } # migration'lar api tarafından uygulanır
       redis: { condition: service_healthy }
     read_only: true
+    volumes:
+      - uploads:/var/lib/launchcheck/uploads
     tmpfs:
+      # APK açma alanı. Boyut sınırı, zip bomb'a karşı son savunma hattıdır.
       - /tmp:size=2g,mode=1777
     security_opt: ["no-new-privileges:true"]
     cap_drop: [ALL]
@@ -87,5 +92,6 @@ services:
 
 volumes:
   pgdata:
+  uploads: # API yükler, worker okur ve tarama biter bitmez siler
   caddy_data:
   caddy_config:

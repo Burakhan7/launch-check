@@ -51,3 +51,16 @@ AGENTS.md'nin açık bıraktığı noktalarda verilen kararlar. En basit güvenl
 - **Source map:** Map dosyaları genelde probe limitinden (1 MB) büyük olduğu için tam JSON yerine başlangıç imzasına bakılır.
 - **`.env` kanıtı:** Sadece değişken adları (en fazla 10) saklanır, değerler asla saklanmaz.
 - **i18n dosya düzeni:** Bulgu metinleri `i18n/checks/<grup>.<dil>.yaml` dosyalarında; loader hepsini birleştirir ve aynı check_id iki dosyada tanımlıysa hata verir.
+
+## 2026-11-05 — M4
+
+- **İmza sertifikası saf Python ile okunur, keytool kullanılmaz:** `keytool -printcert -jarfile` sadece v1 (JAR) imzasını okur. minSdk >= 24 olan modern uygulamalar genelde sadece v2/v3 ile imzalanır. Bu yüzden v1 (META-INF/*.RSA) ve APK Signing Block (v2/v3/v3.1) doğrudan okunur ve DER içinde CN (OID 2.5.4.3) aranır. Amaç sadece `CN=Android Debug` tespiti olduğu için tam X.509 ayrıştırması gerekmez.
+- **Assets apktool'a açtırılmaz (`--no-assets`):** RN bundle, flutter_assets ve paketlenmiş `.env` gibi dosyalar doğrudan ZIP'ten, dosya başına boyut limitiyle (`apk_max_asset_bytes`) okunur. Daha hızlı ve diske daha az yazar.
+- **jadx kullanılmayan sabitleri siler:** Fixture'da görüldü. Bu yüzden secret taramasında asıl kaynak smali `const-string` satırları (satır numaraları korunarak); jadx çıktısı ek kaynak olarak ve loglama sezgisi için kullanılır. jadx hata veya zaman aşımıyla biterse onsuz devam edilir.
+- **jadx `HOME` değil Java `user.home`'u kullanır:** Salt okunur container'da `/home/app` yazılamadığı için jadx çöküyordu (sadece prod ayarlarıyla görülen bir hata). Araçlar `-Duser.home`, `JADX_CONFIG_DIR` ve `JADX_CACHE_DIR` ile geçici çalışma klasörüne yönlendirilir.
+- **Ortak yükleme volume'u:** API ve worker ayrı container'lar; APK `uploads` volume'u üzerinden aktarılır. Worker'a job argümanı olarak sadece rastgele dosya ADI (`<32 hex>.apk`) gider ve worker bu adı kendi yükleme klasörü içinde doğrular (yol enjeksiyonu yok). İki container aynı uid (10001) ile çalışır.
+- **Silme garantisi, dört katman:** (1) collect hata/zaman aşımı/iptalde kendi temizliğini yapar, (2) başarıda `ApkContext.aclose()`, (3) `run_scan` finally bloğu (collector'a hiç ulaşılmasa bile), (4) cron 1 saatten eski yetim yüklemeleri ve geçici klasörleri siler. API tarafında doğrulama veya kuyruk hatasında dosya hemen silinir.
+- **Zip bomb:** Bildirilen (central directory) boyutlar, girdi sayısı ve 1 MB üstü girdilerde sıkıştırma oranı (>200) kontrol edilir. Bildirilen boyutlar yalan olabilir; son savunma hattı worker'daki 2 GB'lık tmpfs ve araç zaman aşımlarıdır.
+- **Test fixture'ları:** Android SDK olmadan `apktool b` (aapt2 + smali) ile derlenip JDK `jarsigner` ile imzalanır (`tests/fixtures/apk/build_fixtures.py`). Sahte anahtarlar betikte üretilir, repoya düz metin olarak girmez. apktool/jadx gerektiren testler `@pytest.mark.tools` ile işaretlidir ve CI'da worker imajında çalışır.
+- **Framework önceliği:** flutterflow > flutter > expo > react_native > native. FlutterFlow tespiti `libapp.so` içindeki `flutter_flow/` Dart paket yollarına dayanır.
+- **Firebase değerleri meta'ya maskeli girer:** `google_api_key` maskelenir; `project_id` ve `firebase_database_url` olduğu gibi tutulur (Faz 3 hazırlığı, Faz 1'de bunlara istek atılmaz).

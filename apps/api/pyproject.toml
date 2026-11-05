@@ -17,6 +17,7 @@ dependencies = [
     "selectolax>=0.3.21",
     "pyyaml>=6.0",
     "python-multipart>=0.0.9",
+    "defusedxml>=0.7",
 ]
 
 [dependency-groups]
@@ -46,10 +47,13 @@ select = ["E", "F", "W", "I", "B", "UP", "ASYNC", "S", "SIM", "RUF"]
 ignore = ["S101", "RUF001", "RUF002", "RUF003"]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**" = ["S", "B", "E501"]  # testlerde uzun HTML/JS örnek dizeleri
+"tests/**" = ["S", "B", "E501", "ASYNC240"]  # uzun örnek dizeler, testte senkron dosya işlemleri
 "alembic/**" = ["E501"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
 testpaths = ["tests"]
+markers = [
+    "tools: apktool/jadx gerektirir (worker imajında çalışır; araçlar yoksa atlanır)",
+]

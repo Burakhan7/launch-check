@@ -37,3 +37,17 @@ jobs:
       - run: npm run lint
       - run: npm run format:check
       - run: npm run build
+
+  apk-tools:
+    # apktool/jadx gerektiren testler: worker imajında, prod gibi salt okunur dosya sistemiyle
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - run: docker build -t lc-worker -f apps/api/Dockerfile.worker apps/api
+      - name: pytest -m tools
+        run: >-
+          docker run --rm -v "$PWD/apps/api:/src:ro"
+          -e UV_PROJECT_ENVIRONMENT=/tmp/venv -e UV_CACHE_DIR=/tmp/uvcache -e HOME=/tmp/home
+          --read-only --tmpfs /tmp:size=2g,mode=1777,exec lc-worker
+          sh -c 'cp -r /src /tmp/src && cd /tmp/src && rm -rf .venv
+          && uv sync --frozen -q && uv run --no-sync pytest -q -m tools -p no:cacheprovider'

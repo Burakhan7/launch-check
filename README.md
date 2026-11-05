@@ -33,3 +33,14 @@ npm install
 npm run dev        # http://localhost:3000 → /tr
 npm run lint && npm run format:check
 ```
+
+## APK test fixture'ları
+
+`apps/api/tests/fixtures/apk/*.apk` dosyaları küçük, gerçek ve imzalı APK'lardır. Yeniden üretmek için:
+
+```bash
+docker build -t lc-apk-fixtures apps/api/tests/fixtures/apk
+docker run --rm -v "$PWD/apps/api/tests/fixtures/apk:/out" lc-apk-fixtures
+```
+
+apktool/jadx gerektiren testler (`pytest -m tools`) worker imajında çalışır; CI'daki `apk-tools` job'una bak.

@@ -55,8 +55,18 @@ class Settings(BaseSettings):
     max_apk_bytes: int = 150 * 1024 * 1024
     max_apk_uncompressed_bytes: int = 1024 * 1024 * 1024
     max_apk_entries: int = 50_000
-    apktool_timeout_s: int = 120
-    jadx_timeout_s: int = 240
+    max_apk_compression_ratio: float = 200.0
+    # API ve worker'ın ortak volume'u. Worker'a sadece dosya adı gider.
+    upload_dir: str = "/var/lib/launchcheck/uploads"
+    # Worker çöktüyse geride kalan yüklemeler bu süreden sonra cron ile silinir
+    upload_orphan_after_s: int = 3600
+    java_max_heap: str = "1536m"
+    jadx_threads: int = 2
+    # String kaynaklarının toplam boyut limiti (bellek koruması)
+    apk_max_string_bytes: int = 200 * 1024 * 1024
+    apk_max_asset_bytes: int = 5 * 1024 * 1024  # tek bir asset/raw dosyası
+    apktool_timeout_s: float = 120
+    jadx_timeout_s: float = 240
     scan_tmp_dir: str = Field(default="/tmp/launchcheck")  # noqa: S108
 
     # Google Play minimum targetSdkVersion — değeri .env'den gelir, bkz. .env.example

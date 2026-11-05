@@ -1,8 +1,10 @@
+import asyncio
 import logging
 import uuid
+from pathlib import Path
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, File, Form, Query, UploadFile
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -18,6 +20,14 @@ from launchcheck.db.models import FindingRow, Scan, ScanStatus
 from launchcheck.db.session import get_session
 from launchcheck.i18n import normalize_lang
 from launchcheck.security.ssrf import UrlGuard
+from launchcheck.security.upload import (
+    UploadError,
+    ZipLimits,
+    delete_upload,
+    inspect_zip,
+    save_upload,
+    validate_filename,
+)
 from launchcheck.security.url import TargetValidationError, normalize_target_url
 
 logger = logging.getLogger(__name__)
@@ -27,6 +37,7 @@ SessionDep = Annotated[AsyncSession, Depends(get_session)]
 QueueDep = Annotated[JobQueue, Depends(get_queue)]
 GuardDep = Annotated[UrlGuard, Depends(get_url_guard)]
 web_rate_limit = rate_limit("web", lambda: get_settings().rate_limit_web_per_hour)
+apk_rate_limit = rate_limit("apk", lambda: get_settings().rate_limit_apk_per_hour)
 
 
 async def _enqueue(
@@ -60,6 +71,54 @@ async def create_web_scan(
     await session.commit()
     # Tam URL DB'ye yazılmaz, sadece job argümanı olarak kuyruğa gider.
     await _enqueue(session, queue, scan, {"url": target.url})
+    return ScanCreated(scan_id=scan.id)
+
+
+async def _store_apk(file: UploadFile) -> Path:
+    settings = get_settings()
+    upload_dir = Path(settings.upload_dir)
+    path = await save_upload(file, upload_dir, settings.max_apk_bytes)
+    limits = ZipLimits(
+        max_entries=settings.max_apk_entries,
+        max_uncompressed_bytes=settings.max_apk_uncompressed_bytes,
+        max_compression_ratio=settings.max_apk_compression_ratio,
+    )
+    try:
+        await asyncio.to_thread(inspect_zip, path, limits)
+    except UploadError:
+        delete_upload(path.name, upload_dir)
+        raise
+    return path
+
+
+@router.post(
+    "/apk", status_code=202, response_model=ScanCreated, dependencies=[Depends(apk_rate_limit)]
+)
+async def create_apk_scan(
+    session: SessionDep,
+    queue: QueueDep,
+    file: Annotated[UploadFile, File()],
+    consent: Annotated[bool, Form()] = False,
+) -> ScanCreated:
+    """APK yüklemesi. Dosya adı saklanmaz; target_label tarama sonunda paket adı olur."""
+    if not consent:
+        raise ApiError("consent_required", 400)
+    try:
+        validate_filename(file.filename)
+        path = await _store_apk(file)
+    except UploadError as exc:
+        raise ApiError(exc.code, 413 if exc.code == "apk_too_large" else 400) from exc
+    finally:
+        await file.close()
+
+    scan = Scan(target_type=TargetType.APK, target_label="", status=ScanStatus.QUEUED)
+    session.add(scan)
+    await session.commit()
+    try:
+        await _enqueue(session, queue, scan, {"upload_path": path.name})
+    except ApiError:
+        delete_upload(path.name, Path(get_settings().upload_dir))
+        raise
     return ScanCreated(scan_id=scan.id)
 
 
