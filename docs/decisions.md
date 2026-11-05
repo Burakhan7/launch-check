@@ -26,3 +26,15 @@ AGENTS.md'nin açık bıraktığı noktalarda verilen kararlar. En basit güvenl
 - **Yuvarlama:** Skorlar yarım yukarı yuvarlanır (98.5 → 99). Python'un `round()` fonksiyonu kullanılmaz.
 - **APK endpoint'i:** `POST /api/scans/apk` upload güvenliğiyle birlikte M4'te eklenecek.
 - **Testler SQLite (aiosqlite) üzerinde** çalışır (CI'da Postgres gerekmez). Model ile migration uyumu `alembic check` ile gerçek Postgres'te doğrulandı.
+
+## 2026-11-05 — M2
+
+- **SSRF, bağlantı katmanında:** httpx 0.28 `network_backend` parametresi sunmadığı için `GuardedTransport`, httpx transport'unun iç `_pool`'unu `GuardedNetworkBackend` kullanan bir `httpcore.AsyncConnectionPool` ile değiştirir. Bu backend her TCP bağlantısında host'u yeniden çözer, tüm IP'leri doğrular, doğrulanan IP'ye bağlanır ve bağlandıktan sonra peer IP'yi tekrar kontrol eder. TLS SNI/sertifika doğrulaması orijinal host adıyla yapılır. `test_transport_uses_guarded_backend` bu iç yapı varsayımını doğrular; httpx yükseltilirse bu test kırılır.
+- **Eski IPv4 yazımları** (`2130706433`, `0x7f000001`, `127.1`, `0177.0.0.1`) işletim sistemine bırakılmaz; `inet_aton` kurallarıyla IP'ye çevrilip literal IP gibi kontrol edilir. Windows bunları hiç çözmüyor, Linux 127.0.0.1'e çeviriyor; davranış platformdan bağımsız olmalı.
+- **NAT64 (`64:ff9b::/96`) engelli:** Python bu aralığı reserved sayıyor. Sunucu DNS64 kullanmadığı için normal bir sitede karşılaşılmaz.
+- **API'de DNS ön kontrolü:** `POST /api/scans/web` özel/çözülemeyen adresleri kuyruğa almadan reddeder (hızlı geri bildirim). Asıl koruma worker'daki bağlantı katmanıdır.
+- **Accept header'ı tarayıcı benzeri:** `*/*` gönderildiğinde bazı siteler (ör. nextjs.org) HTML yerine markdown döndürüyor. Kullanıcının gördüğü sayfayı taramak için `text/html,...;q=0.9,*/*;q=0.8` gönderilir.
+- **Sadece aynı origin JS (AGENTS.md §10):** Script'lerini alt alan adı CDN'inden yükleyen siteler (ör. supabase.com → `frontend-assets.supabase.com`) için JS taraması 0 dosya bulur. Lovable/Bolt/Vite uygulamalarında script'ler aynı origin'den gelir. *Açık soru:* "aynı site" (aynı kayıtlı alan adının alt alan adları) kapsama alınsın mı? Doğru yapmak için Public Suffix List gerekir.
+- **Rate limit Redis'e erişemezse açık kalır (fail-open):** Redis yoksa kuyruk da çalışmaz ve istek zaten 503 ile döner; bu durumda kullanıcıyı ayrıca engellemenin anlamı yok.
+- **İstemci IP'si:** Caddy arkasında uvicorn `--proxy-headers` ile `X-Forwarded-For`'dan okunur. Prod'da api portu dışarı açık değil, sadece Caddy erişir. Dev compose'da 8000 portu açık olduğu için header taklit edilebilir; bu sadece dev'de geçerli.
+- **selectolax 1.0:** Eski `modest` motoru kaldırıldı, `lexbor` (`LexborHTMLParser`) kullanılıyor.

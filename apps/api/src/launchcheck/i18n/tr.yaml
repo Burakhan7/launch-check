@@ -14,3 +14,8 @@ errors:
   collector_unavailable: "Bu tür taramayı henüz yapamıyoruz."
   scan_timeout: "Tarama çok uzun sürdü ve durduruldu. Site yavaş veya erişilemez olabilir."
   scan_stale: "Tarama yarıda kaldı. Lütfen tekrar tara."
+  url_not_public: "Bu adres herkese açık bir siteye ait değil (yerel ağ veya özel IP). Sadece internetten erişilebilen siteleri tarayabiliyoruz."
+  url_unresolvable: "Bu alan adı bulunamadı. Adresi doğru yazdığından emin ol."
+  site_unreachable: "Siteye ulaşamadık. Sitenin açık olduğundan ve internetten erişilebildiğinden emin ol."
+  too_many_redirects: "Site çok fazla yönlendirme yapıyor, taramayı durdurduk."
+  rate_limited: "Kısa sürede çok fazla tarama yaptın. Lütfen biraz sonra tekrar dene."

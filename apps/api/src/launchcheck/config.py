@@ -46,6 +46,9 @@ class Settings(BaseSettings):
     max_js_file_bytes: int = 10 * 1024 * 1024
     max_total_bytes: int = 50 * 1024 * 1024
     max_js_files: int = 60
+    js_fetch_concurrency: int = 6
+    probe_max_bytes: int = 1024 * 1024  # /.env, /.git/config gibi tekil dosya kontrolleri
+    dns_timeout_s: float = 5.0
     bot_user_agent: str = "LaunchCheckBot/1.0 (+https://launchcheck.example/bot)"
 
     # APK yükleme / analiz

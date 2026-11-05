@@ -14,3 +14,8 @@ errors:
   collector_unavailable: "We can't run this type of scan yet."
   scan_timeout: "The scan took too long and was stopped. The site may be slow or unreachable."
   scan_stale: "The scan didn't finish. Please scan again."
+  url_not_public: "This address doesn't belong to a public website (local network or private IP). We can only scan sites reachable from the internet."
+  url_unresolvable: "We couldn't find this domain. Please check the address."
+  site_unreachable: "We couldn't reach the site. Make sure it's online and reachable from the internet."
+  too_many_redirects: "The site redirects too many times, so we stopped the scan."
+  rate_limited: "You've run too many scans in a short time. Please try again a bit later."

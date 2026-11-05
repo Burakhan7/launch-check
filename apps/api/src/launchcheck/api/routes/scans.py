@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from launchcheck.api.deps import get_url_guard, rate_limit
 from launchcheck.api.errors import ApiError
 from launchcheck.api.queue import RUN_SCAN_JOB, JobQueue, get_queue
 from launchcheck.api.report import build_report
@@ -16,6 +17,7 @@ from launchcheck.config import get_settings
 from launchcheck.db.models import FindingRow, Scan, ScanStatus
 from launchcheck.db.session import get_session
 from launchcheck.i18n import normalize_lang
+from launchcheck.security.ssrf import UrlGuard
 from launchcheck.security.url import TargetValidationError, normalize_target_url
 
 logger = logging.getLogger(__name__)
@@ -23,6 +25,8 @@ router = APIRouter(prefix="/scans", tags=["scans"])
 
 SessionDep = Annotated[AsyncSession, Depends(get_session)]
 QueueDep = Annotated[JobQueue, Depends(get_queue)]
+GuardDep = Annotated[UrlGuard, Depends(get_url_guard)]
+web_rate_limit = rate_limit("web", lambda: get_settings().rate_limit_web_per_hour)
 
 
 async def _enqueue(
@@ -38,12 +42,16 @@ async def _enqueue(
         raise ApiError("queue_unavailable", 503) from exc
 
 
-@router.post("/web", status_code=202, response_model=ScanCreated)
+@router.post(
+    "/web", status_code=202, response_model=ScanCreated, dependencies=[Depends(web_rate_limit)]
+)
 async def create_web_scan(
-    body: WebScanRequest, session: SessionDep, queue: QueueDep
+    body: WebScanRequest, session: SessionDep, queue: QueueDep, guard: GuardDep
 ) -> ScanCreated:
     try:
         target = normalize_target_url(body.url)
+        # Erken geri bildirim için DNS + IP kontrolü. Worker bağlantı anında tekrar doğrular.
+        await guard.resolve_public(target.host, target.port)
     except TargetValidationError as exc:
         raise ApiError(exc.code, 400) from exc
 

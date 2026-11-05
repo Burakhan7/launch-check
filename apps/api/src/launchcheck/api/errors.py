@@ -9,10 +9,13 @@ from launchcheck.i18n import error_message, normalize_lang
 
 
 class ApiError(Exception):
-    def __init__(self, code: str, status_code: int = 400) -> None:
+    def __init__(
+        self, code: str, status_code: int = 400, headers: dict[str, str] | None = None
+    ) -> None:
         super().__init__(code)
         self.code = code
         self.status_code = status_code
+        self.headers = headers or {}
 
 
 def request_lang(request: Request) -> str:
@@ -21,16 +24,20 @@ def request_lang(request: Request) -> str:
     )
 
 
-def error_response(request: Request, code: str, status_code: int) -> JSONResponse:
+def error_response(
+    request: Request, code: str, status_code: int, headers: dict[str, str] | None = None
+) -> JSONResponse:
     message = error_message(code, request_lang(request))
     return JSONResponse(
-        status_code=status_code, content={"error": {"code": code, "message": message}}
+        status_code=status_code,
+        content={"error": {"code": code, "message": message}},
+        headers=headers,
     )
 
 
 async def _api_error(request: Request, exc: Exception) -> JSONResponse:
     assert isinstance(exc, ApiError)
-    return error_response(request, exc.code, exc.status_code)
+    return error_response(request, exc.code, exc.status_code, exc.headers)
 
 
 async def _validation_error(request: Request, exc: Exception) -> JSONResponse:

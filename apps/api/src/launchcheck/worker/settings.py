@@ -5,9 +5,13 @@ from typing import Any, ClassVar
 from arq import cron
 from arq.connections import RedisSettings
 
+from launchcheck.checks.base import TargetType
 from launchcheck.checks.registry import load_builtin_checks
+from launchcheck.collectors.base import register_collector
+from launchcheck.collectors.web_collector import WebCollector
 from launchcheck.config import get_settings
 from launchcheck.db.session import get_engine, get_sessionmaker
+from launchcheck.security.ssrf import UrlGuard
 from launchcheck.worker.tasks import cleanup_expired, cleanup_stale, hello, run_scan
 
 _settings = get_settings()
@@ -18,6 +22,9 @@ JOB_TIMEOUT_MARGIN_S = 60
 
 async def startup(ctx: dict[str, Any]) -> None:
     load_builtin_checks()
+    register_collector(
+        TargetType.WEB, WebCollector(_settings, UrlGuard(timeout_s=_settings.dns_timeout_s))
+    )
     ctx["sessionmaker"] = get_sessionmaker()
 
 

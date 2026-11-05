@@ -9,7 +9,7 @@ from launchcheck.api import report as report_module
 from launchcheck.checks.base import Category, Severity, TargetType
 from launchcheck.db.models import FindingRow, Scan, ScanStatus
 from launchcheck.i18n.loader import FindingText
-from tests.conftest import FakeQueue
+from tests.conftest import FakeQueue, FakeResolver
 
 
 async def test_create_web_scan(
@@ -150,3 +150,34 @@ async def test_get_failed_scan_shows_localized_error(
     assert body["error"]["code"] == "scan_timeout"
     assert "çok uzun sürdü" in body["error"]["message"]
     assert body["findings"] == [] and body["passed"] == []
+
+
+async def test_private_target_rejected_before_queue(
+    client: AsyncClient, queue: FakeQueue, resolver: FakeResolver
+) -> None:
+    resolver.mapping["intranet.example"] = ["10.0.0.7"]
+    for url in ("http://127.0.0.1", "http://[::1]/", "intranet.example", "http://169.254.169.254"):
+        resp = await client.post("/api/scans/web?lang=en", json={"url": url})
+        assert resp.status_code == 400, url
+        assert resp.json()["error"]["code"] == "url_not_public"
+    assert queue.jobs == []
+
+
+async def test_unresolvable_target(client: AsyncClient, resolver: FakeResolver) -> None:
+    resolver.mapping["nope.example"] = []
+    resp = await client.post("/api/scans/web", json={"url": "nope.example"})
+    assert resp.json()["error"]["code"] == "url_unresolvable"
+
+
+async def test_rate_limit(client: AsyncClient, monkeypatch: pytest.MonkeyPatch) -> None:
+    from launchcheck.config import get_settings
+
+    monkeypatch.setattr(get_settings(), "rate_limit_web_per_hour", 2)
+    codes = [
+        (await client.post("/api/scans/web", json={"url": "example.com"})).status_code
+        for _ in range(3)
+    ]
+    assert codes == [202, 202, 429]
+    resp = await client.post("/api/scans/web?lang=tr", json={"url": "example.com"})
+    assert resp.json()["error"]["code"] == "rate_limited"
+    assert int(resp.headers["retry-after"]) > 0
