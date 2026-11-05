@@ -114,3 +114,33 @@ async def test_private_target_raises_collector_error() -> None:
     with pytest.raises(CollectorError) as exc:
         await c.collect(uuid.uuid4(), {"url": f"{SITE}/"})
     assert exc.value.code == "url_not_public"
+
+
+CF_CHALLENGE = (
+    "<!DOCTYPE html><html><head><title>Just a moment...</title></head><body></body></html>"
+)
+
+
+@pytest.mark.parametrize(
+    ("status", "body", "headers", "code"),
+    [
+        (403, CF_CHALLENGE, {}, "site_blocked_bot"),
+        (200, "<html>ok</html>", {"cf-mitigated": "challenge"}, "site_blocked_bot"),
+        (403, "<html><title>Vercel Security Checkpoint</title></html>", {}, "site_blocked_bot"),
+        (403, "<html></html>", {"x-vercel-mitigated": "challenge"}, "site_blocked_bot"),
+        (404, "<html>Not found</html>", {}, "site_http_error"),
+        (502, "Bad gateway", {}, "site_http_error"),
+    ],
+)
+async def test_unscannable_home_page(
+    status: int, body: str, headers: dict[str, str], code: str
+) -> None:
+    with respx.mock:
+        respx.get(f"{SITE}/").mock(
+            return_value=httpx.Response(
+                status, text=body, headers={"content-type": "text/html", **headers}
+            )
+        )
+        with pytest.raises(CollectorError) as exc:
+            await collector().collect(uuid.uuid4(), {"url": f"{SITE}/"})
+        assert exc.value.code == code

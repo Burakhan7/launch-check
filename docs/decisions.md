@@ -38,3 +38,16 @@ AGENTS.md'nin açık bıraktığı noktalarda verilen kararlar. En basit güvenl
 - **Rate limit Redis'e erişemezse açık kalır (fail-open):** Redis yoksa kuyruk da çalışmaz ve istek zaten 503 ile döner; bu durumda kullanıcıyı ayrıca engellemenin anlamı yok.
 - **İstemci IP'si:** Caddy arkasında uvicorn `--proxy-headers` ile `X-Forwarded-For`'dan okunur. Prod'da api portu dışarı açık değil, sadece Caddy erişir. Dev compose'da 8000 portu açık olduğu için header taklit edilebilir; bu sadece dev'de geçerli.
 - **selectolax 1.0:** Eski `modest` motoru kaldırıldı, `lexbor` (`LexborHTMLParser`) kullanılıyor.
+
+## 2026-11-05 — M3
+
+- **`web.secrets.google_api_key` ayrı check:** AGENTS.md google_api_key için özel bir başlık istiyor ("kısıtlamalarını kontrol et"). Başlıklar check_id başına tanımlandığı için Google anahtarları `web.secrets.leaked_key` yerine kendi check'inde (medium) raporlanır. APK tarafında da `apk.secrets.google_api_key` aynı mantıkla eklenecek.
+- **Supabase anon key bulgu değildir:** `role=anon` JWT'ler normaldir ve raporlanmaz. Sadece `service_role` raporlanır (critical).
+- **OpenAI deseni ek filtre:** `sk-` öneki genel olduğu için tireli kelimeler (ör. `sk-modal-overlay-container`) entropi eşiğini geçebiliyor. OpenAI eşleşmelerinde büyük harf + küçük harf + rakam karışımı zorunlu.
+- **Ana sayfa taranamıyorsa rapor yok:** Ana sayfa 4xx/5xx dönerse (`site_http_error`) veya bot doğrulama sayfası gelirse (`site_blocked_bot`: Cloudflare, Vercel Security Checkpoint, DataDome, Imperva) tarama başarısız sayılır. Gerçek denemede lovable.dev Cloudflare doğrulama sayfası döndürdü, nextjs.org ise art arda taramalardan sonra Vercel checkpoint'i gösterdi; doğrulama sayfasını taramak yanıltıcı bir rapor üretir (ör. sahte noindex bulgusu).
+- **Localhost check'i:** Çıplak `http://localhost` sayılmaz (kütüphanelerde sık geçer); port veya yol olmalı. OpenTelemetry OTLP varsayılanları (`localhost:4317/4318`) yok sayılır (nextjs.org'da gerçek yanlış alarm).
+- **Staging check'i:** İlk etiket kuralı (`dev.`, `staging.`) sadece en az 3 parçalı host'lara uygulanır (`staging.com` alan adının kendisidir). `.test/.local/.internal` uzantıları da geliştirme adresi sayılır.
+- **Yasal sayfalar (SPA):** Ham HTML'de link yoksa JS bundle'larında rota string'i aranır (`"/privacy"`, `"/kvkk"`). Bu yaklaşım yanlış alarmdan kaçınmak için hoşgörülüdür; Faz 2'de tarayıcıda render edilip kesinleştirilecek.
+- **Source map:** Map dosyaları genelde probe limitinden (1 MB) büyük olduğu için tam JSON yerine başlangıç imzasına bakılır.
+- **`.env` kanıtı:** Sadece değişken adları (en fazla 10) saklanır, değerler asla saklanmaz.
+- **i18n dosya düzeni:** Bulgu metinleri `i18n/checks/<grup>.<dil>.yaml` dosyalarında; loader hepsini birleştirir ve aynı check_id iki dosyada tanımlıysa hata verir.

@@ -4,7 +4,7 @@ import asyncio
 import uuid
 from collections import deque
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, Protocol
 
 import httpx
 
@@ -30,6 +30,14 @@ class ScriptFile:
     inline: bool = False
 
 
+class Fetcher(Protocol):
+    async def fetch(
+        self, url: str, max_bytes: int, follow_redirects: bool = True
+    ) -> FetchResult: ...
+
+    async def aclose(self) -> None: ...
+
+
 @dataclass
 class WebContext(ScanContext):
     requested_url: str = ""
@@ -39,34 +47,94 @@ class WebContext(ScanContext):
     html: str = ""
     scripts: list[ScriptFile] = field(default_factory=list)
     all_script_urls: list[str] = field(default_factory=list)
-    fetcher: SafeFetcher | None = None
+    fetcher: Fetcher | None = None
     probe_max_bytes: int = 0
-    _probe_cache: dict[str, FetchResult | None] = field(default_factory=dict)
+    # Eşzamanlı check'ler aynı yolu isterse tek istek atılır.
+    _fetch_tasks: dict[tuple[str, bool], "asyncio.Task[FetchResult | None]"] = field(
+        default_factory=dict
+    )
+    _baseline_path: str = field(default_factory=lambda: f"/{uuid.uuid4().hex}.txt")
 
     @property
     def origin(self) -> str:
         return origin_of(self.final_url)
 
+    @property
+    def is_https(self) -> bool:
+        return self.final_url.startswith("https://")
+
+    async def _fetch_or_none(self, url: str, follow_redirects: bool) -> FetchResult | None:
+        if self.fetcher is None:
+            return None
+        try:
+            return await self.fetcher.fetch(url, self.probe_max_bytes, follow_redirects)
+        except FetchError:
+            return None
+
+    async def fetch_url(self, url: str, follow_redirects: bool = False) -> FetchResult | None:
+        """Tek bir URL'yi çeker (önbellekli, SSRF korumalı). Ağ hatasında None döner;
+        check'ler bunu "bulunamadı" sayar."""
+        key = (url, follow_redirects)
+        if key not in self._fetch_tasks:
+            self._fetch_tasks[key] = asyncio.ensure_future(
+                self._fetch_or_none(url, follow_redirects)
+            )
+        return await asyncio.shield(self._fetch_tasks[key])
+
     async def probe(self, path: str) -> FetchResult | None:
-        """Aynı origin'de tek bir yolu redirect takip etmeden çeker (önbellekli).
-        Ağ hatasında None döner; check'ler bunu "bulunamadı" sayar."""
-        if path in self._probe_cache:
-            return self._probe_cache[path]
-        result: FetchResult | None = None
-        if self.fetcher is not None:
-            try:
-                result = await self.fetcher.fetch(
-                    self.origin + path, self.probe_max_bytes, follow_redirects=False
-                )
-            except FetchError:
-                result = None
-        self._probe_cache[path] = result
-        return result
+        """Aynı origin'de bir yolu redirect takip etmeden çeker."""
+        return await self.fetch_url(self.origin + path)
+
+    async def baseline(self) -> FetchResult | None:
+        """Var olmayan rastgele bir yolun yanıtı (SPA catch-all tespiti için)."""
+        return await self.probe(self._baseline_path)
+
+    async def real_file(self, path: str) -> FetchResult | None:
+        """Yol gerçekten bir dosya döndürüyorsa yanıtı, aksi hâlde None.
+        200 olmayanlar ve SPA'nın her yola döndürdüğü sayfayla aynı içerik elenir."""
+        res = await self.probe(path)
+        if res is None or res.status != 200 or not res.body:
+            return None
+        base = await self.baseline()
+        if base is not None and base.status == 200 and base.body == res.body:
+            return None
+        return res
 
     async def aclose(self) -> None:
+        for task in self._fetch_tasks.values():
+            task.cancel()
         if self.fetcher is not None:
             await self.fetcher.aclose()
             self.fetcher = None
+
+
+HTTP_ERROR_MIN = 400
+BOT_CHALLENGE_MARKERS = (
+    b"<title>just a moment",  # Cloudflare
+    b"cf-chl-",
+    b"challenge-platform",
+    b"captcha-delivery.com",  # DataDome
+    b"_incapsula_resource",  # Imperva
+    b"<title>attention required",
+    b"<title>vercel security checkpoint",
+)
+# Header adı → "challenge" değeri: Cloudflare, Vercel
+CHALLENGE_HEADERS = ("cf-mitigated", "x-vercel-mitigated")
+
+
+def is_bot_challenge(res: FetchResult) -> bool:
+    if any(res.headers.get(h, "").lower() == "challenge" for h in CHALLENGE_HEADERS):
+        return True
+    head = res.body[:20000].lower()
+    return any(marker in head for marker in BOT_CHALLENGE_MARKERS)
+
+
+def raise_for_unscannable(main: FetchResult) -> None:
+    """Ana sayfa hata veya bot doğrulama sayfası dönüyorsa yanıltıcı rapor üretme."""
+    if is_bot_challenge(main):
+        raise CollectorError("site_blocked_bot")
+    if main.status >= HTTP_ERROR_MIN:
+        raise CollectorError("site_http_error")
 
 
 class WebCollector:
@@ -99,6 +167,7 @@ class WebCollector:
 
     async def _collect(self, fetcher: SafeFetcher, url: str) -> WebContext:
         main = await fetcher.fetch(url, self._settings.max_html_bytes)
+        raise_for_unscannable(main)
         html = main.text
         page = extract_html_scripts(html, main.final_url)
         scripts = [

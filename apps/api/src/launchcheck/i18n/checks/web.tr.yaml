@@ -1,0 +1,319 @@
+# Web check metinleri (Türkçe). Ton: sade, suçlamayan, sonuç odaklı.
+
+web.secrets.leaked_key:
+  title: "Sitenin kodunda gizli bir API anahtarı var"
+  description: "Tarayıcıya gönderilen JavaScript dosyalarında, sadece sunucuda durması gereken bir anahtar bulundu (ör. OpenAI, Stripe, AWS). Siteni ziyaret eden herkes bu dosyaları görebilir."
+  why_it_matters: "Bu anahtarı bulan biri senin adına işlem yapabilir: yapay zekâ kullanımıyla faturanı şişirebilir, ödeme sistemine erişebilir veya verilerini okuyabilir. Botlar sitelerdeki bu tür anahtarları otomatik olarak tarar."
+  fix_steps:
+    - "Bu anahtarı ilgili servisin panelinden hemen iptal et ve yenisini oluştur (eski anahtar artık güvenli değil)."
+    - "Yeni anahtarı frontend koduna değil, sunucu tarafına koy (ör. Supabase Edge Function, Vercel/Netlify serverless function veya kendi backend'in)."
+    - "Frontend'den bu servisi doğrudan değil, kendi sunucu fonksiyonun üzerinden çağır."
+    - "Ortam değişkenlerinde VITE_, NEXT_PUBLIC_ veya EXPO_PUBLIC_ önekini gizli anahtarlar için kullanma; bu önekler değeri tarayıcıya gönderir."
+  fix_prompt: |
+    Projemde gizli bir API anahtarı frontend koduna (tarayıcıya giden JavaScript'e) sızmış. Lütfen:
+    1. Kodda bu anahtarın kullanıldığı tüm yerleri bul.
+    2. Bu servise yapılan çağrıları bir sunucu fonksiyonuna taşı (Supabase Edge Function veya serverless function); anahtar sadece orada, ortam değişkeninden okunsun.
+    3. Frontend sadece bu sunucu fonksiyonunu çağırsın; anahtar frontend'de hiçbir yerde kalmasın.
+    4. VITE_ / NEXT_PUBLIC_ / EXPO_PUBLIC_ önekli değişkenlerde gizli anahtar kalmadığından emin ol.
+    Not: Anahtarı ayrıca servisin panelinden iptal edip yenileyeceğim.
+
+web.secrets.google_api_key:
+  title: "Google API anahtarı bulundu, kısıtlamalarını kontrol et"
+  description: "Sitenin kodunda bir Google API anahtarı (AIza... ile başlayan) bulundu. Firebase kullanıyorsan bu genelde normaldir: Firebase'in web yapılandırma anahtarı herkese açık olacak şekilde tasarlanmıştır."
+  why_it_matters: "Aynı formatta bir anahtar Gemini, Google Maps veya başka bir ücretli Google servisine ait olabilir. Kısıtlanmamış bir anahtarı başkaları kendi projelerinde kullanabilir ve faturan sana kalır."
+  fix_steps:
+    - "Google Cloud Console → APIs & Services → Credentials sayfasında bu anahtarı bul."
+    - "Application restrictions bölümünde anahtarı sadece kendi alan adınla (HTTP referrer) sınırla."
+    - "API restrictions bölümünde sadece gerçekten kullandığın API'leri seç (ör. sadece Firebase API'leri)."
+    - "Anahtar Gemini veya başka bir ücretli API içinse frontend'den kaldır ve çağrıları sunucu tarafına taşı."
+  fix_prompt: |
+    Projemde frontend kodunda bir Google API anahtarı (AIza...) var. Lütfen:
+    1. Bu anahtarın ne için kullanıldığını bul (Firebase yapılandırması mı, Gemini/Maps gibi başka bir API mi?).
+    2. Firebase web config'i ise olduğu gibi bırak, ama hangi Google API'lerini kullandığımızı listele ki Cloud Console'da anahtarı bunlarla sınırlayabileyim.
+    3. Gemini veya başka bir ücretli API ise çağrıları bir sunucu fonksiyonuna taşı ve anahtarı frontend'den tamamen kaldır.
+
+web.secrets.service_role:
+  title: "Supabase yönetici anahtarın herkese açık"
+  description: "Sitenin kodunda Supabase'in service_role anahtarı bulundu. Bu anahtar veritabanındaki tüm güvenlik kurallarını (RLS) atlar."
+  why_it_matters: "Bu anahtarı bulan herkes tüm kullanıcı verilerini okuyabilir, değiştirebilir ve silebilir. Siteni ziyaret eden herkes bu anahtarı görebilir."
+  fix_steps:
+    - "Supabase panelinden bu anahtarı hemen yenile (Project Settings → API)."
+    - "Frontend kodunda sadece anon/publishable anahtarı kullan."
+    - "Yönetici yetkisi gereken işlemleri Edge Function veya backend'e taşı."
+  fix_prompt: |
+    Projemde Supabase service_role anahtarı frontend koduna sızmış. Lütfen:
+    1. Frontend'deki tüm service_role kullanımlarını bul ve kaldır.
+    2. Frontend'de sadece anon key kullanılsın.
+    3. service_role gerektiren işlemleri bir Supabase Edge Function'a taşı ve frontend'den onu çağır.
+    4. İlgili tablolarda RLS'in açık olduğunu ve doğru policy'ler olduğunu kontrol et.
+
+web.files.env_exposed:
+  title: ".env dosyan internetten okunabiliyor"
+  description: "Sitende bir .env dosyası (ortam değişkenleri dosyası) herkesin erişebileceği bir adreste duruyor. Bu dosyalar genelde şifreler ve gizli anahtarlar içerir."
+  why_it_matters: "Bu dosyadaki tüm anahtarlar ve şifreler ele geçirilmiş sayılmalı. Botlar sitelerde /.env adresini sürekli tarar; bu genelde ilk denenen şeylerden biridir."
+  fix_steps:
+    - "Dosyayı yayınlanan klasörden (public, dist, build) hemen kaldır ve siteyi yeniden yayınla."
+    - "Dosyadaki TÜM anahtarları ve şifreleri ilgili servislerden yenile; dosyayı kimin gördüğünü bilemezsin."
+    - ".env dosyalarını .gitignore'a ekle ve ortam değişkenlerini hosting panelinden (Vercel, Netlify vb.) tanımla."
+  fix_prompt: |
+    Sitemde .env dosyası herkese açık bir adreste yayınlanmış. Lütfen:
+    1. .env dosyalarının neden build çıktısına veya public klasörüne kopyalandığını bul ve bunu engelle.
+    2. .env, .env.local, .env.production gibi dosyaları .gitignore'a ekle.
+    3. Ortam değişkenlerini hosting sağlayıcısının ayarlarından okuyacak şekilde yapılandır.
+    4. Build çıktısında hiçbir .env dosyası kalmadığını doğrula.
+
+web.files.git_exposed:
+  title: "Projenin .git klasörü internetten okunabiliyor"
+  description: "Sitende .git klasörü (kodunun tüm geçmişini tutan klasör) herkese açık. Bu klasörden projenin kaynak kodu indirilebilir."
+  why_it_matters: "Bir saldırgan kodunun tamamını ve geçmişini indirebilir; geçmişte koda yazılmış eski şifreler ve anahtarlar da dahil. Bu, başka açıkları bulmayı da çok kolaylaştırır."
+  fix_steps:
+    - "Sunucunda .git klasörünü yayınlanan klasörden kaldır veya web sunucusunda bu klasöre erişimi engelle."
+    - "Siteyi doğrudan git deposundan değil, build çıktısından yayınla."
+    - "Kod geçmişinde hiç şifre veya anahtar olduysa onları yenile."
+  fix_prompt: |
+    Sitemde .git klasörü herkese açık bir şekilde yayınlanmış. Lütfen:
+    1. Deploy sürecimi incele ve sadece build çıktısının (ör. dist/ veya build/) yayınlandığından emin ol.
+    2. Web sunucusu yapılandırmasına (nginx, Apache, Caddy vb.) .git ve diğer gizli klasörlere erişimi engelleyen bir kural ekle.
+    3. Git geçmişinde şifre veya API anahtarı olup olmadığını kontrol etmeme yardım et.
+
+web.files.backup_exposed:
+  title: "Bir yedek veya yapılandırma dosyası herkese açık"
+  description: "Sitende veritabanı yedeği (.sql), arşiv (.zip) veya gizli bilgi içeren bir yapılandırma dosyası (config.json) herkesin indirebileceği bir adreste duruyor."
+  why_it_matters: "Veritabanı yedekleri genelde kullanıcıların e-posta adreslerini, şifre özetlerini ve kişisel verilerini içerir. Bu bir veri sızıntısıdır ve KVKK/GDPR açısından bildirim yükümlülüğü doğurabilir."
+  fix_steps:
+    - "Dosyayı sunucudan hemen kaldır."
+    - "Yedekleri web sunucusunun yayınladığı klasörün dışında, erişimi kısıtlı bir yerde sakla."
+    - "Dosyada şifre veya anahtar varsa hepsini yenile."
+    - "Dosyada kişisel veri varsa hukuki yükümlülüklerini (ör. KVKK veri ihlali bildirimi) değerlendir."
+  fix_prompt: |
+    Sitemde bir yedek veya yapılandırma dosyası (backup.sql, dump.sql, backup.zip veya config.json gibi) herkese açık yayınlanmış. Lütfen:
+    1. Bu dosyanın neden public/yayın klasöründe olduğunu bul ve oradan kaldır.
+    2. Yedeklerin ve gizli yapılandırma dosyalarının bir daha build çıktısına girmemesi için kural ekle (.gitignore ve build ayarları).
+    3. config.json içindeki gizli değerleri ortam değişkenlerine taşı.
+
+web.files.sourcemap_exposed:
+  title: "Kaynak kodun haritası (source map) herkese açık"
+  description: "Sitenin JavaScript dosyalarının .map dosyaları erişilebilir. Bu dosyalar, sıkıştırılmış kodu orijinal, okunabilir kaynak koduna geri çevirir."
+  why_it_matters: "Herkes uygulamanın orijinal kaynak kodunu, yorumlarıyla birlikte okuyabilir. Bu, iş mantığındaki açıkları, gizli API adreslerini ve koda unutulmuş bilgileri bulmayı kolaylaştırır."
+  fix_steps:
+    - "Production build'inde source map üretimini kapat veya .map dosyalarını yayınlama."
+    - "Hata takibi için source map gerekiyorsa (ör. Sentry), map'leri sadece o servise yükle, sunucuda yayınlama."
+  fix_prompt: |
+    Sitemin production build'inde source map (.map) dosyaları herkese açık yayınlanıyor. Lütfen:
+    1. Build ayarlarında production için source map'i kapat (Vite: build.sourcemap = false; Next.js: productionBrowserSourceMaps = false).
+    2. Hata takibi için source map kullanıyorsam, map'leri sadece hata takip servisine yükleyip build çıktısından silen bir adım ekle.
+    3. Build çıktısında .map dosyası kalmadığını doğrula.
+
+web.bundle.localhost_urls:
+  title: "Kodda localhost adresi kalmış"
+  description: "Sitenin JavaScript kodunda localhost, 127.0.0.1 veya 10.0.2.2 gibi sadece geliştirme bilgisayarında çalışan adresler var."
+  why_it_matters: "Bu adresler kullanıcıların cihazında çalışmaz. Uygulama bu adrese istek atıyorsa giriş, kayıt veya veri yükleme gibi özellikler gerçek kullanıcılar için bozuk olabilir."
+  fix_steps:
+    - "Kanıttaki adreslerin kodda nerede kullanıldığını bul."
+    - "API adreslerini koda sabit yazmak yerine ortam değişkeninden oku ve production için gerçek sunucu adresini ver."
+    - "Değişiklikten sonra siteyi kendi bilgisayarın dışında bir cihazdan (ör. telefonundan) test et."
+  fix_prompt: |
+    Sitemin production kodunda localhost / 127.0.0.1 adresleri kalmış. Lütfen:
+    1. Koddaki tüm localhost, 127.0.0.1, 0.0.0.0 ve 10.0.2.2 adreslerini bul.
+    2. Bu adresleri ortam değişkeninden okunan bir API_URL ile değiştir.
+    3. Production ortamı için doğru API adresinin tanımlandığından emin ol.
+
+web.bundle.staging_urls:
+  title: "Kodda test/staging sunucu adresleri var"
+  description: "Sitenin kodunda staging, dev veya test gibi geliştirme ortamlarına ait sunucu adresleri bulundu."
+  why_it_matters: "Uygulama gerçek kullanıcıların verilerini test sunucusuna gönderiyor olabilir ya da test ortamı kapandığında özellikler bozulabilir. Test sunucuları genelde daha az korunur."
+  fix_steps:
+    - "Kanıttaki adreslerin production'da gerçekten kullanılıp kullanılmadığını kontrol et."
+    - "Ortama göre değişen adresleri ortam değişkenleriyle yönet; production build'ine sadece production adresleri girsin."
+  fix_prompt: |
+    Sitemin production kodunda staging/dev/test sunucu adresleri var. Lütfen:
+    1. Koddaki staging, dev ve test adreslerini bul ve nerede kullanıldıklarını açıkla.
+    2. Ortama özel adresleri ortam değişkenlerine taşı.
+    3. Production build'inin sadece production adreslerini kullandığından emin ol.
+
+web.seo.noindex_left:
+  title: "Siten Google'da görünmemeye ayarlı (noindex)"
+  description: "Sayfada arama motorlarına 'beni listeleme' diyen bir noindex etiketi veya header'ı var. Bu genelde geliştirme sırasında eklenir ve yayında unutulur."
+  why_it_matters: "Google ve diğer arama motorları siteni arama sonuçlarında göstermez. İnsanlar seni aradığında bulamaz."
+  fix_steps:
+    - "HTML'deki <meta name='robots' content='noindex'> etiketini kaldır."
+    - "Sunucu veya hosting ayarlarında X-Robots-Tag: noindex header'ı varsa kaldır."
+    - "Değişiklikten sonra Google Search Console'dan sayfanın yeniden taranmasını iste."
+  fix_prompt: |
+    Sitem arama motorlarından gizlenecek şekilde ayarlanmış (noindex). Lütfen:
+    1. Koddaki tüm noindex meta etiketlerini ve X-Robots-Tag header ayarlarını bul.
+    2. Production'da kaldır; sadece staging/preview ortamlarında kalsın istiyorsam bunu ortama göre koşullu yap.
+
+web.seo.robots_disallow_all:
+  title: "robots.txt tüm siteyi arama motorlarına kapatıyor"
+  description: "robots.txt dosyanda tüm arama motorları için 'Disallow: /' kuralı var. Bu kural, sitenin hiçbir sayfasının taranmamasını söyler."
+  why_it_matters: "Arama motorları siteni tarayamaz; yeni sayfaların Google'a girmez, var olanlar da zamanla düşebilir."
+  fix_steps:
+    - "robots.txt dosyasındaki 'User-agent: *' grubundan 'Disallow: /' satırını kaldır."
+    - "Sadece belirli yolları (ör. /admin) kapatmak istiyorsan onları tek tek yaz."
+    - "Dosyaya 'Sitemap: https://siten.com/sitemap.xml' satırı eklemeyi düşün."
+  fix_prompt: |
+    Sitemin robots.txt dosyası tüm siteyi arama motorlarına kapatıyor (Disallow: /). Lütfen:
+    1. robots.txt dosyasını, sitenin genel sayfalarının taranmasına izin verecek şekilde düzenle.
+    2. Sadece /admin gibi özel yolları kapalı tut.
+    3. Sitemap adresini robots.txt'ye ekle.
+
+web.https.missing:
+  title: "Siten güvenli bağlantı (HTTPS) kullanmıyor"
+  description: "Siten şifresiz HTTP üzerinden açılıyor veya http:// adresi otomatik olarak https:// adresine yönlenmiyor."
+  why_it_matters: "Şifresiz bağlantıda aynı ağdaki biri (ör. kafe Wi-Fi'ı) kullanıcıların girdiği şifreleri ve bilgileri görebilir. Tarayıcılar siteni 'Güvenli değil' olarak işaretler ve bu kullanıcıları kaçırır."
+  fix_steps:
+    - "Hosting panelinden ücretsiz HTTPS sertifikasını (Let's Encrypt) etkinleştir; çoğu sağlayıcıda tek tıklamadır."
+    - "http:// ile gelen tüm istekleri kalıcı olarak (301) https:// adresine yönlendir."
+  fix_prompt: |
+    Sitem HTTPS kullanmıyor veya HTTP'den HTTPS'e yönlendirme yapmıyor. Lütfen:
+    1. Hosting/sunucu yapılandırmamda HTTPS'i nasıl etkinleştireceğimi adım adım anlat.
+    2. Tüm http:// isteklerini 301 ile https:// adresine yönlendiren yapılandırmayı ekle.
+    3. Kodda sabit yazılmış http:// adreslerini https:// ile değiştir.
+
+web.https.mixed_content:
+  title: "Güvenli sayfa güvensiz dosya yüklüyor"
+  description: "Sayfan HTTPS ile açılıyor ama bazı script veya stil dosyalarını şifresiz http:// adreslerinden yüklüyor."
+  why_it_matters: "Tarayıcılar bu dosyaları genelde engeller; sitenin bazı kısımları bozuk görünebilir veya çalışmayabilir. Engellenmezse, ağdaki biri bu dosyaları değiştirip sayfana kötü amaçlı kod ekleyebilir."
+  fix_steps:
+    - "Kanıttaki http:// adreslerini https:// ile değiştir."
+    - "Dosyanın https sürümü yoksa dosyayı kendi sitende barındır."
+  fix_prompt: |
+    HTTPS sitemde http:// üzerinden yüklenen script veya stil dosyaları var (mixed content). Lütfen:
+    1. HTML ve kodda http:// ile yüklenen tüm script ve stylesheet'leri bul.
+    2. Hepsini https:// sürümleriyle değiştir; https sürümü olmayanları projeye dahil et.
+
+web.headers.hsts_missing:
+  title: "Tarayıcılara 'her zaman HTTPS kullan' denmiyor (HSTS yok)"
+  description: "Siten HTTPS kullanıyor ama Strict-Transport-Security header'ını göndermiyor. Bu header, tarayıcıya siteye her zaman güvenli bağlantıyla gelmesini söyler."
+  why_it_matters: "Bu header olmadan, kullanıcı siteye ilk kez http:// ile geldiğinde bağlantı kısa bir süre şifresiz olur ve araya girilebilir."
+  fix_steps:
+    - "Sunucu veya hosting ayarlarına şu header'ı ekle: Strict-Transport-Security: max-age=31536000; includeSubDomains"
+    - "Tüm alt alan adlarının HTTPS desteklediğinden emin değilsen includeSubDomains kısmını şimdilik çıkar."
+  fix_prompt: |
+    Sitem Strict-Transport-Security (HSTS) header'ı göndermiyor. Lütfen hosting/sunucu yapılandırmama (ör. vercel.json, netlify.toml, _headers dosyası veya nginx) şu header'ı ekle:
+    Strict-Transport-Security: max-age=31536000; includeSubDomains
+
+web.headers.csp_missing:
+  title: "İçerik güvenlik politikası (CSP) tanımlı değil"
+  description: "Siten Content-Security-Policy header'ı göndermiyor. CSP, sayfanın hangi kaynaklardan script ve içerik yükleyebileceğini sınırlar."
+  why_it_matters: "Sitende bir XSS açığı (sayfaya dışarıdan kod enjekte edilmesi) olursa, CSP saldırganın kodunun çalışmasını engelleyebilir. Ek bir savunma katmanıdır."
+  fix_steps:
+    - "Önce Content-Security-Policy-Report-Only ile başla, sitenin bozulmadığını gör."
+    - "Sitenin kullandığı kaynakları (kendi alan adın, Supabase, analitik vb.) izin listesine ekle, sonra gerçek CSP'ye geç."
+  fix_prompt: |
+    Sitemde Content-Security-Policy header'ı yok. Lütfen:
+    1. Sitemin yüklediği script, stil, font, görsel ve bağlantı (fetch/websocket) kaynaklarını listele.
+    2. Bunlara izin veren bir CSP öner; önce Content-Security-Policy-Report-Only olarak eklensin.
+    3. Hosting yapılandırmama (vercel.json, netlify.toml, _headers veya sunucu ayarı) bu header'ı ekle.
+
+web.headers.frame_options_missing:
+  title: "Siten başka sitelerin içine gömülebiliyor"
+  description: "Siten X-Frame-Options header'ı veya CSP frame-ancestors kuralı göndermiyor. Bu yüzden başka bir site seninkini görünmez bir çerçeve (iframe) içinde açabilir."
+  why_it_matters: "Saldırgan siteni kendi sayfasının altına gizleyip kullanıcıyı farkında olmadan butonlara tıklatabilir (clickjacking), ör. bir ayarı değiştirmek veya bir işlemi onaylamak."
+  fix_steps:
+    - "Sunucu ayarlarına X-Frame-Options: DENY header'ını ekle (veya CSP'ye frame-ancestors 'none' kuralı ekle)."
+    - "Siten bilerek başka sitelerin içine gömülüyorsa sadece o alan adlarına izin ver."
+  fix_prompt: |
+    Sitem X-Frame-Options veya CSP frame-ancestors göndermiyor (clickjacking riski). Lütfen hosting/sunucu yapılandırmama şu header'ları ekle:
+    X-Frame-Options: DENY
+    Content-Security-Policy: frame-ancestors 'none'
+    (Sitemin bilerek iframe içinde gösterildiği bir yer varsa önce bana sor.)
+
+web.headers.nosniff_missing:
+  title: "Tarayıcının dosya türü tahmini kapatılmamış"
+  description: "Siten X-Content-Type-Options: nosniff header'ını göndermiyor. Bu header, tarayıcıya dosya türünü tahmin etmemesini söyler."
+  why_it_matters: "Tarayıcı, örneğin kullanıcıların yüklediği bir dosyayı yanlışlıkla script olarak çalıştırabilir. Header küçük ama etkili bir korumadır."
+  fix_steps:
+    - "Sunucu ayarlarına X-Content-Type-Options: nosniff header'ını ekle."
+  fix_prompt: |
+    Sitem X-Content-Type-Options header'ı göndermiyor. Lütfen hosting/sunucu yapılandırmama tüm yanıtlar için şu header'ı ekle:
+    X-Content-Type-Options: nosniff
+
+web.headers.server_version_leak:
+  title: "Sunucu yazılımı ve sürümü açıkça görünüyor"
+  description: "Sunucun Server veya X-Powered-By gibi header'larda hangi yazılımı ve hangi sürümü kullandığını söylüyor (ör. nginx/1.18.0, PHP/8.1)."
+  why_it_matters: "Saldırganlar bu bilgiyle o sürümde bilinen açıkları hızlıca arayabilir. Tek başına bir açık değildir ama işlerini kolaylaştırır."
+  fix_steps:
+    - "Web sunucusu ayarlarında sürüm bilgisini gizle (ör. nginx: server_tokens off)."
+    - "X-Powered-By header'ını kapat (ör. Express: app.disable('x-powered-by'))."
+    - "Sunucu yazılımlarını güncel tut."
+  fix_prompt: |
+    Sunucum Server / X-Powered-By header'larında yazılım sürümünü gösteriyor. Lütfen:
+    1. Kullandığım sunucu/framework için sürüm bilgisini gizleyen ayarı ekle (nginx server_tokens off, Express app.disable('x-powered-by') vb.).
+    2. Kullandığım sürümün güncel olup olmadığını kontrol etmeme yardım et.
+
+web.legal.privacy_missing:
+  title: "Gizlilik politikası / KVKK aydınlatma metni bulunamadı"
+  description: "Sitende gizlilik politikasına veya KVKK aydınlatma metnine giden bir link bulamadık."
+  why_it_matters: "Kişisel veri topluyorsan (e-posta, isim, analitik çerezleri) KVKK ve GDPR bu metni zorunlu tutar. App Store, Google Play ve ödeme sağlayıcıları (Stripe, iyzico) da genelde gizlilik politikası linki ister. Kullanıcıların güvenini de artırır."
+  fix_steps:
+    - "Hangi verileri topladığını, neden topladığını, kiminle paylaştığını ve ne kadar sakladığını anlatan bir gizlilik politikası sayfası oluştur."
+    - "Türkiye'deki kullanıcılar için KVKK aydınlatma metnini ekle."
+    - "Bu sayfanın linkini sitenin alt kısmına (footer) koy."
+    - "Hukuki sonuçları olan bir metin olduğu için mümkünse bir uzmana kontrol ettir."
+  fix_prompt: |
+    Siteme bir gizlilik politikası ve KVKK aydınlatma metni sayfası eklemek istiyorum. Lütfen:
+    1. Kodumu inceleyip hangi kişisel verileri topladığımı listele (form alanları, giriş bilgileri, analitik, çerezler, üçüncü taraf servisler).
+    2. Bu bilgilere dayanarak /privacy (veya /gizlilik) adresinde bir gizlilik politikası sayfası taslağı oluştur; KVKK aydınlatma metni bölümü de olsun.
+    3. Sayfanın linkini sitenin footer'ına ekle.
+    Taslağı bir hukukçuya kontrol ettireceğim.
+
+web.legal.terms_missing:
+  title: "Kullanım şartları sayfası bulunamadı"
+  description: "Sitende kullanım şartlarına (kullanım koşulları, hizmet sözleşmesi) giden bir link bulamadık."
+  why_it_matters: "Kullanım şartları; hizmetin nasıl kullanılabileceğini, sorumluluk sınırlarını ve hesap kapatma gibi kuralları belirler. Ücretli bir hizmet sunuyorsan veya kullanıcıların içerik paylaşabiliyorsa özellikle önemlidir."
+  fix_steps:
+    - "Hizmetinin kurallarını anlatan bir kullanım şartları sayfası oluştur."
+    - "Linkini footer'a ve kayıt ekranına ekle."
+  fix_prompt: |
+    Siteme bir kullanım şartları sayfası eklemek istiyorum. Lütfen:
+    1. Uygulamamın ne yaptığına bakarak /terms (veya /kullanim-sartlari) adresinde bir kullanım şartları taslağı oluştur.
+    2. Linkini footer'a ve kayıt formunun yanına ekle.
+
+web.meta.title_description_missing:
+  title: "Sayfa başlığı veya açıklaması eksik"
+  description: "Sayfanda <title> etiketi veya meta description eksik. Bunlar Google arama sonuçlarında ve tarayıcı sekmesinde görünen metinlerdir."
+  why_it_matters: "Başlık ve açıklama olmadan Google sayfan için rastgele bir metin seçer; insanlar arama sonuçlarında siteye tıklamak için daha az sebep görür."
+  fix_steps:
+    - "Her sayfaya ürününü anlatan, 60 karakterden kısa bir <title> ekle."
+    - "150-160 karakterlik, ne sunduğunu anlatan bir meta description ekle."
+  fix_prompt: |
+    Sitemde sayfa başlığı (title) veya meta description eksik. Lütfen:
+    1. Ana sayfa ve diğer önemli sayfalar için ürünüme uygun title (60 karakter altı) ve meta description (150-160 karakter) öner.
+    2. Bunları HTML head'e (veya framework'ümün metadata API'sine) ekle.
+
+web.meta.og_missing:
+  title: "Sosyal medya önizleme bilgileri eksik"
+  description: "Sayfanda Open Graph etiketleri (og:title, og:description, og:image) eksik. Bu etiketler, linkin WhatsApp, X, LinkedIn gibi yerlerde paylaşıldığında görünen başlık, açıklama ve görseli belirler."
+  why_it_matters: "Bu etiketler olmadan paylaşılan linkler görselsiz ve sıradan görünür, insanların tıklama ihtimali düşer."
+  fix_steps:
+    - "og:title, og:description ve og:image meta etiketlerini ekle."
+    - "og:image için 1200x630 piksellik, tam adresli (https://...) bir görsel kullan."
+  fix_prompt: |
+    Sitemde Open Graph etiketleri eksik. Lütfen:
+    1. og:title, og:description, og:image, og:url ve twitter:card etiketlerini ekle.
+    2. og:image için 1200x630 boyutunda bir paylaşım görseli kullanılacak şekilde ayarla (görselin tam https adresiyle).
+
+web.meta.favicon_missing:
+  title: "Site ikonu (favicon) yok"
+  description: "Sitende tarayıcı sekmesinde görünen küçük site ikonu (favicon) bulunamadı."
+  why_it_matters: "Favicon'suz siteler sekmelerde ve yer imlerinde boş bir ikonla görünür; bu, sitenin bitmemiş veya güvenilmez görünmesine yol açabilir."
+  fix_steps:
+    - "Logondan bir favicon oluştur (ör. 32x32 PNG ve 180x180 apple-touch-icon)."
+    - "HTML head'e <link rel='icon' href='/favicon.png'> ekle."
+  fix_prompt: |
+    Sitemde favicon yok. Lütfen logomdan favicon üretip (favicon.ico, 32x32 PNG ve 180x180 apple-touch-icon) projeye ekle ve HTML head'e gerekli link etiketlerini koy.
+
+web.meta.sitemap_missing:
+  title: "Site haritası (sitemap.xml) yok"
+  description: "Sitende /sitemap.xml dosyası bulunamadı ve robots.txt'de bir site haritası adresi belirtilmemiş."
+  why_it_matters: "Site haritası, arama motorlarına sitendeki sayfaları listeler. Özellikle yeni sitelerin ve JavaScript ile çizilen sayfaların Google'a daha hızlı girmesine yardımcı olur."
+  fix_steps:
+    - "Sitendeki herkese açık sayfaları listeleyen bir sitemap.xml oluştur."
+    - "robots.txt'ye 'Sitemap: https://siten.com/sitemap.xml' satırını ekle."
+    - "Site haritasını Google Search Console'a gönder."
+  fix_prompt: |
+    Sitemde sitemap.xml yok. Lütfen:
+    1. Sitemdeki herkese açık sayfaları listeleyen bir sitemap.xml oluştur (framework'üm destekliyorsa build sırasında otomatik üretilsin).
+    2. robots.txt dosyasına Sitemap satırını ekle.

@@ -1,5 +1,6 @@
 # Bulgu metinleri: her check_id için title, description, why_it_matters, fix_steps (liste), fix_prompt zorunlu.
 # Ton: sade, suçlamayan, net. Teknik terim gerekiyorsa parantez içinde açıkla.
+# Bulgu metinleri checks/<grup>.tr.yaml dosyalarında.
 checks: {}
 
 # API ve tarama hata mesajları (kullanıcıya gösterilir)
@@ -19,3 +20,5 @@ errors:
   site_unreachable: "Siteye ulaşamadık. Sitenin açık olduğundan ve internetten erişilebildiğinden emin ol."
   too_many_redirects: "Site çok fazla yönlendirme yapıyor, taramayı durdurduk."
   rate_limited: "Kısa sürede çok fazla tarama yaptın. Lütfen biraz sonra tekrar dene."
+  site_blocked_bot: "Site, otomatik ziyaretçileri engelleyen bir koruma (ör. Cloudflare bot doğrulaması) kullanıyor; bu yüzden taramayı yapamadık. Kendi sitense, tarama için bu korumayı geçici olarak gevşetebilirsin."
+  site_http_error: "Sitenin ana sayfası bir hata döndürdü (4xx/5xx). Sitenin açık olduğundan ve adresin doğru olduğundan emin ol."

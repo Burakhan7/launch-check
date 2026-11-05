@@ -1,0 +1,319 @@
+# Web check texts (English). Tone: plain, non-blaming, outcome-focused.
+
+web.secrets.leaked_key:
+  title: "A secret API key is visible in your site's code"
+  description: "The JavaScript files your site sends to browsers contain a key that should only live on a server (e.g. OpenAI, Stripe, AWS). Anyone who visits your site can see these files."
+  why_it_matters: "Whoever finds this key can act on your behalf: run up your AI bill, reach your payment system or read your data. Bots scan websites for keys like this automatically."
+  fix_steps:
+    - "Revoke this key in the provider's dashboard right away and create a new one (the old key is no longer safe)."
+    - "Put the new key on the server side, not in frontend code (e.g. a Supabase Edge Function, a Vercel/Netlify serverless function or your own backend)."
+    - "Call the service through your own server function instead of directly from the frontend."
+    - "Don't use the VITE_, NEXT_PUBLIC_ or EXPO_PUBLIC_ prefixes for secret keys; those prefixes send the value to the browser."
+  fix_prompt: |
+    A secret API key has leaked into my frontend code (the JavaScript sent to the browser). Please:
+    1. Find every place in the code where this key is used.
+    2. Move the calls to this service into a server function (Supabase Edge Function or serverless function); the key should only be read there, from an environment variable.
+    3. Make the frontend call only that server function; the key must not remain anywhere in the frontend.
+    4. Make sure no secret key is left in VITE_ / NEXT_PUBLIC_ / EXPO_PUBLIC_ variables.
+    Note: I will also revoke and rotate the key in the provider's dashboard.
+
+web.secrets.google_api_key:
+  title: "Google API key found, check its restrictions"
+  description: "Your site's code contains a Google API key (starting with AIza...). If you use Firebase this is usually normal: Firebase's web config key is designed to be public."
+  why_it_matters: "A key in the same format could belong to Gemini, Google Maps or another paid Google service. An unrestricted key can be used by others in their own projects, and the bill comes to you."
+  fix_steps:
+    - "Find this key in Google Cloud Console → APIs & Services → Credentials."
+    - "Under Application restrictions, limit the key to your own domain (HTTP referrers)."
+    - "Under API restrictions, select only the APIs you actually use (e.g. only the Firebase APIs)."
+    - "If the key is for Gemini or another paid API, remove it from the frontend and move those calls to the server side."
+  fix_prompt: |
+    My frontend code contains a Google API key (AIza...). Please:
+    1. Find out what this key is used for (Firebase config, or another API such as Gemini/Maps?).
+    2. If it's the Firebase web config, leave it as is, but list which Google APIs we use so I can restrict the key to them in Cloud Console.
+    3. If it's for Gemini or another paid API, move the calls to a server function and remove the key from the frontend entirely.
+
+web.secrets.service_role:
+  title: "Your Supabase admin key is public"
+  description: "Your site's code contains Supabase's service_role key. This key bypasses every security rule (RLS) in your database."
+  why_it_matters: "Anyone who finds this key can read, change and delete all of your users' data. Everyone who visits your site can see it."
+  fix_steps:
+    - "Rotate this key in the Supabase dashboard right away (Project Settings → API)."
+    - "Use only the anon/publishable key in frontend code."
+    - "Move operations that need admin rights into an Edge Function or a backend."
+  fix_prompt: |
+    My Supabase service_role key has leaked into my frontend code. Please:
+    1. Find and remove every use of service_role in the frontend.
+    2. Make the frontend use only the anon key.
+    3. Move operations that need service_role into a Supabase Edge Function and call it from the frontend.
+    4. Check that RLS is enabled on the relevant tables and that the policies are correct.
+
+web.files.env_exposed:
+  title: "Your .env file can be read from the internet"
+  description: "A .env file (environment variables file) is available at a public address on your site. These files usually contain passwords and secret keys."
+  why_it_matters: "Every key and password in this file should be treated as compromised. Bots constantly probe sites for /.env; it's one of the first things they try."
+  fix_steps:
+    - "Remove the file from the published folder (public, dist, build) right away and redeploy."
+    - "Rotate ALL keys and passwords in the file with their providers; you can't know who has seen it."
+    - "Add .env files to .gitignore and define environment variables in your hosting dashboard (Vercel, Netlify, etc.)."
+  fix_prompt: |
+    My site has published a .env file at a public address. Please:
+    1. Find out why .env files are being copied into the build output or the public folder, and stop it.
+    2. Add .env, .env.local, .env.production and similar files to .gitignore.
+    3. Configure the app to read environment variables from the hosting provider's settings.
+    4. Verify that no .env file remains in the build output.
+
+web.files.git_exposed:
+  title: "Your project's .git folder can be read from the internet"
+  description: "The .git folder (which holds your code's entire history) is public on your site. Your project's source code can be downloaded from it."
+  why_it_matters: "An attacker can download all of your code and its history, including old passwords and keys that were ever committed. It also makes finding other weaknesses much easier."
+  fix_steps:
+    - "Remove the .git folder from the published folder on your server, or block access to it in the web server."
+    - "Deploy from your build output, not directly from the git repository."
+    - "If passwords or keys were ever in your code history, rotate them."
+  fix_prompt: |
+    My site has the .git folder publicly exposed. Please:
+    1. Review my deploy process and make sure only the build output (e.g. dist/ or build/) is published.
+    2. Add a rule to my web server configuration (nginx, Apache, Caddy, etc.) that blocks access to .git and other hidden folders.
+    3. Help me check whether my git history contains passwords or API keys.
+
+web.files.backup_exposed:
+  title: "A backup or config file is public"
+  description: "A database backup (.sql), an archive (.zip) or a config file with secrets (config.json) is available for anyone to download on your site."
+  why_it_matters: "Database backups usually contain users' email addresses, password hashes and personal data. This is a data leak and may trigger notification duties under GDPR/KVKK."
+  fix_steps:
+    - "Remove the file from the server right away."
+    - "Keep backups outside the folder your web server publishes, somewhere with restricted access."
+    - "Rotate any passwords or keys the file contains."
+    - "If the file contains personal data, consider your legal obligations (e.g. a data breach notification)."
+  fix_prompt: |
+    My site has a backup or config file (such as backup.sql, dump.sql, backup.zip or config.json) publicly available. Please:
+    1. Find out why this file is in the public/published folder and remove it from there.
+    2. Add rules so backups and secret config files never end up in the build output again (.gitignore and build settings).
+    3. Move the secret values in config.json into environment variables.
+
+web.files.sourcemap_exposed:
+  title: "Your source maps are public"
+  description: "The .map files for your site's JavaScript are accessible. These files turn the minified code back into the original, readable source code."
+  why_it_matters: "Anyone can read your app's original source code, comments included. That makes it easier to find flaws in your logic, hidden API endpoints and information left in the code."
+  fix_steps:
+    - "Turn off source map generation in your production build, or don't publish the .map files."
+    - "If you need source maps for error tracking (e.g. Sentry), upload them only to that service and don't serve them publicly."
+  fix_prompt: |
+    My site's production build publishes source map (.map) files publicly. Please:
+    1. Turn off source maps for production in the build settings (Vite: build.sourcemap = false; Next.js: productionBrowserSourceMaps = false).
+    2. If I use source maps for error tracking, add a step that uploads them only to the error tracking service and deletes them from the build output.
+    3. Verify that no .map files remain in the build output.
+
+web.bundle.localhost_urls:
+  title: "localhost addresses were left in the code"
+  description: "Your site's JavaScript contains addresses like localhost, 127.0.0.1 or 10.0.2.2 that only work on a development computer."
+  why_it_matters: "These addresses don't work on your users' devices. If the app sends requests to them, features like sign-in, sign-up or loading data may be broken for real users."
+  fix_steps:
+    - "Find where the addresses in the evidence are used in your code."
+    - "Read API addresses from an environment variable instead of hard-coding them, and set the real server address for production."
+    - "After the change, test the site from a device other than your own computer (e.g. your phone)."
+  fix_prompt: |
+    My site's production code still contains localhost / 127.0.0.1 addresses. Please:
+    1. Find every localhost, 127.0.0.1, 0.0.0.0 and 10.0.2.2 address in the code.
+    2. Replace them with an API_URL read from an environment variable.
+    3. Make sure the correct API address is defined for the production environment.
+
+web.bundle.staging_urls:
+  title: "Test/staging server addresses are in the code"
+  description: "Your site's code contains server addresses belonging to development environments such as staging, dev or test."
+  why_it_matters: "The app may be sending real users' data to a test server, or features may break when the test environment is shut down. Test servers are usually less protected."
+  fix_steps:
+    - "Check whether the addresses in the evidence are actually used in production."
+    - "Manage environment-specific addresses with environment variables; only production addresses should go into the production build."
+  fix_prompt: |
+    My site's production code contains staging/dev/test server addresses. Please:
+    1. Find the staging, dev and test addresses in the code and explain where they're used.
+    2. Move environment-specific addresses into environment variables.
+    3. Make sure the production build uses only production addresses.
+
+web.seo.noindex_left:
+  title: "Your site is set to stay out of Google (noindex)"
+  description: "The page has a noindex tag or header that tells search engines 'don't list me'. This is usually added during development and forgotten at launch."
+  why_it_matters: "Google and other search engines won't show your site in search results. People searching for you won't find you."
+  fix_steps:
+    - "Remove the <meta name='robots' content='noindex'> tag from your HTML."
+    - "If your server or hosting settings send an X-Robots-Tag: noindex header, remove it."
+    - "After the change, ask Google Search Console to recrawl the page."
+  fix_prompt: |
+    My site is configured to be hidden from search engines (noindex). Please:
+    1. Find every noindex meta tag and X-Robots-Tag header setting in the code.
+    2. Remove them in production; if I want them kept only on staging/preview, make them conditional on the environment.
+
+web.seo.robots_disallow_all:
+  title: "robots.txt blocks your whole site from search engines"
+  description: "Your robots.txt has a 'Disallow: /' rule for all search engines. That rule says no page on the site should be crawled."
+  why_it_matters: "Search engines can't crawl your site; new pages won't get into Google, and existing ones can drop out over time."
+  fix_steps:
+    - "Remove the 'Disallow: /' line from the 'User-agent: *' group in robots.txt."
+    - "If you only want to block certain paths (e.g. /admin), list them one by one."
+    - "Consider adding a 'Sitemap: https://yoursite.com/sitemap.xml' line."
+  fix_prompt: |
+    My site's robots.txt blocks the whole site from search engines (Disallow: /). Please:
+    1. Edit robots.txt so the site's public pages can be crawled.
+    2. Keep only private paths such as /admin blocked.
+    3. Add the sitemap address to robots.txt.
+
+web.https.missing:
+  title: "Your site doesn't use a secure connection (HTTPS)"
+  description: "Your site loads over unencrypted HTTP, or the http:// address doesn't automatically redirect to https://."
+  why_it_matters: "On an unencrypted connection, someone on the same network (e.g. café Wi-Fi) can see the passwords and information users enter. Browsers mark the site as 'Not secure', which drives users away."
+  fix_steps:
+    - "Enable the free HTTPS certificate (Let's Encrypt) in your hosting dashboard; with most providers it's one click."
+    - "Permanently (301) redirect all http:// requests to the https:// address."
+  fix_prompt: |
+    My site doesn't use HTTPS or doesn't redirect from HTTP to HTTPS. Please:
+    1. Explain step by step how to enable HTTPS in my hosting/server configuration.
+    2. Add configuration that redirects every http:// request to https:// with a 301.
+    3. Replace hard-coded http:// addresses in the code with https://.
+
+web.https.mixed_content:
+  title: "A secure page loads insecure files"
+  description: "Your page opens over HTTPS but loads some script or style files from unencrypted http:// addresses."
+  why_it_matters: "Browsers usually block these files, so parts of your site may look broken or stop working. If they aren't blocked, someone on the network can tamper with them and inject malicious code into your page."
+  fix_steps:
+    - "Replace the http:// addresses in the evidence with https://."
+    - "If the file has no https version, host it on your own site."
+  fix_prompt: |
+    My HTTPS site loads script or style files over http:// (mixed content). Please:
+    1. Find every script and stylesheet loaded over http:// in the HTML and code.
+    2. Replace them all with their https:// versions; bundle the ones that have no https version into the project.
+
+web.headers.hsts_missing:
+  title: "Browsers aren't told to always use HTTPS (no HSTS)"
+  description: "Your site uses HTTPS but doesn't send the Strict-Transport-Security header. This header tells browsers to always come to the site over a secure connection."
+  why_it_matters: "Without it, when a user first arrives via http://, the connection is briefly unencrypted and can be intercepted."
+  fix_steps:
+    - "Add this header in your server or hosting settings: Strict-Transport-Security: max-age=31536000; includeSubDomains"
+    - "If you're not sure every subdomain supports HTTPS, leave out includeSubDomains for now."
+  fix_prompt: |
+    My site doesn't send the Strict-Transport-Security (HSTS) header. Please add this header to my hosting/server configuration (e.g. vercel.json, netlify.toml, a _headers file or nginx):
+    Strict-Transport-Security: max-age=31536000; includeSubDomains
+
+web.headers.csp_missing:
+  title: "No Content Security Policy (CSP) is set"
+  description: "Your site doesn't send a Content-Security-Policy header. A CSP limits which sources the page may load scripts and content from."
+  why_it_matters: "If your site ever has an XSS flaw (code injected into the page from outside), a CSP can stop the attacker's code from running. It's an extra layer of defense."
+  fix_steps:
+    - "Start with Content-Security-Policy-Report-Only and confirm nothing on the site breaks."
+    - "Add the sources your site uses (your own domain, Supabase, analytics, etc.) to the allow list, then switch to the real CSP."
+  fix_prompt: |
+    My site has no Content-Security-Policy header. Please:
+    1. List the script, style, font, image and connection (fetch/websocket) sources my site loads.
+    2. Propose a CSP that allows them; add it first as Content-Security-Policy-Report-Only.
+    3. Add the header to my hosting configuration (vercel.json, netlify.toml, _headers or server config).
+
+web.headers.frame_options_missing:
+  title: "Your site can be embedded inside other sites"
+  description: "Your site sends neither an X-Frame-Options header nor a CSP frame-ancestors rule, so another site can load yours inside an invisible frame (iframe)."
+  why_it_matters: "An attacker can hide your site under their own page and trick users into clicking buttons without realizing it (clickjacking), e.g. changing a setting or confirming an action."
+  fix_steps:
+    - "Add the X-Frame-Options: DENY header in your server settings (or a frame-ancestors 'none' rule to your CSP)."
+    - "If your site is meant to be embedded in other sites, allow only those domains."
+  fix_prompt: |
+    My site doesn't send X-Frame-Options or a CSP frame-ancestors rule (clickjacking risk). Please add these headers to my hosting/server configuration:
+    X-Frame-Options: DENY
+    Content-Security-Policy: frame-ancestors 'none'
+    (If my site is intentionally shown inside an iframe somewhere, ask me first.)
+
+web.headers.nosniff_missing:
+  title: "Browser file-type guessing isn't turned off"
+  description: "Your site doesn't send the X-Content-Type-Options: nosniff header. This header tells the browser not to guess file types."
+  why_it_matters: "The browser might, for example, mistakenly run a file a user uploaded as a script. The header is small but effective protection."
+  fix_steps:
+    - "Add the X-Content-Type-Options: nosniff header in your server settings."
+  fix_prompt: |
+    My site doesn't send the X-Content-Type-Options header. Please add this header for all responses in my hosting/server configuration:
+    X-Content-Type-Options: nosniff
+
+web.headers.server_version_leak:
+  title: "Your server software and version are visible"
+  description: "Your server reveals which software and version it runs in headers such as Server or X-Powered-By (e.g. nginx/1.18.0, PHP/8.1)."
+  why_it_matters: "With this information attackers can quickly look up known vulnerabilities for that version. It's not a flaw by itself, but it makes their job easier."
+  fix_steps:
+    - "Hide version information in your web server settings (e.g. nginx: server_tokens off)."
+    - "Turn off the X-Powered-By header (e.g. Express: app.disable('x-powered-by'))."
+    - "Keep your server software up to date."
+  fix_prompt: |
+    My server shows the software version in its Server / X-Powered-By headers. Please:
+    1. Add the setting that hides version information for the server/framework I use (nginx server_tokens off, Express app.disable('x-powered-by'), etc.).
+    2. Help me check whether the version I'm running is up to date.
+
+web.legal.privacy_missing:
+  title: "No privacy policy found"
+  description: "We couldn't find a link to a privacy policy (or, for Turkish users, a KVKK notice) on your site."
+  why_it_matters: "If you collect personal data (email, name, analytics cookies), GDPR and KVKK require this text. The App Store, Google Play and payment providers (Stripe, etc.) usually ask for a privacy policy link too. It also builds user trust."
+  fix_steps:
+    - "Create a privacy policy page explaining what data you collect, why, who you share it with and how long you keep it."
+    - "If you have users in Turkey, add a KVKK notice."
+    - "Put a link to the page in your site's footer."
+    - "Since it's a legal text, have an expert review it if you can."
+  fix_prompt: |
+    I want to add a privacy policy page to my site. Please:
+    1. Review my code and list the personal data I collect (form fields, sign-in data, analytics, cookies, third-party services).
+    2. Based on that, draft a privacy policy page at /privacy.
+    3. Add a link to the page in the site footer.
+    I'll have a lawyer review the draft.
+
+web.legal.terms_missing:
+  title: "No terms of service page found"
+  description: "We couldn't find a link to terms of service (terms of use, terms and conditions) on your site."
+  why_it_matters: "Terms of service set how the service may be used, the limits of your liability and rules such as account termination. They matter especially if you charge for the service or users can share content."
+  fix_steps:
+    - "Create a terms of service page describing the rules of your service."
+    - "Link it in the footer and on the sign-up screen."
+  fix_prompt: |
+    I want to add a terms of service page to my site. Please:
+    1. Based on what my app does, draft terms of service at /terms.
+    2. Add a link in the footer and next to the sign-up form.
+
+web.meta.title_description_missing:
+  title: "Page title or description is missing"
+  description: "Your page is missing a <title> tag or a meta description. These are the texts shown in Google search results and the browser tab."
+  why_it_matters: "Without them Google picks some random text for your page, and people get less reason to click your site in search results."
+  fix_steps:
+    - "Add a <title> under 60 characters that describes your product to every page."
+    - "Add a 150-160 character meta description explaining what you offer."
+  fix_prompt: |
+    My site is missing a page title or meta description. Please:
+    1. Suggest a title (under 60 characters) and meta description (150-160 characters) that fit my product, for the home page and other important pages.
+    2. Add them to the HTML head (or my framework's metadata API).
+
+web.meta.og_missing:
+  title: "Social media preview info is missing"
+  description: "Your page is missing Open Graph tags (og:title, og:description, og:image). These tags set the title, description and image shown when your link is shared on WhatsApp, X, LinkedIn and the like."
+  why_it_matters: "Without them, shared links look plain and image-less, and people are less likely to click."
+  fix_steps:
+    - "Add the og:title, og:description and og:image meta tags."
+    - "For og:image, use a 1200x630 pixel image with a full (https://...) address."
+  fix_prompt: |
+    My site is missing Open Graph tags. Please:
+    1. Add og:title, og:description, og:image, og:url and twitter:card tags.
+    2. Set it up so og:image uses a 1200x630 share image (with the image's full https address).
+
+web.meta.favicon_missing:
+  title: "No site icon (favicon)"
+  description: "We couldn't find the small site icon (favicon) shown in the browser tab."
+  why_it_matters: "Sites without a favicon show a blank icon in tabs and bookmarks, which can make the site look unfinished or untrustworthy."
+  fix_steps:
+    - "Create a favicon from your logo (e.g. a 32x32 PNG and a 180x180 apple-touch-icon)."
+    - "Add <link rel='icon' href='/favicon.png'> to your HTML head."
+  fix_prompt: |
+    My site has no favicon. Please generate favicons from my logo (favicon.ico, a 32x32 PNG and a 180x180 apple-touch-icon), add them to the project and put the needed link tags in the HTML head.
+
+web.meta.sitemap_missing:
+  title: "No sitemap (sitemap.xml)"
+  description: "We couldn't find /sitemap.xml on your site, and robots.txt doesn't point to a sitemap."
+  why_it_matters: "A sitemap lists your site's pages for search engines. It helps new sites, and pages rendered with JavaScript, get into Google faster."
+  fix_steps:
+    - "Create a sitemap.xml listing your site's public pages."
+    - "Add a 'Sitemap: https://yoursite.com/sitemap.xml' line to robots.txt."
+    - "Submit the sitemap in Google Search Console."
+  fix_prompt: |
+    My site has no sitemap.xml. Please:
+    1. Create a sitemap.xml listing my site's public pages (generated automatically at build time if my framework supports it).
+    2. Add the Sitemap line to robots.txt.

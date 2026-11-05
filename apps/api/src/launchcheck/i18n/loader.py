@@ -36,13 +36,26 @@ def normalize_lang(lang: str | None) -> str:
     return code if code in SUPPORTED_LANGS else DEFAULT_LANG
 
 
+def _read_yaml(package: str, filename: str) -> dict[str, Any]:
+    data = yaml.safe_load(resources.files(package).joinpath(filename).read_text("utf-8"))
+    return data or {}
+
+
 @lru_cache
 def load_catalog(lang: str) -> dict[str, Any]:
+    """`{lang}.yaml` (hatalar) + `checks/*.{lang}.yaml` (bulgu metinleri, gruba göre)."""
     if lang not in SUPPORTED_LANGS:
         raise ValueError(f"desteklenmeyen dil: {lang}")
-    text = resources.files("launchcheck.i18n").joinpath(f"{lang}.yaml").read_text("utf-8")
-    data = yaml.safe_load(text) or {}
-    data.setdefault("checks", {})
+    data = _read_yaml("launchcheck.i18n", f"{lang}.yaml")
+    checks: dict[str, Any] = dict(data.get("checks") or {})
+    for entry in sorted(resources.files("launchcheck.i18n.checks").iterdir(), key=lambda e: e.name):
+        if entry.name.endswith(f".{lang}.yaml"):
+            group = _read_yaml("launchcheck.i18n.checks", entry.name)
+            duplicates = set(group) & set(checks)
+            if duplicates:
+                raise ValueError(f"tekrarlanan check metni: {sorted(duplicates)}")
+            checks.update(group)
+    data["checks"] = checks
     data.setdefault("errors", {})
     return data
 

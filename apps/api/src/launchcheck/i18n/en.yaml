@@ -1,5 +1,6 @@
 # Finding texts: every check_id needs title, description, why_it_matters, fix_steps (list), fix_prompt.
 # Tone: plain, non-blaming, clear. Explain technical terms in parentheses.
+# Finding texts live in checks/<group>.en.yaml.
 checks: {}
 
 # API and scan error messages (shown to the user)
@@ -19,3 +20,5 @@ errors:
   site_unreachable: "We couldn't reach the site. Make sure it's online and reachable from the internet."
   too_many_redirects: "The site redirects too many times, so we stopped the scan."
   rate_limited: "You've run too many scans in a short time. Please try again a bit later."
+  site_blocked_bot: "The site uses protection that blocks automated visitors (e.g. a Cloudflare bot check), so we couldn't scan it. If it's your site, you can relax that protection temporarily for the scan."
+  site_http_error: "The site's home page returned an error (4xx/5xx). Make sure the site is online and the address is correct."

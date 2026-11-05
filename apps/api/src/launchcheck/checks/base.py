@@ -60,6 +60,8 @@ class ScanContext:
     target_type: TargetType
     target_label: str
     meta: dict[str, Any] = field(default_factory=dict)
+    # Check'ler arası paylaşılan hesaplamalar (ör. secret taraması bir kez yapılır)
+    cache: dict[str, Any] = field(default_factory=dict)
 
     async def aclose(self) -> None:
         """Geçici kaynakları (dosyalar, HTTP istemcisi) serbest bırakır. Her durumda çağrılır."""
