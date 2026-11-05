@@ -20,6 +20,17 @@ class Settings(BaseSettings):
 
     # Saklama
     report_retention_days: int = 7
+    # Bu süreden uzun queued/running kalan tarama "yarıda kaldı" sayılır (worker çöktüyse)
+    stale_scan_after_s: int = 900
+
+    # Skorlama: kategori ağırlıkları (Faz 1)
+    score_weights: dict[str, float] = Field(
+        default_factory=lambda: {"security": 0.7, "prod_readiness": 0.3}
+    )
+
+    # Worker
+    worker_max_jobs: int = 4
+    apk_scan_timeout_s: float = 480.0
 
     # Rate limit (IP başına, saatlik)
     rate_limit_web_per_hour: int = 10

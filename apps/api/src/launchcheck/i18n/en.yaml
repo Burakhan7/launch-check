@@ -1,0 +1,16 @@
+# Finding texts: every check_id needs title, description, why_it_matters, fix_steps (list), fix_prompt.
+# Tone: plain, non-blaming, clear. Explain technical terms in parentheses.
+checks: {}
+
+# API and scan error messages (shown to the user)
+errors:
+  internal_error: "Something unexpected went wrong. Please try again in a moment."
+  invalid_request: "The request is invalid. Please check what you entered."
+  not_found: "This report could not be found. Reports are deleted automatically after 7 days."
+  invalid_url: "That doesn't look like a valid web address. Example: https://yoursite.com"
+  url_scheme_not_allowed: "We can only scan addresses starting with http:// or https://."
+  url_port_not_allowed: "We can only scan sites on standard ports (80 and 443)."
+  queue_unavailable: "The scan queue is busy right now. Please try again in a few minutes."
+  collector_unavailable: "We can't run this type of scan yet."
+  scan_timeout: "The scan took too long and was stopped. The site may be slow or unreachable."
+  scan_stale: "The scan didn't finish. Please scan again."

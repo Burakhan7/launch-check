@@ -1,0 +1,16 @@
+# Bulgu metinleri: her check_id için title, description, why_it_matters, fix_steps (liste), fix_prompt zorunlu.
+# Ton: sade, suçlamayan, net. Teknik terim gerekiyorsa parantez içinde açıkla.
+checks: {}
+
+# API ve tarama hata mesajları (kullanıcıya gösterilir)
+errors:
+  internal_error: "Beklenmeyen bir hata oluştu. Lütfen biraz sonra tekrar dene."
+  invalid_request: "İstek geçersiz. Lütfen girdiğin bilgileri kontrol et."
+  not_found: "Bu rapor bulunamadı. Raporlar 7 gün sonra otomatik silinir."
+  invalid_url: "Bu geçerli bir web adresi gibi görünmüyor. Örnek: https://siten.com"
+  url_scheme_not_allowed: "Sadece http:// veya https:// ile başlayan adresleri tarayabiliyoruz."
+  url_port_not_allowed: "Sadece standart portlardaki (80 ve 443) siteleri tarayabiliyoruz."
+  queue_unavailable: "Tarama sırası şu an meşgul. Lütfen birkaç dakika sonra tekrar dene."
+  collector_unavailable: "Bu tür taramayı henüz yapamıyoruz."
+  scan_timeout: "Tarama çok uzun sürdü ve durduruldu. Site yavaş veya erişilemez olabilir."
+  scan_stale: "Tarama yarıda kaldı. Lütfen tekrar tara."

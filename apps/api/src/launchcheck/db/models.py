@@ -2,23 +2,20 @@
 
 import enum
 import uuid
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any
 
 from sqlalchemy import JSON, DateTime, Enum, ForeignKey, Integer, Text, func
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
+from launchcheck.checks.base import Category, Severity, TargetType
+
 JsonType = JSON().with_variant(JSONB(), "postgresql")
 
 
 class Base(DeclarativeBase):
     pass
-
-
-class TargetType(enum.StrEnum):
-    WEB = "web"
-    APK = "apk"
 
 
 class ScanStatus(enum.StrEnum):
@@ -28,24 +25,12 @@ class ScanStatus(enum.StrEnum):
     FAILED = "failed"
 
 
-class SeverityDb(enum.StrEnum):
-    CRITICAL = "critical"
-    HIGH = "high"
-    MEDIUM = "medium"
-    LOW = "low"
-    INFO = "info"
-
-
-class CategoryDb(enum.StrEnum):
-    SECURITY = "security"
-    PROD_READINESS = "prod_readiness"
-    PERFORMANCE = "performance"
-    CONVERSION = "conversion"
-    STORE_COMPLIANCE = "store_compliance"
-
-
 def _enum(e: type[enum.StrEnum], name: str) -> Enum:
     return Enum(e, name=name, values_callable=lambda x: [m.value for m in x])
+
+
+def utcnow() -> datetime:
+    return datetime.now(UTC)
 
 
 class Scan(Base):
@@ -63,7 +48,7 @@ class Scan(Base):
     meta: Mapped[dict[str, Any] | None] = mapped_column(JsonType, nullable=True)
     phase: Mapped[int] = mapped_column(Integer, default=1, server_default="1")
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now(), index=True
+        DateTime(timezone=True), default=utcnow, server_default=func.now(), index=True
     )
     finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
@@ -80,9 +65,11 @@ class FindingRow(Base):
         ForeignKey("scans.id", ondelete="CASCADE"), index=True
     )
     check_id: Mapped[str] = mapped_column(Text)
-    severity: Mapped[SeverityDb] = mapped_column(_enum(SeverityDb, "severity"))
-    category: Mapped[CategoryDb] = mapped_column(_enum(CategoryDb, "category"))
+    severity: Mapped[Severity] = mapped_column(_enum(Severity, "severity"))
+    category: Mapped[Category] = mapped_column(_enum(Category, "category"))
     evidence: Mapped[dict[str, Any]] = mapped_column(JsonType, default=dict)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utcnow, server_default=func.now()
+    )
 
     scan: Mapped[Scan] = relationship(back_populates="findings")
