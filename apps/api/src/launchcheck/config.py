@@ -1,0 +1,54 @@
+"""Uygulama konfigürasyonu. Tüm ayarlar ortam değişkenlerinden okunur (LC_ öneki)."""
+
+from functools import lru_cache
+
+from pydantic import Field
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+class Settings(BaseSettings):
+    model_config = SettingsConfigDict(env_prefix="LC_", env_file=".env", extra="ignore")
+
+    # Genel
+    env: str = "dev"
+    public_base_url: str = "http://localhost:3000"
+    log_level: str = "INFO"
+
+    # Altyapı
+    database_url: str = "postgresql+asyncpg://launchcheck:launchcheck@localhost:5432/launchcheck"
+    redis_url: str = "redis://localhost:6379/0"
+
+    # Saklama
+    report_retention_days: int = 7
+
+    # Rate limit (IP başına, saatlik)
+    rate_limit_web_per_hour: int = 10
+    rate_limit_apk_per_hour: int = 3
+    rate_limit_ip_salt: str = "change-me"
+
+    # Web tarama limitleri
+    http_connect_timeout_s: float = 5.0
+    http_request_timeout_s: float = 15.0
+    web_scan_timeout_s: float = 90.0
+    max_redirects: int = 5
+    max_html_bytes: int = 5 * 1024 * 1024
+    max_js_file_bytes: int = 10 * 1024 * 1024
+    max_total_bytes: int = 50 * 1024 * 1024
+    max_js_files: int = 60
+    bot_user_agent: str = "LaunchCheckBot/1.0 (+https://launchcheck.example/bot)"
+
+    # APK yükleme / analiz
+    max_apk_bytes: int = 150 * 1024 * 1024
+    max_apk_uncompressed_bytes: int = 1024 * 1024 * 1024
+    max_apk_entries: int = 50_000
+    apktool_timeout_s: int = 120
+    jadx_timeout_s: int = 240
+    scan_tmp_dir: str = Field(default="/tmp/launchcheck")  # noqa: S108
+
+    # Google Play minimum targetSdkVersion — değeri .env'den gelir, bkz. .env.example
+    play_min_target_sdk: int = 36
+
+
+@lru_cache
+def get_settings() -> Settings:
+    return Settings()

@@ -1,0 +1,11 @@
+{
+  "Meta": {
+    "title": "Launch Check — Check before you launch",
+    "description": "Scan the website or Android app you built with vibe coding for free. Find leaked keys, exposed files and launch mistakes in minutes."
+  },
+  "Home": {
+    "title": "Check before you launch",
+    "subtitle": "Scan your website or Android app and learn about common mistakes and how to fix them. Free, no sign-up.",
+    "comingSoon": "Scanning is coming here very soon."
+  }
+}

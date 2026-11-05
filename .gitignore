@@ -1,0 +1,23 @@
+# Ortam
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+
+# Node / Next.js (apps/web/.gitignore ayrıca var)
+node_modules/
+
+# Editör / OS
+.DS_Store
+Thumbs.db
+.idea/
+
+# Geçici tarama dosyaları
+/tmp/

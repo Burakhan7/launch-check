@@ -1,0 +1,91 @@
+# Production compose. Başlat: docker compose up -d --build
+# .env yoksa aşağıdaki varsayılanlarla çalışır (sadece yerel deneme için güvenli).
+x-backend-env: &backend-env
+  env_file:
+    - path: .env
+      required: false
+  environment:
+    LC_DATABASE_URL: ${LC_DATABASE_URL:-postgresql+asyncpg://launchcheck:launchcheck@postgres:5432/launchcheck}
+    LC_REDIS_URL: ${LC_REDIS_URL:-redis://redis:6379/0}
+
+services:
+  web:
+    build: ./apps/web
+    restart: unless-stopped
+    environment:
+      API_INTERNAL_URL: http://api:8000
+    depends_on: [api]
+
+  api:
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile.api
+    restart: unless-stopped
+    <<: *backend-env
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request;urllib.request.urlopen('http://localhost:8000/api/health')"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  worker:
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile.worker
+    restart: unless-stopped
+    <<: *backend-env
+    depends_on:
+      api: { condition: service_healthy } # migration'lar api tarafından uygulanır
+      redis: { condition: service_healthy }
+    read_only: true
+    tmpfs:
+      - /tmp:size=2g,mode=1777
+    security_opt: ["no-new-privileges:true"]
+    cap_drop: [ALL]
+    deploy:
+      resources:
+        limits: { cpus: "2.0", memory: 3g }
+
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-launchcheck}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-launchcheck}
+      POSTGRES_DB: ${POSTGRES_DB:-launchcheck}
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports: ["80:80", "443:443"]
+    environment:
+      DOMAIN: ${DOMAIN:-localhost}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on: [web, api]
+
+volumes:
+  pgdata:
+  caddy_data:
+  caddy_config:
