@@ -115,7 +115,7 @@ async def test_meta_all_missing() -> None:
     (title,) = await run(TitleDescriptionMissing, ctx)
     assert title.evidence == {"missing": ["title", "description"]}
     (og,) = await run(OgMissing, ctx)
-    assert og.evidence == {"missing": ["og:title", "og:description", "og:image"]}
+    assert og.evidence["pages"][0]["missing"] == ["og:title", "og:description", "og:image"]
     assert len(await run(FaviconMissing, ctx)) == 1
     assert len(await run(SitemapMissing, ctx)) == 1
 

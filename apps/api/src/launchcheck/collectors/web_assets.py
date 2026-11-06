@@ -59,6 +59,94 @@ def extract_html_scripts(html: str, base_url: str) -> HtmlScripts:
     )
 
 
+SKIPPED_LINK_SCHEMES = ("mailto:", "tel:", "javascript:", "data:", "sms:", "whatsapp:")
+SKIPPED_LINK_EXTENSIONS = frozenset(
+    [
+        ".pdf",
+        ".jpg",
+        ".jpeg",
+        ".png",
+        ".gif",
+        ".webp",
+        ".avif",
+        ".svg",
+        ".ico",
+        ".bmp",
+        ".zip",
+        ".rar",
+        ".7z",
+        ".gz",
+        ".tar",
+        ".mp4",
+        ".webm",
+        ".mov",
+        ".avi",
+        ".mp3",
+        ".wav",
+        ".ogg",
+        ".doc",
+        ".docx",
+        ".xls",
+        ".xlsx",
+        ".ppt",
+        ".pptx",
+        ".csv",
+        ".json",
+        ".xml",
+        ".txt",
+        ".apk",
+        ".dmg",
+        ".exe",
+        ".css",
+        ".js",
+        ".mjs",
+        ".map",
+        ".woff",
+        ".woff2",
+        ".ttf",
+        ".rss",
+    ]
+)
+# Önce site iskeletindeki (menü, başlık, alt bilgi) linkler: genelde ana sayfalara gider.
+PRIORITY_LINK_SELECTORS = ("nav a[href]", "header a[href]", "footer a[href]")
+
+
+def _normalize_link(href: str, base_url: str, origin: str) -> str | None:
+    href = href.strip()
+    if not href or href.startswith("#") or href.lower().startswith(SKIPPED_LINK_SCHEMES):
+        return None
+    parts = urlsplit(urljoin(base_url, href))
+    if parts.scheme not in ("http", "https"):
+        return None
+    url = f"{parts.scheme}://{parts.netloc}{parts.path or '/'}"  # query ve fragment atılır
+    if not is_same_origin(url, origin):
+        return None
+    last_segment = parts.path.rsplit("/", 1)[-1].lower()
+    if "." in last_segment and "." + last_segment.rsplit(".", 1)[-1] in SKIPPED_LINK_EXTENSIONS:
+        return None
+    return url
+
+
+def _link_key(url: str) -> str:
+    return url.rstrip("/") or url
+
+
+def extract_internal_links(html: str, base_url: str, exclude: tuple[str, ...] = ()) -> list[str]:
+    """Aynı origin iç sayfa linkleri: önce nav/header/footer içindekiler, sonra diğerleri.
+    Tekilleştirilir; query/fragment, dosya linkleri ve mailto/tel gibi şemalar atılır."""
+    tree = LexborHTMLParser(html)
+    origin = origin_of(base_url)
+    seen = {_link_key(u) for u in exclude}
+    links: list[str] = []
+    for selector in (*PRIORITY_LINK_SELECTORS, "a[href]"):
+        for node in tree.css(selector):
+            url = _normalize_link(node.attributes.get("href") or "", base_url, origin)
+            if url is not None and _link_key(url) not in seen:
+                seen.add(_link_key(url))
+                links.append(url)
+    return links
+
+
 def _resolve_chunk(path: str, js_url: str, origin: str) -> str | None:
     if path.startswith("/"):
         return origin + path

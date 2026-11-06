@@ -1,4 +1,5 @@
 import uuid
+from pathlib import Path
 
 import httpx
 import pytest
@@ -144,3 +145,108 @@ async def test_unscannable_home_page(
         with pytest.raises(CollectorError) as exc:
             await collector().collect(uuid.uuid4(), {"url": f"{SITE}/"})
         assert exc.value.code == code
+
+
+# --- İç sayfa taraması
+
+HOME_LINKS = (Path(__file__).parent.parent / "fixtures" / "web" / "collector_home.html").read_text(
+    encoding="utf-8"
+)
+
+
+def test_internal_links_priority_dedupe_and_filters() -> None:
+    from launchcheck.collectors.web_assets import extract_internal_links
+
+    links = extract_internal_links(HOME_LINKS, f"{SITE}/", exclude=(f"{SITE}/",))
+    # nav/header/footer önce; "/about/" ve "/about" tek; ana sayfa ("/") hariç
+    assert links[:3] == [f"{SITE}/shop", f"{SITE}/about/", f"{SITE}/privacy"]
+    assert f"{SITE}/blog/post-2" in links  # query ve fragment atıldı
+    joined = " ".join(links)
+    for bad in ("brochure.pdf", "photo.JPG", "mailto", "tel:", "javascript", "other-site.com", "#"):
+        assert bad not in joined
+    assert len(links) == len(set(links))
+
+
+def mock_pages(router: respx.MockRouter, html_home: str) -> None:
+    html = {"content-type": "text/html; charset=utf-8"}
+    router.get(f"{SITE}/").mock(return_value=httpx.Response(200, text=html_home, headers=html))
+    for path in (
+        "shop",
+        "about/",
+        "privacy",
+        "blog/post-1",
+        "blog/post-2",
+        *[f"p{i}" for i in range(3, 11)],
+    ):
+        router.get(f"{SITE}/{path}").mock(
+            return_value=httpx.Response(
+                200, text=f"<html><body><h1>{path}</h1></body></html>", headers=html
+            )
+        )
+
+
+async def test_collector_fetches_at_most_limit_internal_pages() -> None:
+    with respx.mock(assert_all_called=False) as router:
+        mock_pages(router, HOME_LINKS)
+        ctx = await collector(web_max_internal_pages=10).collect(uuid.uuid4(), {"url": f"{SITE}/"})
+        assert isinstance(ctx, WebContext)
+        try:
+            urls = [p.url for p in ctx.pages]
+            assert urls[0] == f"{SITE}/"  # pages[0] ana sayfa
+            assert len(urls) == 11  # ana sayfa + 10 iç sayfa
+            assert urls[1:4] == [f"{SITE}/shop", f"{SITE}/about/", f"{SITE}/privacy"]
+            assert ctx.meta["pages_scanned"] == 11
+        finally:
+            await ctx.aclose()
+
+
+async def test_collector_skips_non_html_and_error_pages() -> None:
+    home = '<html><body><nav><a href="/ok">a</a><a href="/missing">b</a><a href="/data">c</a></nav></body></html>'
+    with respx.mock(assert_all_called=False) as router:
+        router.get(f"{SITE}/").mock(
+            return_value=httpx.Response(200, text=home, headers={"content-type": "text/html"})
+        )
+        router.get(f"{SITE}/ok").mock(
+            return_value=httpx.Response(
+                200, text="<html>ok</html>", headers={"content-type": "text/html"}
+            )
+        )
+        router.get(f"{SITE}/missing").mock(
+            return_value=httpx.Response(404, text="nope", headers={"content-type": "text/html"})
+        )
+        router.get(f"{SITE}/data").mock(
+            return_value=httpx.Response(
+                200, json={"a": 1}, headers={"content-type": "application/json"}
+            )
+        )
+        ctx = await collector().collect(uuid.uuid4(), {"url": f"{SITE}/"})
+        assert isinstance(ctx, WebContext)
+        assert [p.url for p in ctx.pages] == [f"{SITE}/", f"{SITE}/ok"]
+        await ctx.aclose()
+
+
+async def test_collector_page_timeout_keeps_what_it_has() -> None:
+    import asyncio
+
+    home = '<html><body><nav><a href="/fast">a</a><a href="/slow">b</a></nav></body></html>'
+
+    async def slow(request: httpx.Request) -> httpx.Response:
+        await asyncio.sleep(5)
+        return httpx.Response(200, text="<html>late</html>", headers={"content-type": "text/html"})
+
+    with respx.mock(assert_all_called=False) as router:
+        router.get(f"{SITE}/").mock(
+            return_value=httpx.Response(200, text=home, headers={"content-type": "text/html"})
+        )
+        router.get(f"{SITE}/fast").mock(
+            return_value=httpx.Response(
+                200, text="<html>fast</html>", headers={"content-type": "text/html"}
+            )
+        )
+        router.get(f"{SITE}/slow").mock(side_effect=slow)
+        ctx = await collector(web_internal_pages_timeout_s=0.5).collect(
+            uuid.uuid4(), {"url": f"{SITE}/"}
+        )
+        assert isinstance(ctx, WebContext)
+        assert [p.url for p in ctx.pages] == [f"{SITE}/", f"{SITE}/fast"]  # tarama başarısız olmadı
+        await ctx.aclose()

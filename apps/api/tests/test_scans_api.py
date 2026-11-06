@@ -76,7 +76,7 @@ async def test_get_done_scan_report(
     sessionmaker: async_sessionmaker[AsyncSession],
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    def fake_text(check_id: str, lang: str) -> FindingText:
+    def fake_text(check_id: str, lang: str, params: object = None) -> FindingText:
         return FindingText(f"{lang}:{check_id}", "d", "w", ["s1", "s2"], "p")
 
     monkeypatch.setattr(report_module, "finding_text", fake_text)

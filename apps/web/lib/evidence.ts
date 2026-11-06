@@ -12,9 +12,17 @@ export interface EvidenceRow {
 
 const MAX_ITEMS = 10;
 // Değeri kod/teknik ifade olarak gösterilecek alanlar (monospace)
-const CODE_KEYS = new Set(["masked", "path", "file", "attribute", "common_name", "project_ref"]);
+const CODE_KEYS = new Set([
+  "masked",
+  "path",
+  "file",
+  "attribute",
+  "common_name",
+  "project_ref",
+  "host",
+]);
 // Satır olarak gösterilmeyen yardımcı alanlar (sayılar listelerin "+N daha" bilgisinde kullanılır)
-const HIDDEN_KEYS = new Set(["count", "location_count", "kind", "searched"]);
+const HIDDEN_KEYS = new Set(["count", "location_count", "kind", "searched", "home_url"]);
 
 function isLocation(v: unknown): v is { file: string; line: number } {
   return typeof v === "object" && v !== null && "file" in v && "line" in v;
@@ -24,9 +32,26 @@ function isComponent(v: unknown): v is { type: string; name: string } {
   return typeof v === "object" && v !== null && "type" in v && "name" in v;
 }
 
+function isPage(v: unknown): v is { url: string } & Record<string, unknown> {
+  return typeof v === "object" && v !== null && "url" in v;
+}
+
+/** Sayfa bazlı kanıt: "https://site/tr — og:image, twitter_card_without_image" */
+function describePage(v: { url: string } & Record<string, unknown>): string {
+  const details = Object.entries(v)
+    .filter(([k]) => k !== "url")
+    .flatMap(([k, val]) => {
+      if (Array.isArray(val)) return val.map(String);
+      if (typeof val === "boolean") return val ? [k] : [];
+      return [`${k}: ${String(val)}`];
+    });
+  return details.length ? `${v.url} — ${details.join(", ")}` : v.url;
+}
+
 function stringify(v: unknown): string {
   if (isLocation(v)) return `${v.file}:${v.line}`;
   if (isComponent(v)) return `${v.type} ${v.name}`;
+  if (isPage(v)) return describePage(v);
   if (typeof v === "string") return v;
   return JSON.stringify(v);
 }

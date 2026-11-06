@@ -5,14 +5,25 @@ from datetime import timedelta
 from launchcheck.api.schemas import ErrorInfo, FindingOut, PassedCheckOut, ScanReport
 from launchcheck.checks.registry import Registry
 from launchcheck.db.models import FindingRow, Scan, ScanStatus
-from launchcheck.i18n import error_message, finding_text
+from launchcheck.i18n import error_message, finding_text, fragment_fn, passed_title
 from launchcheck.scoring import label_for
 
 INTERNAL_META_KEYS = ("checks_failed",)
 
 
-def _finding_out(row: FindingRow, lang: str) -> FindingOut:
-    text = finding_text(row.check_id, lang)
+def _text_params(row: FindingRow, registry: Registry, lang: str) -> dict[str, str]:
+    """Dinamik metinler (ör. "Ana sayfanda og:image eksik") kanıttan üretilir."""
+    check = registry.get(row.check_id)
+    if check is None:
+        return {}
+    try:
+        return check.text_params(row.evidence or {}, fragment_fn(row.check_id, lang))
+    except Exception:  # eski/bozuk kanıt raporu bozmasın; şablon olduğu gibi kalır
+        return {}
+
+
+def _finding_out(row: FindingRow, registry: Registry, lang: str) -> FindingOut:
+    text = finding_text(row.check_id, lang, _text_params(row, registry, lang))
     return FindingOut(
         check_id=row.check_id,
         severity=row.severity,
@@ -35,7 +46,7 @@ def _passed(
     flagged = {r.check_id for r in rows}
     failed = set((scan.meta or {}).get("checks_failed", []))
     return [
-        PassedCheckOut(check_id=c.id, category=c.category, title=finding_text(c.id, lang).title)
+        PassedCheckOut(check_id=c.id, category=c.category, title=passed_title(c.id, lang))
         for c in registry.for_target(scan.target_type, scan.phase)
         if c.id not in flagged and c.id not in failed
     ]
@@ -62,7 +73,7 @@ def build_report(
         category_scores=scan.category_scores,
         meta=meta,
         error=error,
-        findings=[_finding_out(r, lang) for r in ordered],
+        findings=[_finding_out(r, registry, lang) for r in ordered],
         passed=_passed(scan, rows, registry, lang),
         created_at=scan.created_at,
         finished_at=scan.finished_at,

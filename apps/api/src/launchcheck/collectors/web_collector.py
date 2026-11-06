@@ -15,6 +15,7 @@ from launchcheck.collectors.platform import backend_hints, detect_platforms
 from launchcheck.collectors.web_assets import (
     extract_chunk_refs,
     extract_html_scripts,
+    extract_internal_links,
     origin_of,
 )
 from launchcheck.config import Settings
@@ -28,6 +29,16 @@ class ScriptFile:
     content: str
     truncated: bool = False
     inline: bool = False
+
+
+@dataclass(frozen=True)
+class PageSnapshot:
+    """Taranan bir HTML sayfası. `pages[0]` her zaman ana sayfadır."""
+
+    url: str
+    status: int
+    headers: dict[str, str]
+    html: str
 
 
 class Fetcher(Protocol):
@@ -47,6 +58,8 @@ class WebContext(ScanContext):
     html: str = ""
     scripts: list[ScriptFile] = field(default_factory=list)
     all_script_urls: list[str] = field(default_factory=list)
+    # Ana sayfa + aynı origin iç sayfalar (sadece 200 + text/html olanlar)
+    pages: list[PageSnapshot] = field(default_factory=list)
     fetcher: Fetcher | None = None
     probe_max_bytes: int = 0
     # Eşzamanlı check'ler aynı yolu isterse tek istek atılır.
@@ -109,6 +122,7 @@ class WebContext(ScanContext):
 
 
 HTTP_ERROR_MIN = 400
+HTTP_OK = 200
 BOT_CHALLENGE_MARKERS = (
     b"<title>just a moment",  # Cloudflare
     b"cf-chl-",
@@ -176,6 +190,9 @@ class WebCollector:
         ]
         scripts += await self._fetch_scripts(fetcher, page.external, origin_of(main.final_url))
 
+        home = PageSnapshot(main.final_url, main.status, main.headers, html)
+        pages = [home, *await self._fetch_pages(fetcher, home)]
+
         external = [s for s in scripts if not s.inline]
         sources = [html] + [s.content for s in scripts]
         meta: dict[str, Any] = {
@@ -184,6 +201,7 @@ class WebCollector:
             ),
             "js_files_scanned": len(external),
             "js_truncated": any(s.truncated for s in external) or main.truncated,
+            "pages_scanned": len(pages),
             **backend_hints(sources),
         }
         return WebContext(
@@ -197,9 +215,50 @@ class WebCollector:
             html=html,
             scripts=scripts,
             all_script_urls=page.all_external,
+            pages=pages,
             fetcher=fetcher,
             probe_max_bytes=self._settings.probe_max_bytes,
         )
+
+    async def _fetch_page(
+        self, fetcher: SafeFetcher, url: str, origin: str, sem: asyncio.Semaphore
+    ) -> PageSnapshot | None:
+        async with sem:
+            try:
+                res = await fetcher.fetch(url, self._settings.max_html_bytes)
+            except FetchError:
+                return None
+        # 200 olmayan, HTML olmayan veya başka origin'e yönlenen sayfalar atlanır.
+        if res.status != HTTP_OK or res.content_type != "text/html":
+            return None
+        if origin_of(res.final_url) != origin:
+            return None
+        return PageSnapshot(res.final_url, res.status, res.headers, res.text)
+
+    async def _fetch_pages(self, fetcher: SafeFetcher, home: PageSnapshot) -> list[PageSnapshot]:
+        """Ana sayfadaki iç linklerden en fazla `web_max_internal_pages` sayfa çeker.
+        Süre sınırı dolarsa bitmeyen istekler iptal edilir ve elde olanlarla devam edilir."""
+        limit = self._settings.web_max_internal_pages
+        links = extract_internal_links(home.html, home.url, exclude=(home.url,))[:limit]
+        if not links:
+            return []
+        origin = origin_of(home.url)
+        sem = asyncio.Semaphore(self._settings.js_fetch_concurrency)
+        tasks = [asyncio.ensure_future(self._fetch_page(fetcher, u, origin, sem)) for u in links]
+        _, pending = await asyncio.wait(tasks, timeout=self._settings.web_internal_pages_timeout_s)
+        for task in pending:
+            task.cancel()
+        await asyncio.gather(*pending, return_exceptions=True)
+        seen = {home.url.rstrip("/")}
+        pages = []
+        for task in tasks:  # link sırası (öncelik) korunur
+            if task.cancelled() or task.exception() is not None:
+                continue
+            snapshot = task.result()
+            if snapshot is not None and snapshot.url.rstrip("/") not in seen:
+                seen.add(snapshot.url.rstrip("/"))
+                pages.append(snapshot)
+        return pages
 
     async def _fetch_one(
         self, fetcher: SafeFetcher, url: str, sem: asyncio.Semaphore

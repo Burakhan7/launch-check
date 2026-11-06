@@ -3,7 +3,7 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from enum import StrEnum
-from typing import Any, ClassVar
+from typing import Any, ClassVar, Protocol
 
 
 class TargetType(StrEnum):
@@ -87,3 +87,13 @@ class Check(ABC):
 
     @abstractmethod
     async def run(self, ctx: ScanContext) -> list[Finding]: ...
+
+    def text_params(self, evidence: dict[str, Any], fragment: "FragmentFn") -> dict[str, str]:
+        """i18n metinlerindeki `{yer_tutucu}`lar için değerler (rapor üretilirken çağrılır).
+        `fragment(ad, **değerler)` check'in i18n `fragments` alanından dile özgü parça üretir.
+        Varsayılan: parametre yok (metinler sabit)."""
+        return {}
+
+
+class FragmentFn(Protocol):
+    def __call__(self, name: str, **values: object) -> str: ...

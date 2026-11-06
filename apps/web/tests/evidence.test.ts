@@ -40,3 +40,24 @@ describe("evidenceRows", () => {
     if (rows[0].value.kind === "list") expect(rows[0].value.items).toHaveLength(10);
   });
 });
+
+describe("page evidence", () => {
+  it("renders per-page objects as readable lines", () => {
+    const rows = evidenceRows({
+      home_url: "https://x.com/tr",
+      pages: [
+        { url: "https://x.com/tr", missing: ["og:image"], issues: ["twitter_card_without_image"] },
+        { url: "https://x.com/shop", main_content_words: 1, empty_shell: false },
+      ],
+    });
+    expect(rows).toHaveLength(1);
+    expect(rows[0].value).toEqual({
+      kind: "list",
+      items: [
+        "https://x.com/tr — og:image, twitter_card_without_image",
+        "https://x.com/shop — main_content_words: 1",
+      ],
+      more: 0,
+    });
+  });
+});

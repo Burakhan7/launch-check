@@ -284,16 +284,34 @@ web.meta.title_description_missing:
     2. Add them to the HTML head (or my framework's metadata API).
 
 web.meta.og_missing:
-  title: "Social media preview info is missing"
-  description: "Your page is missing Open Graph tags (og:title, og:description, og:image). These tags set the title, description and image shown when your link is shared on WhatsApp, X, LinkedIn and the like."
-  why_it_matters: "Without them, shared links look plain and image-less, and people are less likely to click."
+  title: "{headline}"
+  passed_title: "Social media preview tags (Open Graph) are complete"
+  description: "Open Graph tags set the title, description and image shown when your link is shared on WhatsApp, X, LinkedIn and the like. Affected pages: {details}."
+  why_it_matters: "If these tags are missing or wrong, shared links show up without an image or with the wrong title, and people are less likely to click. Your home page link is usually the most shared one."
   fix_steps:
-    - "Add the og:title, og:description and og:image meta tags."
-    - "For og:image, use a 1200x630 pixel image with a full (https://...) address."
+    - "Fix the following: {todo}."
+    - "For og:image, use a 1200x630 pixel image with a full address (https://...)."
+    - "If you use twitter:card summary_large_image, og:image or twitter:image must be set."
+    - "After the change, check the link in a share preview tool (e.g. Facebook Sharing Debugger)."
   fix_prompt: |
-    My site is missing Open Graph tags. Please:
-    1. Add og:title, og:description, og:image, og:url and twitter:card tags.
-    2. Set it up so og:image uses a 1200x630 share image (with the image's full https address).
+    My site has problems with its Open Graph (social media preview) tags: {todo}.
+    Affected pages: {details}.
+    Please:
+    1. Add only the tags that are missing; don't touch the ones that are already correct.
+    2. Set og:image to the full https:// address of a 1200x630 image (no relative paths).
+    3. If twitter:card is summary_large_image, make sure og:image or twitter:image is set.
+    4. If my framework supports per-page metadata (e.g. Next.js generateMetadata), generate the right values for each page there.
+  fragments:
+    where_home: "Your home page is"
+    where_pages: "{count} of your pages are"
+    where_home_and_pages: "Your home page and {count} more pages are"
+    headline_missing: "{where} missing {tags}"
+    headline_issues: "{where} having social media preview problems"
+    missing_item: "{tag} missing"
+    page_line: "{url} ({items})"
+    issue_og_image_not_absolute: "og:image isn't a full https:// address"
+    issue_twitter_card_without_image: "twitter:card is summary_large_image but no image is set"
+    issue_og_image_aspect_ratio: "og:image aspect ratio is far from 1.91:1 (1200x630)"
 
 web.meta.favicon_missing:
   title: "No site icon (favicon)"
@@ -317,3 +335,36 @@ web.meta.sitemap_missing:
     My site has no sitemap.xml. Please:
     1. Create a sitemap.xml listing my site's public pages (generated automatically at build time if my framework supports it).
     2. Add the Sitemap line to robots.txt.
+
+web.infra.origin_exposed:
+  title: "Some files bypass your CDN and load straight from your app server"
+  description: "Some images, scripts or API addresses on your site come from your hosting platform's default address (e.g. project-name.up.railway.app, project.onrender.com) instead of your own domain. That address goes straight to your app server."
+  why_it_matters: "Through this address your server can be reached directly, bypassing your CDN and firewall (e.g. Cloudflare); your attack and bot protection doesn't apply on this path. Every image request also loads your app server and increases your traffic bill."
+  fix_steps:
+    - "Move static files such as images to your own CDN subdomain (e.g. cdn.yoursite.com) or to object storage (e.g. Cloudflare R2, S3)."
+    - "Update the resource addresses in your code and database to the new address; read the address from an environment variable."
+    - "Turn off the platform's default domain, or only allow requests to your server from your CDN's IP addresses."
+  fix_prompt: |
+    Some resources on my site (images, scripts or API calls) load from my hosting platform's default domain (e.g. *.up.railway.app, *.onrender.com, *.herokuapp.com). That address bypasses my CDN and goes straight to my app server. Please:
+    1. Find every address containing the platform domain in the project (including URLs stored in code, config and the database).
+    2. Replace them with my own domain or CDN address (e.g. https://cdn.yoursite.com); read the base address from an environment variable (e.g. ASSETS_BASE_URL / PUBLIC_API_URL).
+    3. Explain the steps to move static files to object storage or a CDN.
+    4. Suggest what I can do to turn off the platform domain or allow access only through the CDN.
+
+web.render.empty_server_html:
+  title: "Some pages' content isn't in the HTML from the server"
+  description: "The HTML these pages get from the server doesn't contain the main content (products, articles, descriptions); it only loads in the browser after JavaScript runs. Some pages are a completely empty shell (e.g. <div id=\"root\"></div>)."
+  why_it_matters: "Google and social media bots may see your page as empty or incomplete; your product and content pages show up late or not at all in search, and share previews break. Users also see a blank screen for longer on first load."
+  fix_steps:
+    - "Use server-side rendering (SSR) or static generation (SSG) for these pages."
+    - "Fetch the page's main data on the server and embed it in the HTML; keep client-side fetching only for interactive parts (cart, filters, etc.)."
+    - "After the change, open the page source (View source) and check that the content is in the HTML."
+  fix_prompt: |
+    On some pages of my site the main content isn't in the HTML from the server; it only loads in the browser with JavaScript (pages in the evidence). Please:
+    1. Restructure these pages so their data is fetched on the server and rendered into the HTML.
+    2. Keep client-side data fetching only for interactive parts (cart, filters, user-specific areas).
+    By framework:
+    - Next.js (App Router): fetch data in async Server Components; use "use client" only for interactive child components. Generate pages that don't change statically with generateStaticParams.
+    - Vite + React (SPA): move these pages to SSR/SSG (e.g. React Router framework mode, Vike) or at least add prerendering.
+    - Other React setups: suggest a server-rendered approach instead of fetching data in useEffect.
+    3. Explain how I can verify that the content shows up in the page source after the change.

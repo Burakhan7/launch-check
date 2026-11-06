@@ -51,6 +51,51 @@ class Settings(BaseSettings):
     dns_timeout_s: float = 5.0
     bot_user_agent: str = "LaunchCheckBot/1.0 (+https://launchcheck.example/bot)"
 
+    # İç sayfa taraması: ana sayfa + en fazla bu kadar iç sayfa (LC_WEB_MAX_INTERNAL_PAGES)
+    web_max_internal_pages: int = 10
+    # İç sayfa çekimleri için süre sınırı. Dolarsa elde olan sayfalarla devam edilir; böylece
+    # toplam web tarama süresi (web_scan_timeout_s) aşılıp tarama başarısız olmaz.
+    web_internal_pages_timeout_s: float = 30.0
+    # web.render.empty_server_html: ana içerik bu kelime sayısının altındaysa "boş" sayılır
+    web_min_main_content_words: int = 40
+    # Login/hesap gibi sunucuda içerik beklenmeyen yollar (yol parçası olarak eşleşir: /tr/login)
+    web_render_skip_paths: list[str] = Field(
+        default_factory=lambda: [
+            "/login",
+            "/signin",
+            "/register",
+            "/signup",
+            "/account",
+            "/cart",
+            "/checkout",
+            "/admin",
+            "/dashboard",
+        ]
+    )
+    # web.infra.origin_exposed: hosting platformlarının varsayılan alan adları (alt alan adları
+    # eşleşir). Supabase, Firebase Storage, Cloudinary, S3 gibi beklenen depolama/CDN'ler YOK.
+    web_platform_default_domains: list[str] = Field(
+        default_factory=lambda: [
+            "up.railway.app",
+            "railway.app",
+            "onrender.com",
+            "herokuapp.com",
+            "fly.dev",
+            "vercel.app",
+            "netlify.app",
+            "azurewebsites.net",
+            "appspot.com",
+            "run.app",
+            "pages.dev",
+            "workers.dev",
+            "replit.app",
+            "repl.co",
+            "lovable.app",
+            "ondigitalocean.app",
+            "koyeb.app",
+        ]
+    )
+
     # APK yükleme / analiz
     max_apk_bytes: int = 150 * 1024 * 1024
     max_apk_uncompressed_bytes: int = 1024 * 1024 * 1024

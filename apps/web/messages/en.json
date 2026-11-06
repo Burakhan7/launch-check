@@ -171,7 +171,13 @@
       "schemes": "Signature schemes",
       "packages": "Packages",
       "http_status": "HTTP status",
-      "final_url": "Address"
+      "final_url": "Address",
+      "host": "Domain",
+      "resource_count": "Resource count",
+      "sample_urls": "Sample addresses",
+      "pages": "Pages",
+      "behind_cdn": "Site is behind a CDN",
+      "reference_median_words": "Typical words on other pages"
     },
     "values": {
       "no_https": "The site doesn't use HTTPS",
@@ -183,7 +189,9 @@
       "network_security_config_base": "The network security config allows it for all domains",
       "network_security_config_domains": "The network security config allows it for some domains",
       "http_api_urls": "API addresses starting with http://",
-      "default": "Not set (default: on)"
+      "default": "Not set (default: on)",
+      "true": "Yes",
+      "false": "No"
     }
   },
   "Errors": {

@@ -64,3 +64,22 @@ def test_finding_text_fallback_for_unknown_check() -> None:
     text = finding_text("web.unknown.check", "tr")
     assert text.title == "web.unknown.check"
     assert text.fix_steps == []
+
+
+@pytest.mark.parametrize("lang", SUPPORTED_LANGS)
+def test_templated_titles_have_passed_title(lang: str) -> None:
+    """Başlığı şablonlu ({...}) check'ler "geçti" listesi için sabit passed_title tanımlamalı."""
+    problems = []
+    for cid in CHECK_IDS:
+        entry = load_catalog(lang)["checks"][cid]
+        if "{" in str(entry.get("title", "")) and not entry.get("passed_title"):
+            problems.append(cid)
+    assert not problems, problems
+
+
+@pytest.mark.parametrize("lang", SUPPORTED_LANGS)
+def test_passed_titles_have_no_placeholders(lang: str) -> None:
+    from launchcheck.i18n import passed_title
+
+    for cid in CHECK_IDS:
+        assert "{" not in passed_title(cid, lang), cid

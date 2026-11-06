@@ -171,7 +171,13 @@
       "schemes": "İmza şemaları",
       "packages": "Paketler",
       "http_status": "HTTP durumu",
-      "final_url": "Adres"
+      "final_url": "Adres",
+      "host": "Alan adı",
+      "resource_count": "Kaynak sayısı",
+      "sample_urls": "Örnek adresler",
+      "pages": "Sayfalar",
+      "behind_cdn": "Site CDN arkasında",
+      "reference_median_words": "Diğer sayfalarda ortalama kelime"
     },
     "values": {
       "no_https": "Site HTTPS kullanmıyor",
@@ -183,7 +189,9 @@
       "network_security_config_base": "Network security config tüm alan adlarında izin veriyor",
       "network_security_config_domains": "Network security config bazı alan adlarında izin veriyor",
       "http_api_urls": "http:// ile başlayan API adresleri",
-      "default": "Ayarlanmamış (varsayılan: açık)"
+      "default": "Ayarlanmamış (varsayılan: açık)",
+      "true": "Evet",
+      "false": "Hayır"
     }
   },
   "Errors": {

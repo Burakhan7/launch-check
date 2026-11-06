@@ -1,5 +1,6 @@
 """Bulgu ve hata metinlerinin dil bazlı yüklenmesi. Metinler DB'de değil, burada (tr/en YAML)."""
 
+from collections.abc import Callable
 from dataclasses import dataclass
 from functools import lru_cache
 from importlib import resources
@@ -68,20 +69,57 @@ def _lookup_check(check_id: str, lang: str) -> dict[str, Any] | None:
     return None
 
 
-def finding_text(check_id: str, lang: str) -> FindingText:
-    """Eksik metinler testte yakalanır; çalışma anında yine de çökmemek için yedek döner."""
+class _KeepMissing(dict[str, str]):
+    """Bilinmeyen yer tutucuyu olduğu gibi bırakır (KeyError yerine)."""
+
+    def __missing__(self, key: str) -> str:
+        return "{" + key + "}"
+
+
+def _render(template: str, params: dict[str, str]) -> str:
+    if not params or "{" not in template:
+        return template
+    try:
+        return template.format_map(_KeepMissing(params))
+    except (ValueError, IndexError):  # metinde süslü parantez bozuksa çökme
+        return template
+
+
+def fragment_fn(check_id: str, lang: str) -> Callable[..., str]:
+    """Check'in i18n `fragments` alanından dile özgü metin parçası üretir."""
+    entry = _lookup_check(check_id, normalize_lang(lang)) or {}
+    fragments: dict[str, Any] = entry.get("fragments") or {}
+
+    def fragment(name: str, **values: object) -> str:
+        template = str(fragments.get(name, name))
+        return _render(template, {k: str(v) for k, v in values.items()})
+
+    return fragment
+
+
+def finding_text(check_id: str, lang: str, params: dict[str, str] | None = None) -> FindingText:
+    """`params` metinlerdeki `{yer_tutucu}`ları doldurur (check.text_params üretir).
+    Eksik metinler testte yakalanır; çalışma anında yine de çökmemek için yedek döner."""
     entry = _lookup_check(check_id, normalize_lang(lang))
     if entry is None:
         return FindingText(
             title=check_id, description="", why_it_matters="", fix_steps=[], fix_prompt=""
         )
+    values = params or {}
     return FindingText(
-        title=str(entry.get("title", check_id)),
-        description=str(entry.get("description", "")),
-        why_it_matters=str(entry.get("why_it_matters", "")),
-        fix_steps=[str(s) for s in entry.get("fix_steps") or []],
-        fix_prompt=str(entry.get("fix_prompt", "")).strip(),
+        title=_render(str(entry.get("title", check_id)), values),
+        description=_render(str(entry.get("description", "")), values),
+        why_it_matters=_render(str(entry.get("why_it_matters", "")), values),
+        fix_steps=[_render(str(s), values) for s in entry.get("fix_steps") or []],
+        fix_prompt=_render(str(entry.get("fix_prompt", "")).strip(), values),
     )
+
+
+def passed_title(check_id: str, lang: str) -> str:
+    """ "Geçti" listesi başlığı. Şablonlu başlıklar (ör. {headline}) parametresiz anlamsız
+    olduğu için bu check'ler i18n'de ayrı bir `passed_title` tanımlar."""
+    entry = _lookup_check(check_id, normalize_lang(lang)) or {}
+    return str(entry.get("passed_title") or entry.get("title") or check_id)
 
 
 def error_message(code: str, lang: str) -> str:

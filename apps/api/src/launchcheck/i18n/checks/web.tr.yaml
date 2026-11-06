@@ -284,16 +284,34 @@ web.meta.title_description_missing:
     2. Bunları HTML head'e (veya framework'ümün metadata API'sine) ekle.
 
 web.meta.og_missing:
-  title: "Sosyal medya önizleme bilgileri eksik"
-  description: "Sayfanda Open Graph etiketleri (og:title, og:description, og:image) eksik. Bu etiketler, linkin WhatsApp, X, LinkedIn gibi yerlerde paylaşıldığında görünen başlık, açıklama ve görseli belirler."
-  why_it_matters: "Bu etiketler olmadan paylaşılan linkler görselsiz ve sıradan görünür, insanların tıklama ihtimali düşer."
+  title: "{headline}"
+  passed_title: "Sosyal medya önizleme etiketleri (Open Graph) tam"
+  description: "Linkin WhatsApp, X, LinkedIn gibi yerlerde paylaşıldığında görünen başlık, açıklama ve görseli Open Graph etiketleri belirler. Sorunlu sayfalar: {details}."
+  why_it_matters: "Bu etiketler eksik veya hatalıysa paylaşılan linkler görselsiz ya da yanlış başlıkla görünür; insanların tıklama ihtimali düşer. Özellikle ana sayfa linki en çok paylaşılan linktir."
   fix_steps:
-    - "og:title, og:description ve og:image meta etiketlerini ekle."
-    - "og:image için 1200x630 piksellik, tam adresli (https://...) bir görsel kullan."
+    - "Şunları düzelt: {todo}."
+    - "og:image için 1200x630 piksellik bir görsel kullan ve tam adresle (https://...) ver."
+    - "twitter:card summary_large_image kullanıyorsan og:image veya twitter:image tanımlı olmalı."
+    - "Değişiklikten sonra linki bir paylaşım önizleme aracında (ör. Facebook Sharing Debugger) kontrol et."
   fix_prompt: |
-    Sitemde Open Graph etiketleri eksik. Lütfen:
-    1. og:title, og:description, og:image, og:url ve twitter:card etiketlerini ekle.
-    2. og:image için 1200x630 boyutunda bir paylaşım görseli kullanılacak şekilde ayarla (görselin tam https adresiyle).
+    Sitemde Open Graph (sosyal medya önizleme) etiketlerinde eksikler var: {todo}.
+    Sorunlu sayfalar: {details}.
+    Lütfen:
+    1. Sadece eksik olan etiketleri ekle; zaten doğru olanlara dokunma.
+    2. og:image'ı 1200x630 boyutunda bir görselin tam https:// adresiyle ver (göreli yol kullanma).
+    3. twitter:card summary_large_image ise og:image veya twitter:image tanımlı olsun.
+    4. Framework'üm sayfa bazlı metadata destekliyorsa (ör. Next.js generateMetadata), her sayfa için doğru değerleri orada üret.
+  fragments:
+    where_home: "Ana sayfanda"
+    where_pages: "{count} sayfanda"
+    where_home_and_pages: "Ana sayfanda ve {count} sayfada daha"
+    headline_missing: "{where} {tags} eksik"
+    headline_issues: "{where} sosyal medya önizleme ayarlarında sorun var"
+    missing_item: "{tag} eksik"
+    page_line: "{url} ({items})"
+    issue_og_image_not_absolute: "og:image tam bir https:// adresi değil"
+    issue_twitter_card_without_image: "twitter:card summary_large_image ama görsel tanımlı değil"
+    issue_og_image_aspect_ratio: "og:image en-boy oranı 1.91:1'den (1200x630) belirgin farklı"
 
 web.meta.favicon_missing:
   title: "Site ikonu (favicon) yok"
@@ -317,3 +335,36 @@ web.meta.sitemap_missing:
     Sitemde sitemap.xml yok. Lütfen:
     1. Sitemdeki herkese açık sayfaları listeleyen bir sitemap.xml oluştur (framework'üm destekliyorsa build sırasında otomatik üretilsin).
     2. robots.txt dosyasına Sitemap satırını ekle.
+
+web.infra.origin_exposed:
+  title: "Bazı dosyalar CDN'i atlayıp doğrudan uygulama sunucundan yükleniyor"
+  description: "Sitende kullanılan bazı görsel, script veya API adresleri, kendi alan adın yerine hosting platformunun varsayılan adresinden (ör. proje-adi.up.railway.app, proje.onrender.com) geliyor. Bu adres doğrudan uygulama sunucuna gider."
+  why_it_matters: "Bu adres üzerinden sunucuna CDN'i ve güvenlik duvarını (ör. Cloudflare) atlayarak doğrudan ulaşılabilir; saldırı ve bot korumaların bu yolda çalışmaz. Ayrıca her görsel isteği uygulama sunucunu yorar ve trafik faturanı artırır."
+  fix_steps:
+    - "Görseller gibi statik dosyaları kendi CDN alt alan adına (ör. cdn.siten.com) veya bir obje depolamaya (ör. Cloudflare R2, S3) taşı."
+    - "Koddaki ve veritabanındaki kaynak adreslerini yeni adresle güncelle; adresi ortam değişkeninden oku."
+    - "Platformun varsayılan alan adını kapat veya sunucuna sadece CDN'inin IP adreslerinden gelen isteklere izin ver."
+  fix_prompt: |
+    Sitemde bazı kaynaklar (görseller, script'ler veya API çağrıları) hosting platformunun varsayılan alan adından yükleniyor (ör. *.up.railway.app, *.onrender.com, *.herokuapp.com). Bu adres CDN'i atlayıp doğrudan uygulama sunucuma gidiyor. Lütfen:
+    1. Projede (kod, yapılandırma ve veritabanında saklanan URL'ler dahil) platform alan adı içeren tüm adresleri bul.
+    2. Bunları kendi alan adım veya CDN adresimle (ör. https://cdn.siten.com) değiştir; temel adresi bir ortam değişkeninden (ör. ASSETS_BASE_URL / PUBLIC_API_URL) oku.
+    3. Statik dosyaları bir obje depolamaya veya CDN'e taşımak için gereken adımları anlat.
+    4. Platform alan adını kapatmak veya sadece CDN üzerinden erişime izin vermek için yapabileceklerimi öner.
+
+web.render.empty_server_html:
+  title: "Bazı sayfaların içeriği sunucudan gelen HTML'de yok"
+  description: "Bu sayfaların sunucudan gelen HTML'inde ana içerik (ürünler, yazılar, açıklamalar) yok; içerik sadece tarayıcıda JavaScript çalıştıktan sonra yükleniyor. Bazılarında sayfa tamamen boş bir kabuktan (ör. <div id=\"root\"></div>) oluşuyor."
+  why_it_matters: "Google ve sosyal medya botları sayfanı boş veya eksik görebilir; ürün ve içerik sayfaların aramalarda geç çıkar ya da hiç çıkmaz, paylaşım önizlemeleri bozulur. Kullanıcılar da ilk açılışta daha uzun süre boş ekran görür."
+  fix_steps:
+    - "Bu sayfalarda server-side rendering (SSR) veya static generation (SSG) kullan."
+    - "Sayfanın ana verisini sunucuda çekip HTML'e göm; client-side fetch'i sadece etkileşimli kısımlarda (sepet, filtre vb.) bırak."
+    - "Değişiklikten sonra sayfanın kaynağını (Kaynağı görüntüle) açıp içeriğin HTML'de olduğunu kontrol et."
+  fix_prompt: |
+    Sitemin bazı sayfalarında ana içerik sunucudan gelen HTML'de yok; sadece tarayıcıda JavaScript ile yükleniyor (kanıttaki sayfalar). Lütfen:
+    1. Bu sayfaların verisini sunucu tarafında çekip HTML'de render edecek şekilde yeniden düzenle.
+    2. Client-side veri çekmeyi sadece etkileşimli kısımlar (sepet, filtre, kullanıcıya özel alanlar) için bırak.
+    Framework'e göre:
+    - Next.js (App Router): veriyi async Server Component içinde çek; "use client" sadece etkileşimli alt bileşenlerde olsun. Değişmeyen sayfalar için generateStaticParams ile statik üret.
+    - Vite + React (SPA): bu sayfalar için SSR/SSG'ye geç (ör. React Router framework modu, vite-plugin-ssr/Vike) veya en azından ön render (prerender) ekle.
+    - Diğer React kurulumları: useEffect içindeki veri çekme yerine sunucuda render edilen bir yaklaşım öner.
+    3. Değişiklikten sonra sayfa kaynağında içeriğin göründüğünü nasıl doğrulayacağımı anlat.

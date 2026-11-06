@@ -7,11 +7,12 @@ import base64
 import json
 import random
 import string
+from pathlib import Path
 from typing import Any
 
 from launchcheck.checks.base import Check, Finding, TargetType
 from launchcheck.collectors.fetcher import FetchResult
-from launchcheck.collectors.web_collector import ScriptFile, WebContext
+from launchcheck.collectors.web_collector import PageSnapshot, ScriptFile, WebContext
 
 SITE = "https://app.example.com"
 ALNUM = string.ascii_letters + string.digits
@@ -81,8 +82,13 @@ def make_ctx(
     final_url: str = f"{SITE}/",
     spa: bool = False,
     inline: list[str] | None = None,
+    pages: list[tuple[str, str]] | None = None,
 ) -> WebContext:
+    """`pages`: ana sayfadan SONRAKİ iç sayfalar (url, html). Ana sayfa `html`'den oluşur."""
     files = [ScriptFile(url=u, content=c) for u, c in (scripts or {}).items()]
+    home_headers = {k.lower(): v for k, v in (headers or {}).items()}
+    snapshots = [PageSnapshot(final_url, 200, home_headers, html)]
+    snapshots += [PageSnapshot(u, 200, {"content-type": "text/html"}, h) for u, h in pages or []]
     files += [
         ScriptFile(url=f"{final_url}#inline-{i}", content=c, inline=True)
         for i, c in enumerate(inline or [])
@@ -96,6 +102,7 @@ def make_ctx(
         headers={k.lower(): v for k, v in (headers or {}).items()},
         html=html,
         scripts=files,
+        pages=snapshots,
         fetcher=FakeFetcher(routes, spa=spa),
         probe_max_bytes=1024 * 1024,
     )
@@ -103,3 +110,10 @@ def make_ctx(
 
 async def run(check: type[Check], ctx: WebContext) -> list[Finding]:
     return await check().run(ctx)
+
+
+FIXTURES_WEB = Path(__file__).parent.parent / "fixtures" / "web"
+
+
+def fixture_html(name: str) -> str:
+    return (FIXTURES_WEB / name).read_text(encoding="utf-8")

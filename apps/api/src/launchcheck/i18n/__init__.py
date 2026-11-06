@@ -5,8 +5,10 @@ from launchcheck.i18n.loader import (
     FindingText,
     error_message,
     finding_text,
+    fragment_fn,
     load_catalog,
     normalize_lang,
+    passed_title,
 )
 
 __all__ = [
@@ -16,6 +18,8 @@ __all__ = [
     "FindingText",
     "error_message",
     "finding_text",
+    "fragment_fn",
     "load_catalog",
     "normalize_lang",
+    "passed_title",
 ]

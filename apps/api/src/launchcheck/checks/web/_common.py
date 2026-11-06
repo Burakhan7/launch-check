@@ -8,7 +8,7 @@ from selectolax.lexbor import LexborHTMLParser
 from launchcheck.checks.base import Check, Finding, ScanContext, TargetType
 from launchcheck.checks.shared.secret_patterns import SecretHit, find_secrets, find_supabase_jwts
 from launchcheck.collectors.fetcher import FetchResult
-from launchcheck.collectors.web_collector import WebContext
+from launchcheck.collectors.web_collector import PageSnapshot, WebContext
 
 MAX_EVIDENCE_ITEMS = 10
 
@@ -72,3 +72,25 @@ def meta_content(
         if prop and (attrs.get("property") or "").lower() == prop:
             return (attrs.get("content") or "").strip()
     return ""
+
+
+def page_tree(ctx: WebContext, page: PageSnapshot) -> LexborHTMLParser:
+    """Sayfa başına önbellekli HTML ağacı. Değiştirmek isteyen check kendi kopyasını açmalı."""
+    key = f"page_tree:{page.url}"
+    if key not in ctx.cache:
+        ctx.cache[key] = LexborHTMLParser(page.html)
+    tree: LexborHTMLParser = ctx.cache[key]
+    return tree
+
+
+def is_noindex(page: PageSnapshot, tree: LexborHTMLParser) -> bool:
+    if "noindex" in page.headers.get("x-robots-tag", "").lower():
+        return True
+    for node in tree.css("meta[name]"):
+        name = (node.attributes.get("name") or "").lower()
+        if (
+            name in ("robots", "googlebot")
+            and "noindex" in (node.attributes.get("content") or "").lower()
+        ):
+            return True
+    return False
