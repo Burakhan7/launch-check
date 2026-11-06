@@ -30,9 +30,14 @@ Frontend ([apps/web](apps/web)) — Node 22:
 ```bash
 cd apps/web
 npm install
-npm run dev        # http://localhost:3000 → /tr
-npm run lint && npm run format:check
+npm run dev        # http://localhost:3000 → /tr  (/api istekleri localhost:8000'e yönlenir)
+npm run lint && npm run format:check && npm test
 ```
+
+> **Windows notu:** Docker Desktop, Windows klasör bağlamalarında dosya değişikliği bildirmediği için
+> container içindeki `next dev` canlı yenileme yapmaz. Frontend üzerinde çalışırken API/worker/DB'yi
+> Docker'da bırakıp `web` servisini durdur ve frontend'i yukarıdaki gibi yerelde `npm run dev` ile çalıştır.
+> İletişim linki `NEXT_PUBLIC_CONTACT_URL` ile ayarlanır (build sırasında gömülür).
 
 ## APK test fixture'ları
 

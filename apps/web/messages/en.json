@@ -1,11 +1,225 @@
 {
   "Meta": {
     "title": "Launch Check — Check before you launch",
-    "description": "Scan the website or Android app you built with vibe coding for free. Find leaked keys, exposed files and launch mistakes in minutes."
+    "description": "Scan the website or Android app you built with vibe coding for free. Find leaked keys, exposed files and launch mistakes in minutes.",
+    "reportTitle": "Scan report — Launch Check",
+    "privacyTitle": "Privacy — Launch Check"
+  },
+  "Nav": {
+    "home": "Home",
+    "privacy": "Privacy",
+    "switchLanguage": "Türkçe",
+    "switchLanguageLabel": "Change language"
   },
   "Home": {
+    "badge": "Free · No sign-up",
     "title": "Check before you launch",
-    "subtitle": "Scan your website or Android app and learn about common mistakes and how to fix them. Free, no sign-up.",
-    "comingSoon": "Scanning is coming here very soon."
+    "subtitle": "Scan the website or Android app you built with Lovable, Bolt, Cursor, FlutterFlow or Expo. Learn about common mistakes, what they mean and how to fix them, in plain language.",
+    "checksTitle": "What do we check?",
+    "checks": {
+      "secrets": "API keys leaked into your code (OpenAI, Stripe, Supabase service_role…)",
+      "files": ".env, .git and backup files readable from the internet",
+      "build": "Debug builds, debug certificates and development settings",
+      "network": "Forgotten localhost/staging addresses and unencrypted connections",
+      "headers": "HTTPS and security headers",
+      "launch": "SEO, privacy policy and Google Play requirements"
+    },
+    "howTitle": "How does it work?",
+    "how": {
+      "one": "Enter your site address or upload your APK.",
+      "two": "We scan in 1-2 minutes, looking only at public files.",
+      "three": "Get a scored report and fix prompts you can paste into your AI tool."
+    },
+    "privacyNote": "We don't keep your file: the APK is deleted as soon as the scan ends. Reports are deleted automatically after 7 days.",
+    "privacyLink": "Details"
+  },
+  "ScanForm": {
+    "tabWeb": "Website",
+    "tabApk": "Android app",
+    "urlLabel": "Site address",
+    "urlPlaceholder": "https://yoursite.com",
+    "scanButton": "Start scan",
+    "scanning": "Starting…",
+    "dropTitle": "Drag your APK file here",
+    "dropOr": "or",
+    "chooseFile": "Choose file",
+    "fileHint": ".apk only · Up to 150 MB",
+    "removeFile": "Remove file",
+    "consent": "I own this app or have permission to scan it.",
+    "uploading": "Uploading… {percent}%",
+    "wrongType": "You can only choose an .apk file.",
+    "tooLarge": "The file is too large. Up to 150 MB.",
+    "needConsent": "Confirm that you own the app to continue.",
+    "needUrl": "Please enter a site address.",
+    "passiveNote": "We only look at public files; we never try to read from or write to your site or database."
+  },
+  "Progress": {
+    "title": "Scanning",
+    "subtitle": "This usually takes 1-2 minutes. Keep this page open; the report will appear here when it's ready.",
+    "queued": "Queued",
+    "webSteps": {
+      "fetch": "Collecting the page and JavaScript files",
+      "secrets": "Looking for keys and secrets",
+      "files": "Checking for exposed files",
+      "headers": "Checking security settings",
+      "report": "Preparing the report"
+    },
+    "apkSteps": {
+      "unpack": "Unpacking the app",
+      "manifest": "Reading the manifest and permissions",
+      "secrets": "Looking for keys and addresses",
+      "build": "Checking build and signing settings",
+      "report": "Preparing the report"
+    }
+  },
+  "Report": {
+    "scoreOutOf": "/ 100",
+    "scannedAt": "Scanned: {date}",
+    "expires": "This report will be deleted automatically on {date}.",
+    "categories": "Categories",
+    "findingsTitle": "Findings",
+    "findingsCount": "{count, plural, =0 {No issues found} one {# issue found} other {# issues found}}",
+    "noFindings": "Great! We didn't find any of the issues we check for.",
+    "description": "What did we find?",
+    "why": "Why does it matter?",
+    "fixSteps": "How do I fix it?",
+    "fixPrompt": "Paste into your AI tool",
+    "fixPromptHint": "You can paste this into Lovable, Bolt, Cursor or Claude Code.",
+    "copyPrompt": "Copy prompt",
+    "copied": "Copied",
+    "evidence": "Evidence",
+    "evidenceMasked": "Secret values are masked for your safety.",
+    "passedTitle": "Checks passed",
+    "passedCount": "{count} checks passed",
+    "share": "Copy link",
+    "shareCopied": "Link copied",
+    "rescan": "Fixed it? Scan again",
+    "rescanApk": "Upload a new APK",
+    "helpTitle": "Couldn't fix it yourself?",
+    "helpText": "You can get help; write to us and we'll take a look together.",
+    "helpLink": "Get in touch",
+    "failedTitle": "The scan couldn't be completed",
+    "retry": "Try again",
+    "notFoundTitle": "Report not found",
+    "notFoundText": "This report may have been deleted or the link may be wrong. Reports are deleted automatically after 7 days.",
+    "newScan": "Start a new scan",
+    "loading": "Loading report…",
+    "detected": "Detected",
+    "apkInfo": "Version {version} · Target SDK {target}",
+    "phaseNote": "This report only includes passive checks that look at public files."
+  },
+  "Severity": {
+    "critical": "Critical",
+    "high": "High",
+    "medium": "Medium",
+    "low": "Low",
+    "info": "Info"
+  },
+  "Category": {
+    "security": "Security",
+    "prod_readiness": "Launch readiness",
+    "performance": "Performance",
+    "conversion": "Conversion",
+    "store_compliance": "Store compliance"
+  },
+  "ScoreLabel": {
+    "not_ready": "Not ready to launch",
+    "needs_work": "Some things need fixing",
+    "good": "In good shape"
+  },
+  "Platform": {
+    "lovable": "Lovable",
+    "bolt": "Bolt",
+    "nextjs": "Next.js",
+    "vite": "Vite",
+    "supabase": "Supabase",
+    "firebase": "Firebase",
+    "vercel": "Vercel",
+    "netlify": "Netlify",
+    "flutter": "Flutter",
+    "flutterflow": "FlutterFlow",
+    "react_native": "React Native",
+    "expo": "Expo",
+    "native": "Native Android",
+    "hermes": "Hermes"
+  },
+  "Evidence": {
+    "keys": {
+      "masked": "Masked value",
+      "locations": "Found in",
+      "project_ref": "Supabase project",
+      "path": "File",
+      "paths": "Files",
+      "keys": "Variable names",
+      "files": "Files",
+      "file": "File",
+      "urls": "Addresses",
+      "reasons": "Reason",
+      "reason": "Reason",
+      "headers": "Headers",
+      "header": "Missing header",
+      "missing": "Missing",
+      "sources": "Source",
+      "permissions": "Permissions",
+      "components": "Components",
+      "domains": "Domains",
+      "target_sdk": "Current target SDK",
+      "required": "Minimum required",
+      "value": "Value",
+      "attribute": "Setting",
+      "common_name": "Certificate name",
+      "schemes": "Signature schemes",
+      "packages": "Packages",
+      "http_status": "HTTP status",
+      "final_url": "Address"
+    },
+    "values": {
+      "no_https": "The site doesn't use HTTPS",
+      "no_redirect": "http:// doesn't redirect to https://",
+      "no_js_bundle": "The JS bundle isn't inside the app",
+      "expo_dev_client": "Includes the Expo dev client",
+      "manifest_uses_cleartext_traffic": "usesCleartextTraffic=true in the manifest",
+      "default_for_old_target_sdk": "On by default because of the old target SDK",
+      "network_security_config_base": "The network security config allows it for all domains",
+      "network_security_config_domains": "The network security config allows it for some domains",
+      "http_api_urls": "API addresses starting with http://",
+      "default": "Not set (default: on)"
+    }
+  },
+  "Errors": {
+    "generic": "Something went wrong. Please try again.",
+    "network_error": "We couldn't reach the server. Check your internet connection and try again."
+  },
+  "Footer": {
+    "tagline": "Pre-launch checks for apps built with vibe coding.",
+    "privacy": "Privacy",
+    "contact": "Contact"
+  },
+  "Privacy": {
+    "title": "Privacy",
+    "intro": "Launch Check is a free tool that helps you find common mistakes before you launch. We work with as little data as possible.",
+    "storedTitle": "What do we store?",
+    "stored": {
+      "report": "The scan report: the scanned site's base address (e.g. https://yoursite.com) or the app's package name, the score and the findings.",
+      "evidence": "Finding evidence: things like file paths and header names. Keys we find are stored only in masked form (first 6 and last 4 characters).",
+      "rate": "To prevent abuse, a one-way hash of your IP address is kept for at most 1 hour and then deleted automatically."
+    },
+    "notStoredTitle": "What don't we store?",
+    "notStored": {
+      "apk": "The APK you upload: deleted as soon as the scan ends (even if it fails).",
+      "filename": "Your file name, your full site address or your page content.",
+      "account": "Accounts, emails or personal information: there's no sign-up.",
+      "secrets": "The full value of keys we find: never stored, never logged."
+    },
+    "retentionTitle": "For how long?",
+    "retention": "Reports are deleted automatically after 7 days. Anyone with the report link can see it during that time, so share the link with care.",
+    "scanTitle": "How do we scan?",
+    "scan": "We only look at public files. We never try to read from or write to your site's or app's backend (Supabase, Firebase, APIs). Our bot identifies itself as LaunchCheckBot.",
+    "contactTitle": "Contact",
+    "contact": "Write to us with questions or deletion requests."
+  },
+  "NotFound": {
+    "title": "Page not found",
+    "back": "Back to home"
   }
 }

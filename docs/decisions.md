@@ -77,3 +77,14 @@ AGENTS.md'nin açık bıraktığı noktalarda verilen kararlar. En basit güvenl
 - **Hassas izinler listesi:** SMS/MMS/WAP, arama kaydı, rehber, arka planda konum, `MANAGE_EXTERNAL_STORAGE`, `QUERY_ALL_PACKAGES`, `REQUEST_INSTALL_PACKAGES`, `READ_MEDIA_IMAGES/VIDEO`, `USE_FULL_SCREEN_INTENT`. Liste `checks/apk/manifest.py` içinde ve Play politikaları değiştikçe güncellenmeli.
 - **Loglama sezgisi sadece uygulamanın kendi paketinde:** jadx çıktısında sadece manifest `package` yolundaki dosyalara bakılır. Üçüncü taraf SDK'lar ("Token refresh" gibi mesajlar) yanlış alarm üretir. Dart/Hermes kodunda çağrı bilgisi olmadığı için Flutter/RN uygulamalarında bu check pratikte sadece native kodu kapsar.
 - **Fixture matrisi:** `tests/checks/test_apk_fixture_matrix.py` her fixture'da çıkan bulgu kümesinin TAM olarak beklenenle eşleşmesini ister (eksik = kaçırılan sorun, fazla = yanlış alarm).
+
+## 2026-11-06 — M6
+
+- **Tema:** Mor + beyaz (kullanıcı isteği). Renkler `globals.css` içinde CSS değişkeni olarak tanımlı (`--brand`, `--surface`, `--line`, önem ve skor renkleri). Karanlık mod işletim sistemi tercihini izler (koyu mor zemin, açık mor vurgu). Önem dereceleri ve skor etiketleri anlamlarını korumak için kırmızı/turuncu/amber/yeşil kalır; "low" (düşük) önem markaya uyumlu olarak mor.
+- **Rapor sayfası istemcide yüklenir:** `cacheComponents` ile sayfa kabuğu önceden üretilir; rapor `useParams` + 2 sn'lik polling ile istemcide gelir (`<Suspense>` içinde). Sayfa gizlenince (Next 16 `<Activity>`) effect temizlenir ve polling durur. Rapor sayfası `noindex, nofollow` ve `referrer: no-referrer` (rapor linki dış sitelere Referer ile sızmasın).
+- **İlerleme adımları tahminidir:** API gerçek adım bilgisi vermediği için adımlar tipik süreye göre ilerler (web ~35 sn, APK ~60 sn) ve son adım tarama bitene kadar bekler. Faz 2'de worker'dan gerçek ilerleme alınabilir.
+- **APK yükleme `XMLHttpRequest` ile:** fetch yükleme ilerlemesi vermiyor; ilerleme çubuğu için XHR kullanılır.
+- **Dil değiştirici:** Dinamik sayfalarda (rapor) mevcut adres önceden üretilemediği için `<Suspense>` içindedir; yedek hâli diğer dilin ana sayfasına gider.
+- **`/api` rewrite'ı:** Geliştirmede Next.js `/api/*` isteklerini `API_INTERNAL_URL`'e (varsayılan localhost:8000) yönlendirir. Prod'da Caddy `/api/*`'yi doğrudan API'ye gönderir; rewrite'a ulaşılmaz.
+- **İletişim adresi yer tutucu:** `NEXT_PUBLIC_CONTACT_URL` (varsayılan `mailto:merhaba@launchcheck.example`). Alan adı belli olunca (M7) güncellenecek.
+- **Frontend testleri:** Vitest ile saf yardımcılar (kanıt biçimlendirme, API hata ayrıştırma). Vitest 5, `@types/node` >= 22 istediği için tipler Node 22'ye çekildi (çalışma ortamı zaten Node 22).

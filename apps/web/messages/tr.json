@@ -1,11 +1,225 @@
 {
   "Meta": {
     "title": "Launch Check — Yayına çıkmadan önce kontrol et",
-    "description": "Vibe coding ile yaptığın web sitesini veya Android uygulamanı ücretsiz tara. Sızan anahtarları, açık dosyaları ve yayın hatalarını dakikalar içinde bul."
+    "description": "Vibe coding ile yaptığın web sitesini veya Android uygulamanı ücretsiz tara. Sızan anahtarları, açık dosyaları ve yayın hatalarını dakikalar içinde bul.",
+    "reportTitle": "Tarama raporu — Launch Check",
+    "privacyTitle": "Gizlilik — Launch Check"
+  },
+  "Nav": {
+    "home": "Ana sayfa",
+    "privacy": "Gizlilik",
+    "switchLanguage": "English",
+    "switchLanguageLabel": "Dili değiştir"
   },
   "Home": {
+    "badge": "Ücretsiz · Kayıt yok",
     "title": "Yayına çıkmadan önce kontrol et",
-    "subtitle": "Web siteni veya Android uygulamanı tara, sık yapılan hataları ve nasıl düzelteceğini öğren. Ücretsiz, kayıt yok.",
-    "comingSoon": "Tarama çok yakında burada."
+    "subtitle": "Lovable, Bolt, Cursor, FlutterFlow veya Expo ile yaptığın web sitesini ya da Android uygulamanı tara. Sık yapılan hataları, ne anlama geldiklerini ve nasıl düzelteceğini sade bir dille öğren.",
+    "checksTitle": "Neleri kontrol ediyoruz?",
+    "checks": {
+      "secrets": "Koda sızmış API anahtarları (OpenAI, Stripe, Supabase service_role…)",
+      "files": "İnternetten okunabilen .env, .git ve yedek dosyaları",
+      "build": "Debug build, debug sertifikası ve geliştirme ayarları",
+      "network": "Unutulmuş localhost/staging adresleri ve şifresiz bağlantılar",
+      "headers": "HTTPS ve güvenlik header'ları",
+      "launch": "SEO, gizlilik politikası ve Google Play gereksinimleri"
+    },
+    "howTitle": "Nasıl çalışır?",
+    "how": {
+      "one": "Site adresini gir veya APK'yı yükle.",
+      "two": "1-2 dakika içinde sadece herkese açık dosyalara bakarak tararız.",
+      "three": "Puanlı raporu ve AI aracına yapıştırabileceğin düzeltme prompt'larını al."
+    },
+    "privacyNote": "Dosyanı saklamıyoruz: APK tarama biter bitmez silinir. Raporlar 7 gün sonra otomatik silinir.",
+    "privacyLink": "Ayrıntılar"
+  },
+  "ScanForm": {
+    "tabWeb": "Web sitesi",
+    "tabApk": "Android uygulaması",
+    "urlLabel": "Site adresi",
+    "urlPlaceholder": "https://siten.com",
+    "scanButton": "Taramayı başlat",
+    "scanning": "Başlatılıyor…",
+    "dropTitle": "APK dosyanı buraya sürükle",
+    "dropOr": "veya",
+    "chooseFile": "Dosya seç",
+    "fileHint": "Sadece .apk · En fazla 150 MB",
+    "removeFile": "Dosyayı kaldır",
+    "consent": "Bu uygulamanın sahibiyim veya taramak için iznim var.",
+    "uploading": "Yükleniyor… %{percent}",
+    "wrongType": "Sadece .apk dosyası seçebilirsin.",
+    "tooLarge": "Dosya çok büyük. En fazla 150 MB.",
+    "needConsent": "Devam etmek için uygulamanın sahibi olduğunu onayla.",
+    "needUrl": "Lütfen bir site adresi gir.",
+    "passiveNote": "Sadece herkese açık dosyalara bakarız; sitene veya veritabanına yazma/okuma denemesi yapmayız."
+  },
+  "Progress": {
+    "title": "Taranıyor",
+    "subtitle": "Bu genelde 1-2 dakika sürer. Sayfayı kapatma; rapor hazır olunca burada görünecek.",
+    "queued": "Sıraya alındı",
+    "webSteps": {
+      "fetch": "Sayfa ve JavaScript dosyaları toplanıyor",
+      "secrets": "Anahtarlar ve gizli bilgiler aranıyor",
+      "files": "Açık dosyalar kontrol ediliyor",
+      "headers": "Güvenlik ayarları kontrol ediliyor",
+      "report": "Rapor hazırlanıyor"
+    },
+    "apkSteps": {
+      "unpack": "Uygulama açılıyor",
+      "manifest": "Manifest ve izinler okunuyor",
+      "secrets": "Anahtarlar ve adresler aranıyor",
+      "build": "Build ve imza ayarları kontrol ediliyor",
+      "report": "Rapor hazırlanıyor"
+    }
+  },
+  "Report": {
+    "scoreOutOf": "/ 100",
+    "scannedAt": "Tarandı: {date}",
+    "expires": "Bu rapor {date} tarihinde otomatik silinecek.",
+    "categories": "Kategoriler",
+    "findingsTitle": "Bulgular",
+    "findingsCount": "{count, plural, =0 {Sorun bulunamadı} one {# sorun bulundu} other {# sorun bulundu}}",
+    "noFindings": "Harika! Kontrol ettiğimiz hiçbir sorunu bulamadık.",
+    "description": "Ne bulduk?",
+    "why": "Neden önemli?",
+    "fixSteps": "Nasıl düzeltirim?",
+    "fixPrompt": "AI aracına yapıştır",
+    "fixPromptHint": "Bu metni Lovable, Bolt, Cursor veya Claude Code'a yapıştırabilirsin.",
+    "copyPrompt": "Prompt'u kopyala",
+    "copied": "Kopyalandı",
+    "evidence": "Kanıt",
+    "evidenceMasked": "Gizli değerler güvenliğin için maskelenmiştir.",
+    "passedTitle": "Geçtiği kontroller",
+    "passedCount": "{count} kontrol sorunsuz",
+    "share": "Linki kopyala",
+    "shareCopied": "Link kopyalandı",
+    "rescan": "Düzelttin mi? Tekrar tara",
+    "rescanApk": "Yeni APK yükle",
+    "helpTitle": "Kendin çözemedin mi?",
+    "helpText": "Yardım alabilirsin; bize yaz, birlikte bakalım.",
+    "helpLink": "İletişime geç",
+    "failedTitle": "Tarama tamamlanamadı",
+    "retry": "Tekrar dene",
+    "notFoundTitle": "Rapor bulunamadı",
+    "notFoundText": "Bu rapor silinmiş veya link hatalı olabilir. Raporlar 7 gün sonra otomatik silinir.",
+    "newScan": "Yeni tarama başlat",
+    "loading": "Rapor yükleniyor…",
+    "detected": "Tespit edilen",
+    "apkInfo": "Sürüm {version} · Hedef SDK {target}",
+    "phaseNote": "Bu rapor sadece herkese açık dosyalara bakan pasif kontrolleri içerir."
+  },
+  "Severity": {
+    "critical": "Kritik",
+    "high": "Yüksek",
+    "medium": "Orta",
+    "low": "Düşük",
+    "info": "Bilgi"
+  },
+  "Category": {
+    "security": "Güvenlik",
+    "prod_readiness": "Yayına hazırlık",
+    "performance": "Performans",
+    "conversion": "Dönüşüm",
+    "store_compliance": "Mağaza uyumu"
+  },
+  "ScoreLabel": {
+    "not_ready": "Yayına hazır değil",
+    "needs_work": "Düzeltilmesi gerekenler var",
+    "good": "İyi durumda"
+  },
+  "Platform": {
+    "lovable": "Lovable",
+    "bolt": "Bolt",
+    "nextjs": "Next.js",
+    "vite": "Vite",
+    "supabase": "Supabase",
+    "firebase": "Firebase",
+    "vercel": "Vercel",
+    "netlify": "Netlify",
+    "flutter": "Flutter",
+    "flutterflow": "FlutterFlow",
+    "react_native": "React Native",
+    "expo": "Expo",
+    "native": "Native Android",
+    "hermes": "Hermes"
+  },
+  "Evidence": {
+    "keys": {
+      "masked": "Maskeli değer",
+      "locations": "Bulunduğu yerler",
+      "project_ref": "Supabase proje",
+      "path": "Dosya",
+      "paths": "Dosyalar",
+      "keys": "Değişken adları",
+      "files": "Dosyalar",
+      "file": "Dosya",
+      "urls": "Adresler",
+      "reasons": "Sebep",
+      "reason": "Sebep",
+      "headers": "Header'lar",
+      "header": "Eksik header",
+      "missing": "Eksik",
+      "sources": "Kaynak",
+      "permissions": "İzinler",
+      "components": "Bileşenler",
+      "domains": "Alan adları",
+      "target_sdk": "Mevcut hedef SDK",
+      "required": "Gereken en az",
+      "value": "Değer",
+      "attribute": "Ayar",
+      "common_name": "Sertifika adı",
+      "schemes": "İmza şemaları",
+      "packages": "Paketler",
+      "http_status": "HTTP durumu",
+      "final_url": "Adres"
+    },
+    "values": {
+      "no_https": "Site HTTPS kullanmıyor",
+      "no_redirect": "http:// adresi https://'e yönlenmiyor",
+      "no_js_bundle": "JS bundle uygulamanın içinde yok",
+      "expo_dev_client": "Expo dev client içeriyor",
+      "manifest_uses_cleartext_traffic": "Manifest'te usesCleartextTraffic=true",
+      "default_for_old_target_sdk": "Eski hedef SDK nedeniyle varsayılan olarak açık",
+      "network_security_config_base": "Network security config tüm alan adlarında izin veriyor",
+      "network_security_config_domains": "Network security config bazı alan adlarında izin veriyor",
+      "http_api_urls": "http:// ile başlayan API adresleri",
+      "default": "Ayarlanmamış (varsayılan: açık)"
+    }
+  },
+  "Errors": {
+    "generic": "Bir şeyler ters gitti. Lütfen tekrar dene.",
+    "network_error": "Sunucuya ulaşamadık. İnternet bağlantını kontrol edip tekrar dene."
+  },
+  "Footer": {
+    "tagline": "Vibe coding ile yapılmış uygulamalar için yayın öncesi kontrol.",
+    "privacy": "Gizlilik",
+    "contact": "İletişim"
+  },
+  "Privacy": {
+    "title": "Gizlilik",
+    "intro": "Launch Check, ürününü yayına çıkarmadan önce sık yapılan hataları bulmana yardım eden ücretsiz bir araçtır. Mümkün olan en az veriyle çalışırız.",
+    "storedTitle": "Ne saklıyoruz?",
+    "stored": {
+      "report": "Tarama raporu: taranan sitenin ana adresi (ör. https://siten.com) veya uygulamanın paket adı, skor ve bulgular.",
+      "evidence": "Bulgu kanıtları: dosya yolu, header adı gibi bilgiler. Bulunan anahtarlar sadece maskeli hâlde (ilk 6 ve son 4 karakter) saklanır.",
+      "rate": "Kötüye kullanımı önlemek için IP adresinin tek yönlü özeti (hash) en fazla 1 saat tutulur, sonra kendiliğinden silinir."
+    },
+    "notStoredTitle": "Ne saklamıyoruz?",
+    "notStored": {
+      "apk": "Yüklediğin APK dosyası: tarama biter bitmez (hata olsa bile) silinir.",
+      "filename": "Dosya adın, tam site adresin veya sayfa içeriğin.",
+      "account": "Hesap, e-posta veya kişisel bilgi: kayıt yok.",
+      "secrets": "Bulunan anahtarların tam hâli: asla saklanmaz, loglanmaz."
+    },
+    "retentionTitle": "Ne kadar süre?",
+    "retention": "Raporlar 7 gün sonra otomatik olarak silinir. Rapor linkine sahip olan herkes raporu bu süre içinde görebilir; linki dikkatli paylaş.",
+    "scanTitle": "Taramayı nasıl yapıyoruz?",
+    "scan": "Sadece herkese açık dosyalara bakarız. Sitenin veya uygulamanın arka ucuna (Supabase, Firebase, API) yazma veya okuma denemesi yapmayız. Botumuz kendini LaunchCheckBot olarak tanıtır.",
+    "contactTitle": "İletişim",
+    "contact": "Sorun veya silme talebi için bize yazabilirsin."
+  },
+  "NotFound": {
+    "title": "Sayfa bulunamadı",
+    "back": "Ana sayfaya dön"
   }
 }
