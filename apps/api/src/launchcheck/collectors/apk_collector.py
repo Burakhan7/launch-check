@@ -92,7 +92,7 @@ class ApkContext(ScanContext):
         if self.jadx_dir is None or not self.jadx_dir.exists():
             return []
         return [
-            (str(p.relative_to(self.jadx_dir)), p.read_text("utf-8", errors="replace"))
+            (p.relative_to(self.jadx_dir).as_posix(), p.read_text("utf-8", errors="replace"))
             for p in sorted(self.jadx_dir.rglob("*.java"))
         ]
 
@@ -236,10 +236,13 @@ class ApkCollector:
                 sources.append((name, text))
 
         for path in sorted(ctx.decoded_dir.glob("res/values*/strings.xml")):
-            add(str(path.relative_to(ctx.decoded_dir)), path.read_text("utf-8", errors="replace"))
+            add(
+                path.relative_to(ctx.decoded_dir).as_posix(),
+                path.read_text("utf-8", errors="replace"),
+            )
         for path in sorted(ctx.decoded_dir.glob("smali*/**/*.smali")):
             add(
-                str(path.relative_to(ctx.decoded_dir)),
+                path.relative_to(ctx.decoded_dir).as_posix(),
                 smali_const_strings(path.read_text("utf-8", errors="replace")),
             )
         if libapp:

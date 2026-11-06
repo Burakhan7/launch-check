@@ -1,0 +1,210 @@
+# APK check metinleri (Türkçe). Ton: sade, suçlamayan, sonuç odaklı.
+
+apk.secrets.leaked_key:
+  title: "Uygulamanın içinde gizli bir API anahtarı var"
+  description: "Uygulama dosyasının (APK) içinde, sadece sunucuda durması gereken bir anahtar bulundu (ör. OpenAI, Stripe, AWS). APK'yı indiren herkes onu birkaç dakikada açıp bu anahtarı okuyabilir."
+  why_it_matters: "Bu anahtarla biri senin adına işlem yapabilir: yapay zekâ kullanımıyla faturanı şişirebilir, ödeme sistemine veya verilerine erişebilir. Uygulama mağazadan indirilebildiği sürece anahtar herkese açıktır; kodu karıştırmak (obfuscation) bunu engellemez."
+  fix_steps:
+    - "Bu anahtarı ilgili servisin panelinden hemen iptal et ve yenisini oluştur."
+    - "Yeni anahtarı uygulamaya değil, sunucu tarafına koy (ör. Supabase Edge Function, Firebase Cloud Function veya kendi backend'in)."
+    - "Uygulama bu servisi doğrudan değil, kendi sunucu fonksiyonun üzerinden çağırsın."
+    - "Anahtarı .env veya assets dosyasında uygulamaya paketleme; bu dosyalar da APK'nın içine girer."
+  fix_prompt: |
+    Mobil uygulamamın içinde (APK) gizli bir API anahtarı var. Lütfen:
+    1. Kodda, .env dosyalarında ve assets klasöründe bu anahtarın kullanıldığı tüm yerleri bul.
+    2. Bu servise yapılan çağrıları bir sunucu fonksiyonuna taşı (Supabase Edge Function veya Firebase Cloud Function); anahtar sadece sunucuda, ortam değişkeninden okunsun.
+    3. Uygulama sadece bu sunucu fonksiyonunu çağırsın; anahtar uygulama kodunda ve paketlenen dosyalarda hiç kalmasın.
+    Not: Anahtarı ayrıca servisin panelinden iptal edip yenileyeceğim.
+
+apk.secrets.google_api_key:
+  title: "Google API anahtarı bulundu, kısıtlamalarını kontrol et"
+  description: "Uygulamanın içinde bir Google API anahtarı (AIza... ile başlayan) var. Firebase kullanıyorsan bu genelde normaldir: google-services.json'daki anahtar uygulamaya gömülecek şekilde tasarlanmıştır."
+  why_it_matters: "Aynı formatta bir anahtar Gemini, Google Maps veya başka bir ücretli Google servisine ait olabilir. Kısıtlanmamış bir anahtarı başkaları kendi projelerinde kullanabilir ve faturan sana kalır."
+  fix_steps:
+    - "Google Cloud Console → APIs & Services → Credentials sayfasında bu anahtarı bul."
+    - "Application restrictions bölümünde anahtarı Android uygulamalarıyla sınırla (paket adı + SHA-1 imza parmak izi)."
+    - "API restrictions bölümünde sadece kullandığın API'leri seç."
+    - "Anahtar Gemini veya başka bir ücretli API içinse uygulamadan kaldır ve çağrıları sunucu tarafına taşı."
+  fix_prompt: |
+    Mobil uygulamamın içinde bir Google API anahtarı (AIza...) var. Lütfen:
+    1. Bu anahtarın ne için kullanıldığını bul (google-services.json / Firebase mi, Gemini veya Maps gibi başka bir API mi?).
+    2. Firebase anahtarıysa olduğu gibi bırak, ama hangi Google API'lerini kullandığımızı listele ki Cloud Console'da anahtarı paket adı + SHA-1 ile ve bu API'lerle sınırlayabileyim.
+    3. Gemini veya başka bir ücretli API ise çağrıları bir sunucu fonksiyonuna taşı ve anahtarı uygulamadan tamamen kaldır.
+
+apk.secrets.service_role:
+  title: "Supabase yönetici anahtarı uygulamanın içinde"
+  description: "Uygulamanın içinde Supabase'in service_role anahtarı bulundu. Bu anahtar veritabanındaki tüm güvenlik kurallarını (RLS) atlar."
+  why_it_matters: "APK'yı indiren herkes bu anahtarı çıkarıp tüm kullanıcı verilerini okuyabilir, değiştirebilir ve silebilir."
+  fix_steps:
+    - "Supabase panelinden bu anahtarı hemen yenile (Project Settings → API)."
+    - "Uygulamada sadece anon/publishable anahtarı kullan."
+    - "Yönetici yetkisi gereken işlemleri Edge Function veya backend'e taşı."
+    - "Uygulamanın yeni bir sürümünü yayınla; eski sürümdeki anahtar yenilendiği için artık çalışmayacak."
+  fix_prompt: |
+    Mobil uygulamama Supabase service_role anahtarı gömülmüş. Lütfen:
+    1. Uygulama kodundaki ve .env/yapılandırma dosyalarındaki tüm service_role kullanımlarını bul ve kaldır.
+    2. Uygulamada sadece anon key kullanılsın.
+    3. service_role gerektiren işlemleri bir Supabase Edge Function'a taşı ve uygulamadan onu çağır.
+    4. İlgili tablolarda RLS'in açık olduğunu ve doğru policy'ler olduğunu kontrol et.
+
+apk.build.debuggable:
+  title: "Uygulama hata ayıklama (debug) modunda derlenmiş"
+  description: "Uygulamanın manifest dosyasında android:debuggable=\"true\" var. Bu ayar sadece geliştirme sırasında kullanılmalıdır."
+  why_it_matters: "Telefona erişimi olan biri uygulamanın çalışmasına müdahale edebilir, hafızasını okuyabilir ve kaydettiği verilere (giriş bilgileri dahil) ulaşabilir. Google Play debuggable uygulamaları kabul etmez."
+  fix_steps:
+    - "Uygulamayı release (yayın) modunda derle; debug build'i yayınlama."
+    - "AndroidManifest.xml veya build.gradle içinde debuggable true ayarı varsa kaldır."
+  fix_prompt: |
+    Android uygulamam debuggable=true olarak derlenmiş. Lütfen:
+    1. AndroidManifest.xml ve build.gradle dosyalarında debuggable ayarlarını bul; release build için kaldır.
+    2. Release APK/AAB üretmek için doğru komutu söyle (Flutter: flutter build appbundle --release, React Native: ./gradlew bundleRelease, Expo: eas build --profile production).
+
+apk.build.debug_certificate:
+  title: "Uygulama geliştirici (debug) sertifikasıyla imzalanmış"
+  description: "APK, Android'in otomatik oluşturduğu 'Android Debug' sertifikasıyla imzalanmış. Bu sertifika sadece geliştirme içindir."
+  why_it_matters: "Google Play debug sertifikalı uygulamaları kabul etmez. Ayrıca bu sertifika her geliştirici bilgisayarında farklıdır; kullanıcılar bir sonraki sürümü güncelleme olarak yükleyemez."
+  fix_steps:
+    - "Bir yayın anahtarı (upload key / keystore) oluştur ve güvenli bir yerde yedekle."
+    - "Uygulamayı bu anahtarla release modunda imzala."
+    - "Google Play'de 'Play App Signing' özelliğini kullan."
+  fix_prompt: |
+    Android uygulamam debug sertifikasıyla imzalanmış. Lütfen:
+    1. Bir release keystore oluşturmam için gereken keytool komutunu ver.
+    2. Projemin build ayarlarını (android/app/build.gradle ve key.properties) release build'in bu anahtarla imzalanacağı şekilde yapılandır; şifreler koda değil, dışarıdaki bir dosyaya konsun.
+    3. Expo kullanıyorsam EAS Build ile kimlik bilgilerini nasıl yöneteceğimi anlat.
+
+apk.build.flutter_debug:
+  title: "Flutter uygulaması debug modunda derlenmiş"
+  description: "APK'nın içinde Flutter'ın debug build'lerine özgü kernel_blob.bin dosyası var. Bu, uygulamanın yayın (release) modunda değil, geliştirme modunda derlendiği anlamına gelir."
+  why_it_matters: "Debug modundaki Flutter uygulamaları çok daha yavaş çalışır, ekranda 'DEBUG' etiketi görünebilir ve uygulamanın Dart kodu kolayca okunabilir. Google Play bu tür build'leri genelde reddeder."
+  fix_steps:
+    - "Uygulamayı 'flutter build appbundle --release' (veya --release ile apk) komutuyla derle."
+    - "FlutterFlow kullanıyorsan yayın için indirdiğin dosyanın 'release' build olduğundan emin ol."
+  fix_prompt: |
+    Flutter uygulamamın debug build'ini yayınlamaya hazırlanmışım. Lütfen:
+    1. Google Play için release build üretmek üzere 'flutter build appbundle --release' komutunu ve gerekli imzalama ayarlarını açıkla.
+    2. Release build'de debug banner'ın kapalı olduğundan emin ol (debugShowCheckedModeBanner: false).
+
+apk.build.rn_dev_mode:
+  title: "React Native / Expo uygulaması geliştirme modunda derlenmiş"
+  description: "APK'nın içinde uygulamanın JavaScript kodu (bundle) yok veya Expo geliştirme aracı (dev client) var. Bu tür build'ler kodu geliştiricinin bilgisayarından yüklemek üzere tasarlanmıştır."
+  why_it_matters: "Kullanıcının telefonunda geliştirme sunucusu olmadığı için uygulama açılmaz veya hata ekranı gösterir. Dev client build'leri ayrıca geliştirici menüsünü ve araçlarını içerir."
+  fix_steps:
+    - "Expo: 'eas build --profile production' ile production profiliyle derle."
+    - "React Native: './gradlew bundleRelease' ile release build al; JS bundle otomatik olarak içine eklenir."
+    - "Yayın build'inde expo-dev-client kullanılmadığından emin ol."
+  fix_prompt: |
+    React Native / Expo uygulamamın geliştirme build'ini yayınlamaya hazırlanmışım (JS bundle yok veya expo-dev-client var). Lütfen:
+    1. eas.json'da production profilinin developmentClient kullanmadığından emin ol.
+    2. Release build almak için doğru komutu ver (Expo: eas build --profile production --platform android, bare RN: cd android && ./gradlew bundleRelease).
+    3. Release build'de JS bundle'ın APK/AAB içine eklendiğini nasıl doğrulayacağımı anlat.
+
+apk.network.localhost_urls:
+  title: "Uygulamada geliştirme bilgisayarının adresi kalmış"
+  description: "Uygulamanın içinde localhost, 127.0.0.1, 10.0.2.2 (Android emülatörü) veya 192.168.x.x gibi sadece geliştirme ortamında çalışan adresler var."
+  why_it_matters: "Bu adresler kullanıcıların telefonlarında çalışmaz. Uygulama bu adrese istek atıyorsa giriş, kayıt veya veri yükleme gibi özellikler gerçek kullanıcılar için bozuk olur."
+  fix_steps:
+    - "Kanıttaki adreslerin kodda nerede kullanıldığını bul."
+    - "API adresini ortama göre ayarla (ör. Flutter --dart-define, Expo EXPO_PUBLIC_API_URL, Android buildConfigField) ve release build'de gerçek sunucu adresini ver."
+    - "Uygulamayı geliştirme bilgisayarının ağına bağlı olmayan bir telefonda (mobil veriyle) test et."
+  fix_prompt: |
+    Mobil uygulamamın release build'inde localhost / 10.0.2.2 / 192.168.x.x adresleri kalmış. Lütfen:
+    1. Koddaki ve yapılandırma dosyalarındaki tüm bu adresleri bul.
+    2. API adresini ortama göre (debug/release) değişen bir yapılandırmadan okuyacak şekilde düzenle.
+    3. Release build için production API adresinin kullanıldığından emin ol.
+
+apk.network.staging_urls:
+  title: "Uygulamada test/staging sunucu adresleri var"
+  description: "Uygulamanın içinde staging, dev veya test gibi geliştirme ortamlarına ait sunucu adresleri bulundu."
+  why_it_matters: "Uygulama gerçek kullanıcıların verilerini test sunucusuna gönderiyor olabilir ya da test ortamı kapandığında özellikler bozulabilir. Yayınlanan bir uygulama sürümünü geri çağıramazsın; kullanıcılar eski sürümü uzun süre kullanır."
+  fix_steps:
+    - "Kanıttaki adreslerin release build'de gerçekten kullanılıp kullanılmadığını kontrol et."
+    - "Ortama özel adresleri build türüne (debug/release) veya flavor'a göre ayarla."
+  fix_prompt: |
+    Mobil uygulamamın release build'inde staging/dev/test sunucu adresleri var. Lütfen:
+    1. Bu adresleri bul ve nerede kullanıldıklarını açıkla.
+    2. Ortama özel adresleri build türüne göre (debug/release veya flavor) seçilecek şekilde düzenle.
+    3. Release build'in sadece production adreslerini kullandığından emin ol.
+
+apk.network.cleartext:
+  title: "Uygulama şifresiz (HTTP) bağlantıya izin veriyor"
+  description: "Uygulama ayarları şifresiz HTTP trafiğine izin veriyor (usesCleartextTraffic veya network security config) ya da uygulamada http:// ile başlayan API adresleri var."
+  why_it_matters: "Şifresiz bağlantıda, aynı ağdaki biri (ör. kafe Wi-Fi'ı) kullanıcıların giriş bilgilerini, tokenlarını ve verilerini görebilir veya değiştirebilir."
+  fix_steps:
+    - "Tüm API adreslerini https:// olarak değiştir."
+    - "AndroidManifest.xml'den android:usesCleartextTraffic=\"true\" ayarını kaldır."
+    - "Network security config'de cleartextTrafficPermitted=\"true\" varsa kaldır; sadece geliştirme için gerekiyorsa debug build'e özel yap."
+  fix_prompt: |
+    Android uygulamam şifresiz HTTP trafiğine izin veriyor. Lütfen:
+    1. Koddaki tüm http:// API adreslerini bul ve https:// ile değiştir.
+    2. AndroidManifest.xml'deki usesCleartextTraffic ayarını kaldır.
+    3. Geliştirme için yerel sunucuya HTTP gerekiyorsa, bunu sadece debug build'de geçerli olan bir network_security_config ile sınırla.
+
+apk.sdk.target_too_low:
+  title: "Uygulamanın hedef Android sürümü Google Play için çok düşük"
+  description: "Uygulamanın targetSdkVersion değeri, Google Play'in yeni uygulamalar ve güncellemeler için istediği en düşük sürümün altında."
+  why_it_matters: "Google Play bu uygulamayı veya güncellemesini kabul etmez. Ayrıca yeni Android sürümlerinin güvenlik ve gizlilik korumaları uygulamana uygulanmaz."
+  fix_steps:
+    - "build.gradle (veya app.json / pubspec ayarları) içinde targetSdkVersion değerini gerekli sürüme yükselt."
+    - "Yeni Android sürümünün davranış değişikliklerini kontrol et ve uygulamayı test et."
+    - "Kullandığın framework'ü (Flutter, React Native, Expo) yeni hedef sürümü destekleyen bir sürüme güncelle."
+  fix_prompt: |
+    Android uygulamamın targetSdkVersion değeri Google Play'in istediği sürümün altında. Lütfen:
+    1. Projemde targetSdkVersion'ın nerede ayarlandığını bul ve Google Play'in güncel gereksinimine yükselt.
+    2. Bu yükseltmede etkilenebilecek davranış değişikliklerini (izinler, bildirimler, arka plan işleri) listele.
+    3. Framework sürümüm yeni hedefi desteklemiyorsa nasıl güncelleyeceğimi anlat.
+
+apk.manifest.allow_backup:
+  title: "Uygulama verileri otomatik yedeklemeye açık"
+  description: "Uygulamada android:allowBackup açık (veya ayarlanmamış, yani varsayılan olarak açık). Bu durumda uygulamanın kaydettiği veriler cihaz yedeğine kopyalanabilir."
+  why_it_matters: "Uygulaman giriş tokenı, oturum bilgisi veya kişisel veri saklıyorsa bunlar yedeklerden çıkarılabilir ya da başka bir cihaza taşınabilir. Bu, hesabın başka cihazda açık kalmasına yol açabilir."
+  fix_steps:
+    - "Hassas veri saklıyorsan AndroidManifest.xml'de android:allowBackup=\"false\" yap."
+    - "Yedeklemeyi istiyorsan dataExtractionRules / fullBackupContent ile sadece güvenli dosyaları yedeğe dahil et."
+    - "Token gibi hassas verileri EncryptedSharedPreferences veya flutter_secure_storage gibi güvenli depolamada tut."
+  fix_prompt: |
+    Android uygulamamda allowBackup açık. Lütfen:
+    1. Uygulamamın cihazda sakladığı verileri (SharedPreferences, veritabanı, dosyalar, tokenlar) listele.
+    2. Hassas veri varsa AndroidManifest.xml'de allowBackup="false" yap veya dataExtractionRules ile hassas dosyaları yedekten hariç tut.
+    3. Tokenları güvenli depolamaya (EncryptedSharedPreferences / flutter_secure_storage / expo-secure-store) taşı.
+
+apk.manifest.exported_components:
+  title: "Bazı uygulama bileşenleri diğer uygulamalara açık"
+  description: "Uygulamada exported=\"true\" olan ama bir intent-filter veya izinle korunmayan bileşenler (activity, service, receiver, provider) var. Telefondaki diğer uygulamalar bunları doğrudan çalıştırabilir."
+  why_it_matters: "Kötü amaçlı bir uygulama bu bileşenleri tetikleyip uygulamanın iç ekranlarını açabilir, verilerine erişebilir veya işlem yaptırabilir."
+  fix_steps:
+    - "Kanıttaki bileşenlerin dışarıdan erişilmesi gerekip gerekmediğini kontrol et."
+    - "Gerekmiyorsa AndroidManifest.xml'de android:exported=\"false\" yap."
+    - "Gerekiyorsa bir izin (android:permission) ile koru."
+  fix_prompt: |
+    Android uygulamamda intent-filter'ı olmayan ama exported="true" olan bileşenler var. Lütfen:
+    1. AndroidManifest.xml'deki bu bileşenleri (kanıttaki adlar) bul ve her birinin dışarıdan erişilmesi gerekip gerekmediğini açıkla.
+    2. Gerekmeyenleri exported="false" yap.
+    3. Başka uygulamaların erişmesi gerekenleri signature seviyesinde bir izinle koru.
+
+apk.permissions.sensitive:
+  title: "Uygulama hassas izinler istiyor"
+  description: "Uygulama SMS, arama kaydı, rehber, arka planda konum, tüm dosyalara erişim veya yüklü uygulamaları listeleme gibi hassas izinler istiyor."
+  why_it_matters: "Google Play bu izinlerin çoğunu kısıtlar; kullanmak için özel bir beyan formu ve geçerli bir gerekçe ister, aksi hâlde uygulama reddedilir veya kaldırılır. Kullanıcılar da gereksiz izin isteyen uygulamalara güvenmez."
+  fix_steps:
+    - "Kanıttaki her iznin gerçekten gerekli olup olmadığını kontrol et; gerekmeyenleri kaldır."
+    - "Bazı izinler kullandığın kütüphanelerden geliyor olabilir; gerekmiyorsa manifest'te tools:node=\"remove\" ile çıkar."
+    - "Gerçekten gerekiyorsa Play Console'daki izin beyan formunu doldur ve uygulama içinde kullanıcıya nedenini açıkla."
+  fix_prompt: |
+    Android uygulamam Google Play'in kısıtladığı hassas izinler istiyor (kanıttaki liste). Lütfen:
+    1. Her iznin projemde nerede ve neden kullanıldığını bul (kendi kodum mu, bir kütüphane mi?).
+    2. Gerekmeyen izinleri kaldır; kütüphaneden gelenleri AndroidManifest.xml'de tools:node="remove" ile çıkar.
+    3. Gerekli olanlar için daha az hassas bir alternatif var mı (ör. tüm dosyalar yerine sistem dosya seçici, SMS izni yerine SMS Retriever API) öner.
+
+apk.logging.sensitive_log:
+  title: "Uygulama hassas bilgileri log'a yazıyor olabilir"
+  description: "Uygulamanın kodunda, token, şifre veya gizli anahtar gibi kelimeler içeren log çağrıları (Log.d, System.out.println vb.) bulundu. Bu sezgisel bir kontroldür; yanlış alarm olabilir."
+  why_it_matters: "Log'lar cihazda başka araçlarla okunabilir ve hata raporlarına girebilir. Token veya şifre log'a yazılırsa hesabın ele geçirilmesine yol açabilir."
+  fix_steps:
+    - "Kanıttaki satırları kontrol et; gerçekten hassas değer yazdırılıyorsa kaldır."
+    - "Release build'de debug log'larını kapat (ör. ProGuard/R8 kuralıyla Log.d çağrılarını kaldır veya Timber kullan)."
+  fix_prompt: |
+    Android uygulamamın kodunda token/şifre gibi hassas bilgileri log'a yazan çağrılar olabilir. Lütfen:
+    1. Kodda Log.d, Log.v, System.out.println gibi log çağrılarında token, password, secret, authorization gibi değerlerin yazdırıldığı yerleri bul.
+    2. Bu değerleri log'dan çıkar.
+    3. Release build'de debug log'larını tamamen kaldıran bir yapılandırma ekle (R8/ProGuard -assumenosideeffects kuralı veya Timber).

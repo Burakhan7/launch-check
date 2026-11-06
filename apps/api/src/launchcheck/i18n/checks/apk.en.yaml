@@ -1,0 +1,210 @@
+# APK check texts (English). Tone: plain, non-blaming, outcome-focused.
+
+apk.secrets.leaked_key:
+  title: "A secret API key is inside your app"
+  description: "The app file (APK) contains a key that should only live on a server (e.g. OpenAI, Stripe, AWS). Anyone who downloads the APK can unpack it in minutes and read this key."
+  why_it_matters: "With this key someone can act on your behalf: run up your AI bill, or reach your payment system or data. As long as the app can be downloaded, the key is public; obfuscating the code doesn't prevent this."
+  fix_steps:
+    - "Revoke this key in the provider's dashboard right away and create a new one."
+    - "Put the new key on the server side, not in the app (e.g. a Supabase Edge Function, a Firebase Cloud Function or your own backend)."
+    - "Have the app call the service through your own server function instead of directly."
+    - "Don't bundle keys into the app in .env or asset files; those files end up inside the APK too."
+  fix_prompt: |
+    My mobile app (APK) contains a secret API key. Please:
+    1. Find every place where this key is used in the code, .env files and the assets folder.
+    2. Move the calls to this service into a server function (Supabase Edge Function or Firebase Cloud Function); the key should only be read on the server, from an environment variable.
+    3. Make the app call only that server function; the key must not remain in the app code or in any bundled file.
+    Note: I will also revoke and rotate the key in the provider's dashboard.
+
+apk.secrets.google_api_key:
+  title: "Google API key found, check its restrictions"
+  description: "The app contains a Google API key (starting with AIza...). If you use Firebase this is usually normal: the key from google-services.json is designed to be embedded in the app."
+  why_it_matters: "A key in the same format could belong to Gemini, Google Maps or another paid Google service. An unrestricted key can be used by others in their own projects, and the bill comes to you."
+  fix_steps:
+    - "Find this key in Google Cloud Console → APIs & Services → Credentials."
+    - "Under Application restrictions, limit the key to Android apps (package name + SHA-1 signing fingerprint)."
+    - "Under API restrictions, select only the APIs you use."
+    - "If the key is for Gemini or another paid API, remove it from the app and move those calls to the server side."
+  fix_prompt: |
+    My mobile app contains a Google API key (AIza...). Please:
+    1. Find out what this key is used for (google-services.json / Firebase, or another API such as Gemini or Maps?).
+    2. If it's the Firebase key, leave it as is, but list which Google APIs we use so I can restrict the key in Cloud Console to our package name + SHA-1 and to those APIs.
+    3. If it's for Gemini or another paid API, move the calls to a server function and remove the key from the app entirely.
+
+apk.secrets.service_role:
+  title: "Your Supabase admin key is inside the app"
+  description: "The app contains Supabase's service_role key. This key bypasses every security rule (RLS) in your database."
+  why_it_matters: "Anyone who downloads the APK can extract this key and read, change and delete all of your users' data."
+  fix_steps:
+    - "Rotate this key in the Supabase dashboard right away (Project Settings → API)."
+    - "Use only the anon/publishable key in the app."
+    - "Move operations that need admin rights into an Edge Function or a backend."
+    - "Publish a new version of the app; the key in the old version will stop working once rotated."
+  fix_prompt: |
+    My mobile app has the Supabase service_role key embedded. Please:
+    1. Find and remove every use of service_role in the app code and in .env/config files.
+    2. Make the app use only the anon key.
+    3. Move operations that need service_role into a Supabase Edge Function and call it from the app.
+    4. Check that RLS is enabled on the relevant tables and that the policies are correct.
+
+apk.build.debuggable:
+  title: "The app was built in debug mode"
+  description: "The app's manifest contains android:debuggable=\"true\". This setting is meant for development only."
+  why_it_matters: "Someone with access to the phone can interfere with the running app, read its memory and reach the data it stores (including sign-in data). Google Play doesn't accept debuggable apps."
+  fix_steps:
+    - "Build the app in release mode; don't publish a debug build."
+    - "If AndroidManifest.xml or build.gradle sets debuggable to true, remove it."
+  fix_prompt: |
+    My Android app was built with debuggable=true. Please:
+    1. Find the debuggable settings in AndroidManifest.xml and build.gradle and remove them for the release build.
+    2. Tell me the right command to produce a release APK/AAB (Flutter: flutter build appbundle --release, React Native: ./gradlew bundleRelease, Expo: eas build --profile production).
+
+apk.build.debug_certificate:
+  title: "The app is signed with a developer (debug) certificate"
+  description: "The APK is signed with the 'Android Debug' certificate that Android generates automatically. This certificate is for development only."
+  why_it_matters: "Google Play doesn't accept debug-signed apps. The certificate is also different on every developer machine, so users can't install your next version as an update."
+  fix_steps:
+    - "Create a release key (upload key / keystore) and back it up somewhere safe."
+    - "Sign the app with this key in release mode."
+    - "Use 'Play App Signing' on Google Play."
+  fix_prompt: |
+    My Android app is signed with the debug certificate. Please:
+    1. Give me the keytool command to create a release keystore.
+    2. Configure my project's build settings (android/app/build.gradle and key.properties) so release builds are signed with this key; passwords should live in an external file, not in the code.
+    3. If I use Expo, explain how to manage credentials with EAS Build.
+
+apk.build.flutter_debug:
+  title: "The Flutter app was built in debug mode"
+  description: "The APK contains kernel_blob.bin, a file specific to Flutter debug builds. This means the app was built in development mode, not release mode."
+  why_it_matters: "Flutter apps in debug mode run much slower, may show a 'DEBUG' banner, and their Dart code is easy to read. Google Play usually rejects such builds."
+  fix_steps:
+    - "Build the app with 'flutter build appbundle --release' (or an APK with --release)."
+    - "If you use FlutterFlow, make sure the file you download for publishing is a release build."
+  fix_prompt: |
+    I'm about to publish a debug build of my Flutter app. Please:
+    1. Explain the 'flutter build appbundle --release' command and the signing setup needed to produce a release build for Google Play.
+    2. Make sure the debug banner is off in the release build (debugShowCheckedModeBanner: false).
+
+apk.build.rn_dev_mode:
+  title: "The React Native / Expo app was built in development mode"
+  description: "The APK doesn't contain the app's JavaScript code (bundle), or it includes the Expo development tool (dev client). Such builds are designed to load code from the developer's computer."
+  why_it_matters: "Users' phones don't have a development server, so the app won't open or will show an error screen. Dev client builds also include the developer menu and tools."
+  fix_steps:
+    - "Expo: build with the production profile using 'eas build --profile production'."
+    - "React Native: create a release build with './gradlew bundleRelease'; the JS bundle is added automatically."
+    - "Make sure expo-dev-client isn't used in the release build."
+  fix_prompt: |
+    I'm about to publish a development build of my React Native / Expo app (no JS bundle, or expo-dev-client included). Please:
+    1. Make sure the production profile in eas.json doesn't use developmentClient.
+    2. Give me the right command for a release build (Expo: eas build --profile production --platform android, bare RN: cd android && ./gradlew bundleRelease).
+    3. Explain how to verify that the JS bundle is included in the release APK/AAB.
+
+apk.network.localhost_urls:
+  title: "The app still contains your development machine's address"
+  description: "The app contains addresses like localhost, 127.0.0.1, 10.0.2.2 (the Android emulator) or 192.168.x.x that only work in a development environment."
+  why_it_matters: "These addresses don't work on your users' phones. If the app sends requests to them, features like sign-in, sign-up or loading data are broken for real users."
+  fix_steps:
+    - "Find where the addresses in the evidence are used in your code."
+    - "Set the API address per environment (e.g. Flutter --dart-define, Expo EXPO_PUBLIC_API_URL, Android buildConfigField) and use the real server address in release builds."
+    - "Test the app on a phone that isn't on your development machine's network (e.g. on mobile data)."
+  fix_prompt: |
+    My mobile app's release build still contains localhost / 10.0.2.2 / 192.168.x.x addresses. Please:
+    1. Find all of these addresses in the code and config files.
+    2. Change the code so the API address comes from configuration that differs per environment (debug/release).
+    3. Make sure the release build uses the production API address.
+
+apk.network.staging_urls:
+  title: "Test/staging server addresses are in the app"
+  description: "The app contains server addresses belonging to development environments such as staging, dev or test."
+  why_it_matters: "The app may be sending real users' data to a test server, or features may break when the test environment is shut down. You can't recall a published app version; users keep old versions for a long time."
+  fix_steps:
+    - "Check whether the addresses in the evidence are actually used in the release build."
+    - "Choose environment-specific addresses by build type (debug/release) or flavor."
+  fix_prompt: |
+    My mobile app's release build contains staging/dev/test server addresses. Please:
+    1. Find these addresses and explain where they're used.
+    2. Change the code so environment-specific addresses are selected by build type (debug/release or flavor).
+    3. Make sure the release build uses only production addresses.
+
+apk.network.cleartext:
+  title: "The app allows unencrypted (HTTP) connections"
+  description: "The app's settings allow unencrypted HTTP traffic (usesCleartextTraffic or the network security config), or the app contains API addresses starting with http://."
+  why_it_matters: "On an unencrypted connection, someone on the same network (e.g. café Wi-Fi) can see or alter users' sign-in data, tokens and other data."
+  fix_steps:
+    - "Change every API address to https://."
+    - "Remove android:usesCleartextTraffic=\"true\" from AndroidManifest.xml."
+    - "If the network security config has cleartextTrafficPermitted=\"true\", remove it; if you only need it for development, limit it to debug builds."
+  fix_prompt: |
+    My Android app allows unencrypted HTTP traffic. Please:
+    1. Find every http:// API address in the code and replace it with https://.
+    2. Remove the usesCleartextTraffic setting from AndroidManifest.xml.
+    3. If I need HTTP to a local server during development, limit it with a network_security_config that applies only to debug builds.
+
+apk.sdk.target_too_low:
+  title: "The app's target Android version is too low for Google Play"
+  description: "The app's targetSdkVersion is below the minimum Google Play requires for new apps and updates."
+  why_it_matters: "Google Play won't accept this app or its update. The security and privacy protections of newer Android versions also won't apply to your app."
+  fix_steps:
+    - "Raise targetSdkVersion to the required version in build.gradle (or your app.json / Flutter build settings)."
+    - "Check the behavior changes of the new Android version and test the app."
+    - "Update your framework (Flutter, React Native, Expo) to a version that supports the new target."
+  fix_prompt: |
+    My Android app's targetSdkVersion is below what Google Play requires. Please:
+    1. Find where targetSdkVersion is set in my project and raise it to Google Play's current requirement.
+    2. List the behavior changes this upgrade may affect (permissions, notifications, background work).
+    3. If my framework version doesn't support the new target, explain how to upgrade it.
+
+apk.manifest.allow_backup:
+  title: "App data is open to automatic backup"
+  description: "The app has android:allowBackup on (or unset, which means on by default). The data the app stores can then be copied into device backups."
+  why_it_matters: "If your app stores sign-in tokens, session data or personal data, these can be extracted from backups or moved to another device. That can leave the account signed in on another device."
+  fix_steps:
+    - "If you store sensitive data, set android:allowBackup=\"false\" in AndroidManifest.xml."
+    - "If you want backups, use dataExtractionRules / fullBackupContent to include only safe files."
+    - "Keep sensitive data such as tokens in secure storage like EncryptedSharedPreferences or flutter_secure_storage."
+  fix_prompt: |
+    My Android app has allowBackup enabled. Please:
+    1. List the data my app stores on the device (SharedPreferences, databases, files, tokens).
+    2. If any of it is sensitive, set allowBackup="false" in AndroidManifest.xml or exclude sensitive files from backup with dataExtractionRules.
+    3. Move tokens into secure storage (EncryptedSharedPreferences / flutter_secure_storage / expo-secure-store).
+
+apk.manifest.exported_components:
+  title: "Some app components are open to other apps"
+  description: "The app has components (activity, service, receiver, provider) with exported=\"true\" that aren't protected by an intent-filter or a permission. Other apps on the phone can launch them directly."
+  why_it_matters: "A malicious app can trigger these components to open your app's internal screens, reach its data or make it perform actions."
+  fix_steps:
+    - "Check whether the components in the evidence really need to be reachable from outside."
+    - "If not, set android:exported=\"false\" in AndroidManifest.xml."
+    - "If they do, protect them with a permission (android:permission)."
+  fix_prompt: |
+    My Android app has components with exported="true" but no intent-filter. Please:
+    1. Find these components in AndroidManifest.xml (names in the evidence) and explain whether each needs to be reachable from outside.
+    2. Set exported="false" on the ones that don't.
+    3. Protect the ones other apps need to reach with a signature-level permission.
+
+apk.permissions.sensitive:
+  title: "The app requests sensitive permissions"
+  description: "The app requests sensitive permissions such as SMS, call log, contacts, background location, all-files access or listing installed apps."
+  why_it_matters: "Google Play restricts most of these permissions; using them requires a special declaration form and a valid reason, otherwise the app is rejected or removed. Users also distrust apps that ask for unnecessary permissions."
+  fix_steps:
+    - "Check whether each permission in the evidence is really needed; remove the ones that aren't."
+    - "Some permissions may come from libraries you use; if you don't need them, remove them in the manifest with tools:node=\"remove\"."
+    - "If you really need them, fill in the permission declaration form in Play Console and explain the reason to users in the app."
+  fix_prompt: |
+    My Android app requests sensitive permissions that Google Play restricts (list in the evidence). Please:
+    1. Find where and why each permission is used in my project (my own code or a library?).
+    2. Remove the ones I don't need; remove the ones that come from libraries in AndroidManifest.xml with tools:node="remove".
+    3. For the ones I need, suggest less sensitive alternatives (e.g. the system file picker instead of all-files access, the SMS Retriever API instead of SMS permissions).
+
+apk.logging.sensitive_log:
+  title: "The app may be writing sensitive data to logs"
+  description: "The app's code has log calls (Log.d, System.out.println, etc.) containing words like token, password or secret key. This is a heuristic check and may be a false alarm."
+  why_it_matters: "Logs can be read on the device with other tools and can end up in crash reports. If a token or password is logged, it can lead to account takeover."
+  fix_steps:
+    - "Check the lines in the evidence; if a sensitive value is really being printed, remove it."
+    - "Turn off debug logs in release builds (e.g. strip Log.d calls with an R8/ProGuard rule, or use Timber)."
+  fix_prompt: |
+    My Android app's code may be logging sensitive data such as tokens or passwords. Please:
+    1. Find log calls like Log.d, Log.v and System.out.println that print values such as token, password, secret or authorization.
+    2. Remove those values from the logs.
+    3. Add configuration that strips debug logs entirely from release builds (an R8/ProGuard -assumenosideeffects rule, or Timber).
