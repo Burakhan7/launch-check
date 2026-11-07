@@ -57,6 +57,11 @@ export function FindingCard({ finding, defaultOpen }: { finding: Finding; defaul
       </summary>
 
       <div className="flex flex-col gap-5 border-t border-line px-5 py-5 text-sm leading-relaxed">
+        {finding.evidence.sensitive_data_note === true && (
+          <p className="rounded-lg border border-brand/30 bg-brand-soft px-3 py-2 text-sm font-medium text-brand">
+            {finding.evidence.escalated_due_to ? t("sensitiveEscalated") : t("sensitiveNote")}
+          </p>
+        )}
         <Section title={t("description")}>
           <p>{finding.description}</p>
         </Section>

@@ -9,23 +9,32 @@ from launchcheck.i18n import error_message, finding_text, fragment_fn, passed_ti
 from launchcheck.scoring import label_for
 
 INTERNAL_META_KEYS = ("checks_failed",)
+# Yeniden adlandırılan check'ler: eski taramalar (en fazla saklama süresi kadar) yeni metinle
+# gösterilir.
+RENAMED_CHECKS = {"web.safety.live_chat_without_age_gate": "web.safety.age_gate_missing"}
+
+
+def canonical_check_id(check_id: str) -> str:
+    return RENAMED_CHECKS.get(check_id, check_id)
 
 
 def _text_params(row: FindingRow, registry: Registry, lang: str) -> dict[str, str]:
     """Dinamik metinler (ör. "Ana sayfanda og:image eksik") kanıttan üretilir."""
-    check = registry.get(row.check_id)
+    check_id = canonical_check_id(row.check_id)
+    check = registry.get(check_id)
     if check is None:
         return {}
     try:
-        return check.text_params(row.evidence or {}, fragment_fn(row.check_id, lang))
+        return check.text_params(row.evidence or {}, fragment_fn(check_id, lang))
     except Exception:  # eski/bozuk kanıt raporu bozmasın; şablon olduğu gibi kalır
         return {}
 
 
 def _finding_out(row: FindingRow, registry: Registry, lang: str) -> FindingOut:
-    text = finding_text(row.check_id, lang, _text_params(row, registry, lang))
+    check_id = canonical_check_id(row.check_id)
+    text = finding_text(check_id, lang, _text_params(row, registry, lang))
     return FindingOut(
-        check_id=row.check_id,
+        check_id=check_id,
         severity=row.severity,
         category=row.category,
         title=text.title,
@@ -43,7 +52,7 @@ def _passed(
     """Bulgu üretmeyen ve hata vermeyen check'ler: kullanıcıya neyi kontrol ettiğimizi gösterir."""
     if scan.status != ScanStatus.DONE:
         return []
-    flagged = {r.check_id for r in rows}
+    flagged = {canonical_check_id(r.check_id) for r in rows}
     failed = set((scan.meta or {}).get("checks_failed", []))
     return [
         PassedCheckOut(check_id=c.id, category=c.category, title=passed_title(c.id, lang))

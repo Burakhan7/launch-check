@@ -1,10 +1,13 @@
-"""Kullanıcı güvenliği: canlı sohbette yaş sınırı, duygusal destek platformunda kriz kaynakları.
+"""Kullanıcı güvenliği: yaş sınırı gerektiren platformlarda yaş onayı, duygusal destek
+platformunda kriz kaynakları.
 
 Pasif: taranan sayfalar + footer'daki en fazla birkaç hakkında/şartlar/yardım sayfası okunur.
 Hesap açılmaz, sohbete bağlanılmaz.
 """
 
 import re
+from dataclasses import dataclass
+from datetime import UTC, datetime
 from typing import Any
 
 from selectolax.lexbor import LexborHTMLParser, LexborNode
@@ -26,6 +29,7 @@ from launchcheck.collectors.web_signals import visible_text
 
 MAX_PAGES = 5
 MAX_SIGNALS = 8
+MAX_CHECKED_PAGES = 10
 
 AGE_STATEMENT_RE = re.compile(
     r"(?<![a-z0-9])(?:18 ?yas|18 ?\+|18 years|yasindan buyuk|resit|yas dogrulama"
@@ -88,75 +92,142 @@ def _mentions_age(text: str) -> bool:
     )
 
 
-def has_age_gate(tree: LexborHTMLParser) -> bool:
-    """Yaş veya kullanım şartı onay kutusu ya da doğum tarihi/yaş girdisi var mı?"""
+ADULT_AGE = 18
+MAX_NEAR_LABEL_CHARS = 120
+YEAR_RE = re.compile(r"(?<!\d)(19\d{2}|20\d{2})(?!\d)")
+BIRTH_FIELD_PREFIXES = ("dogum", "birth", "dob")
+YEAR_FIELD_TOKENS = {"yil", "yili", "yilin", "yiliniz", "year"}
+
+
+def _checkbox_label(node: LexborNode, tree: LexborHTMLParser) -> str:
+    # Onay kutusunun metni çoğu zaman yanındaki öğededir: yakın kapsayıcıya da bakılır.
+    own = _own_label(node, tree)
+    return f"{own} {ancestor(node, LABEL_ANCESTOR_LEVELS).text(deep=True, separator=' ')}"
+
+
+def _is_birth_field(label: str) -> bool:
+    words = tokens(label)
+    return any(w.startswith(BIRTH_FIELD_PREFIXES) for w in words) or (
+        any(w in YEAR_FIELD_TOKENS for w in words) and any(w in AGE_INPUT_TOKENS for w in words)
+    )
+
+
+def _field_label(node: LexborNode, tree: LexborHTMLParser) -> str:
+    """Kendi etiketi + kısa yakın kapsayıcı metni (for'suz kardeş <label> deseni için)."""
+    near = ancestor(node, 1).text(deep=True, separator=" ")
+    return f"{_own_label(node, tree)} {near[:MAX_NEAR_LABEL_CHARS]}"
+
+
+def birth_field_allows_minors(node: LexborNode, tree: LexborHTMLParser, year: int) -> bool | None:
+    """Doğum yılı/tarihi alanı 18 yaş altını seçtiriyor mu? Doğum alanı değilse veya
+    anlaşılamıyorsa None."""
+    if not _is_birth_field(_field_label(node, tree)):
+        return None
+    cutoff = year - ADULT_AGE
+    if node.tag == "select":
+        years = [int(m.group(1)) for o in node.css("option") if (m := YEAR_RE.search(o.text()))]
+        return any(y > cutoff for y in years) if years else None
+    input_type = attr(node, "type").lower()
+    if input_type in ("date", "number", "month"):
+        match = YEAR_RE.search(attr(node, "max"))
+        return match is None or int(match.group(1)) > cutoff  # max yoksa her yıl girilebilir
+    return None
+
+
+@dataclass
+class AgeSignals:
+    statement: bool = False  # metinde 18 yaş şartı veya yaş onay kutusu
+    gate: bool = False  # yaş/şart onay kutusu veya 18 yaş altını dışlayan doğum alanı
+    allows_minors: bool = False  # doğum alanında son 18 yılın yılları seçilebiliyor
+
+
+def age_signals(tree: LexborHTMLParser, text: str, year: int) -> AgeSignals:
+    out = AgeSignals(statement=bool(AGE_STATEMENT_RE.search(text)))
     for node in tree.css("input, select"):
         input_type = attr(node, "type").lower()
         if input_type in NON_AGE_INPUT_TYPES:
             continue
-        own = _own_label(node, tree)
-        if input_type != "checkbox":
-            if _mentions_age(own):
-                return True
+        if input_type == "checkbox":
+            label = _checkbox_label(node, tree)
+            if _mentions_age(label):
+                out.statement = out.gate = True
+            elif any(w.startswith(TERMS_WORD_PREFIXES) for w in tokens(label)):
+                out.gate = True
             continue
-        # Onay kutusunun metni çoğu zaman yanındaki öğededir: yakın kapsayıcıya da bakılır.
-        label = f"{own} {ancestor(node, LABEL_ANCESTOR_LEVELS).text(deep=True, separator=' ')}"
-        words = tokens(label)
-        if _mentions_age(label) or any(w.startswith(TERMS_WORD_PREFIXES) for w in words):
-            return True
-    return False
-
-
-def has_age_statement(tree: LexborHTMLParser, text: str) -> bool:
-    if AGE_STATEMENT_RE.search(text):
-        return True
-    return any(
-        _mentions_age(_own_label(n, tree))
-        for n in tree.css("input, select")
-        if attr(n, "type").lower() not in NON_AGE_INPUT_TYPES
-    )
+        minors = birth_field_allows_minors(node, tree, year)
+        if minors is True:
+            out.allows_minors = True
+        elif minors is False:
+            out.gate = True
+    return out
 
 
 @register
-class LiveChatWithoutAgeGate(WebCheck):
-    id = "web.safety.live_chat_without_age_gate"
+class AgeGateMissing(WebCheck):
+    """Yaş sınırı gerektiren platformlar: yabancılarla canlı sesli/görüntülü sohbet veya
+    flört/eşleşme/evlilik. Canlı ders/yayın gibi bire çok yayınlar (yabancılarla eşleşme
+    olmadan) ve evlilik konulu bloglar (eşleşme etkileşimi olmadan) kapsam dışıdır."""
+
+    id = "web.safety.age_gate_missing"
     category = Category.SECURITY
     default_severity = Severity.HIGH
 
     async def check(self, ctx: WebContext) -> list[Finding]:
         signals = content_signals(ctx)
-        if not signals.has_live_media:
+        types = [
+            name
+            for name, hit in (
+                ("live_media", signals.live_with_strangers),
+                ("dating_or_matching", signals.is_dating_or_matching),
+            )
+            if hit
+        ]
+        if not types:
             return []
         pages = await _pages_with_info(ctx)
-        statement = any(has_age_statement(tree, text) for _, tree, text in pages)
-        gate = any(has_age_gate(tree) for _, tree, _ in pages)
+        year = datetime.now(UTC).year
+        found = [age_signals(tree, text, year) for _, tree, text in pages]
+        statement = any(a.statement for a in found)
+        allows_minors = any(a.allows_minors for a in found)
+        gate = any(a.gate for a in found) and not allows_minors
         if statement and gate:
             return []
         no_signup = any(NO_SIGNUP_RE.search(text) for _, _, text in pages)
         if statement:
             severity = Severity.LOW
-        elif no_signup:
+        elif "live_media" in types and no_signup:
             severity = Severity.CRITICAL
         else:
             severity = Severity.HIGH
-        live_pages = signals.live_media_pages or [ctx.final_url]
         evidence: dict[str, Any] = {
-            "live_media_pages": live_pages[:MAX_PAGES],
-            "signals": signals.live_media_signals[:MAX_SIGNALS],
+            "platform_types": types,
             "age_statement_found": statement,
             "age_checkbox_found": gate,
+            "allows_under_18_birth_year": allows_minors,
             "no_signup_required": no_signup,
+            "pages_checked": [page.url for page, _, _ in pages][:MAX_CHECKED_PAGES],
         }
+        if "live_media" in types:
+            evidence["live_media_pages"] = (signals.live_media_pages or [ctx.final_url])[:MAX_PAGES]
+            evidence["signals"] = signals.live_media_signals[:MAX_SIGNALS]
         return [self.finding(evidence, severity=severity)]
 
     def text_params(self, evidence: dict[str, Any], fragment: FragmentFn) -> dict[str, str]:
+        # Eski kayıtlar (web.safety.live_chat_without_age_gate) platform türü taşımaz.
+        types = evidence.get("platform_types") or ["live_media"]
         if evidence.get("age_statement_found"):
             key = "statement_only"
-        elif evidence.get("no_signup_required"):
+        elif "live_media" in types and evidence.get("no_signup_required"):
             key = "anonymous"
         else:
             key = "no_age_limit"
-        return {"headline": fragment(f"headline_{key}"), "situation": fragment(f"situation_{key}")}
+        minors = fragment("under_18_years") if evidence.get("allows_under_18_birth_year") else ""
+        return {
+            "headline": fragment(f"headline_{key}"),
+            "platform": " ".join(fragment(f"platform_{t}") for t in types),
+            "situation": fragment(f"situation_{key}"),
+            "under_18": minors,
+        }
 
 
 # Ekli hâlleriyle eşleşen ifadeler ("uzmana", "yardım hattımız")

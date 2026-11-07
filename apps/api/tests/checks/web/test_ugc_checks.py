@@ -9,7 +9,7 @@ import pytest
 from launchcheck.checks.base import Severity
 from launchcheck.checks.registry import load_builtin_checks
 from launchcheck.checks.web.content import SequentialPublicIds, TestDataInProduction
-from launchcheck.checks.web.safety import CrisisResourcesMissing, LiveChatWithoutAgeGate
+from launchcheck.checks.web.safety import AgeGateMissing, CrisisResourcesMissing
 from launchcheck.checks.web.session import GuestAccountPerRequest
 from launchcheck.checks.web.ugc_privacy import (
     ExifInUploads,
@@ -25,7 +25,7 @@ DERT = "https://dertlesme.com.tr"
 POST_URL = f"{DERT}/iliski/alti-yillik-iliskim-bir-mesajla-bitti"
 CORP = "https://yildizmuhendislik.com.tr"
 NEW_CHECK_IDS = (
-    "web.safety.live_chat_without_age_gate",
+    "web.safety.age_gate_missing",
     "web.session.guest_account_per_request",
     "web.privacy.sensitive_ugc_indexed",
     "web.safety.crisis_resources_missing",
@@ -83,13 +83,16 @@ def test_signals_support_platform_all_true() -> None:
         ],
         [],
     )
-    assert signals.flags() == {
-        "is_ugc": True,
-        "has_live_media": True,
-        "is_emotional_support": True,
-        "has_anonymous_posting": True,
-        "has_media_upload": True,
-    }
+    flags = signals.flags()
+    for name in (
+        "is_ugc",
+        "has_live_media",
+        "is_emotional_support",
+        "has_anonymous_posting",
+        "has_media_upload",
+    ):
+        assert flags[name] is True, name
+    assert signals.live_with_strangers  # "rastgele biriyle görüntülü sohbet"
     assert "getUserMedia" in signals.live_media_signals  # iç sayfanın inline script'i
     assert {"dert", "loneliness", "depression", "anxiety"} <= set(signals.emotional_concepts)
 
@@ -97,6 +100,7 @@ def test_signals_support_platform_all_true() -> None:
 def test_signals_corporate_site_all_false() -> None:
     signals = analyze_content([(f"{CORP}/", fixture_html("corporate_home.html"))], [])
     assert not any(signals.flags().values())  # iletişim formu (e-posta alanlı) UGC sayılmaz
+    assert not signals.live_with_strangers
 
 
 def test_signals_live_media_from_js_bundle() -> None:
@@ -110,11 +114,11 @@ def test_signals_single_emotional_word_is_not_enough() -> None:
     assert not analyze_content([(f"{CORP}/", html)], []).is_emotional_support
 
 
-# --- web.safety.live_chat_without_age_gate
+# --- web.safety.age_gate_missing (canlı medya senaryoları)
 
 
 async def test_live_chat_anonymous_without_age_is_critical() -> None:
-    (finding,) = await run(LiveChatWithoutAgeGate, dert_ctx())  # type: ignore[arg-type]
+    (finding,) = await run(AgeGateMissing, dert_ctx())  # type: ignore[arg-type]
     assert finding.severity == Severity.CRITICAL
     ev = finding.evidence
     assert ev["live_media_pages"] == [f"{DERT}/", f"{DERT}/canli"]
@@ -138,7 +142,7 @@ async def test_live_chat_terms_page_age_and_checkbox_no_finding() -> None:
         )
     }
     ctx = dert_ctx(canli=canli, routes=routes)
-    assert await run(LiveChatWithoutAgeGate, ctx) == []  # type: ignore[arg-type]
+    assert await run(AgeGateMissing, ctx) == []  # type: ignore[arg-type]
     assert f"{DERT}/kurallar" in ctx.fetcher.calls  # type: ignore[attr-defined]
 
 
@@ -146,24 +150,22 @@ async def test_live_chat_text_only_18_plus_is_low() -> None:
     home = fixture_html("ugc_home.html").replace(
         "Üye olmaya gerek yok.", "Sadece 18+ kullanıcılar."
     )
-    (finding,) = await run(LiveChatWithoutAgeGate, dert_ctx(home=home))  # type: ignore[arg-type]
+    (finding,) = await run(AgeGateMissing, dert_ctx(home=home))  # type: ignore[arg-type]
     assert finding.severity == Severity.LOW
     assert finding.evidence["age_statement_found"] is True
     assert finding.evidence["age_checkbox_found"] is False
-    assert rendered(finding.check_id, finding.evidence) == (
-        "Canlı sohbette yaş sınırı yazıyor ama onay alınmıyor"
-    )
+    assert rendered(finding.check_id, finding.evidence) == ("Yaş sınırı yazıyor ama onay alınmıyor")
 
 
 async def test_live_chat_without_signup_phrase_is_high() -> None:
     home = fixture_html("ugc_home.html").replace("Üye olmaya gerek yok.", "")
-    (finding,) = await run(LiveChatWithoutAgeGate, dert_ctx(home=home))  # type: ignore[arg-type]
+    (finding,) = await run(AgeGateMissing, dert_ctx(home=home))  # type: ignore[arg-type]
     assert finding.severity == Severity.HIGH
 
 
 async def test_live_chat_not_run_without_live_media() -> None:
     ctx = corp_ctx()
-    assert await run(LiveChatWithoutAgeGate, ctx) == []  # type: ignore[arg-type]
+    assert await run(AgeGateMissing, ctx) == []  # type: ignore[arg-type]
     assert ctx.fetcher.calls == []  # type: ignore[attr-defined]  # ek sayfa çekilmedi
 
 

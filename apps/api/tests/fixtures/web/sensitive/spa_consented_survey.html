@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <title>Sağlık Anketi</title>
+  <script type="module" crossorigin src="/assets/index-9f8e7d.js"></script>
+</head>
+<body>
+  <div id="root">
+    <div class="App">
+      <form class="survey-form">
+        <div class="field">
+          <label for="tani">Daha önce konulmuş bir tanınız var mı?</label>
+          <select id="tani" name="diagnosis"><option>Hayır</option><option>Diyabet</option><option>Hipertansiyon</option></select>
+        </div>
+        <div class="field">
+          <label for="ilac">Kullandığınız ilaçlar</label>
+          <input id="ilac" name="medication">
+        </div>
+        <div class="consent">
+          <input type="checkbox" id="acik-riza" name="explicitConsent">
+          <label for="acik-riza">Aydınlatma metnini okudum; sağlık verilerimin bu anket kapsamında işlenmesine açık rıza veriyorum.</label>
+        </div>
+        <button type="submit">Gönder</button>
+      </form>
+    </div>
+  </div>
+</body>
+</html>

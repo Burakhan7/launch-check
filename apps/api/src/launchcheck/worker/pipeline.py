@@ -13,7 +13,7 @@ from launchcheck.checks.base import ScanContext, TargetType
 from launchcheck.checks.registry import CheckRunResult, Registry, run_checks
 from launchcheck.collectors.base import Collector, CollectorError
 from launchcheck.db.models import FindingRow, Scan, ScanStatus, utcnow
-from launchcheck.scoring import compute_score
+from launchcheck.scoring import compute_score, escalate_for_sensitive_data
 
 logger = logging.getLogger(__name__)
 
@@ -55,7 +55,9 @@ def _apply_result(
     result: CheckRunResult,
     cfg: PipelineConfig,
 ) -> None:
-    score = compute_score(result.findings, cfg.score_weights)
+    aware = [c.id for c in cfg.registry.all() if c.considers_special_data]
+    findings = escalate_for_sensitive_data(result.findings, ctx.meta, skip=aware)
+    score = compute_score(findings, cfg.score_weights)
     session.add_all(
         FindingRow(
             scan_id=scan.id,
@@ -64,7 +66,7 @@ def _apply_result(
             category=f.category,
             evidence=f.evidence,
         )
-        for f in result.findings
+        for f in findings
     )
     scan.target_label = ctx.target_label or scan.target_label
     scan.score = score.overall

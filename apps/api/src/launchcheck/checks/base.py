@@ -74,6 +74,9 @@ class Check(ABC):
     phase: ClassVar[int] = 1
     category: ClassVar[Category]
     default_severity: ClassVar[Severity]
+    # Önemi özel nitelikli veri toplanıp toplanmadığını zaten hesaba katıyorsa True: skorlama
+    # bu check'in bulgularını ayrıca yükseltmez (çift sayılmasın).
+    considers_special_data: ClassVar[bool] = False
 
     def finding(
         self, evidence: dict[str, Any] | None = None, severity: Severity | None = None

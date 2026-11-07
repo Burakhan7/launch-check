@@ -3,8 +3,9 @@
 import math
 from collections import defaultdict
 from collections.abc import Iterable, Mapping
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from enum import StrEnum
+from typing import Any
 
 from launchcheck.checks.base import Category, Finding, Severity
 
@@ -83,3 +84,33 @@ def compute_score(findings: Iterable[Finding], weights: Mapping[str, float]) -> 
         overall = min(overall, CRITICAL_SCORE_CAP)
 
     return ScoreResult(overall=overall, categories=categories, label=label_for(overall))
+
+
+ESCALATION_REASON = "special_category_data"
+SENSITIVE_NOTE_KEY = "sensitive_data_note"
+
+
+def escalate_for_sensitive_data(
+    findings: Iterable[Finding], meta: Mapping[str, Any], skip: Iterable[str] = ()
+) -> list[Finding]:
+    """Site özel nitelikli kişisel veri (din, sağlık, siyasi görüş...) topluyorsa güvenlik
+    bulguları daha önemlidir: medium → high (kanıtta `escalated_due_to`), high bulgular
+    "hassas veri topluyorsun" notuyla işaretlenir. Skor bu bulgularla hesaplanır.
+    `skip`: önemi bunu zaten hesaba katan check'ler (çift yükseltme olmasın)."""
+    findings = list(findings)
+    skipped = set(skip)
+    if not meta.get("collects_special_category_data"):
+        return findings
+    out = []
+    for f in findings:
+        eligible = f.category == Category.SECURITY and f.check_id not in skipped
+        if not eligible or f.severity not in (Severity.MEDIUM, Severity.HIGH):
+            out.append(f)
+            continue
+        evidence = {**f.evidence, SENSITIVE_NOTE_KEY: True}
+        if f.severity == Severity.MEDIUM:
+            evidence |= {"escalated_due_to": ESCALATION_REASON, "original_severity": "medium"}
+            out.append(replace(f, severity=Severity.HIGH, evidence=evidence))
+        else:
+            out.append(replace(f, evidence=evidence))
+    return out

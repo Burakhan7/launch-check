@@ -106,7 +106,9 @@
     "loading": "Loading report…",
     "detected": "Detected",
     "apkInfo": "Version {version} · Target SDK {target}",
-    "phaseNote": "This report only includes passive checks that look at public files."
+    "phaseNote": "This report only includes passive checks that look at public files.",
+    "sensitiveNote": "Your site collects sensitive (special category) personal data, which makes this finding even more important.",
+    "sensitiveEscalated": "Your site collects sensitive (special category) personal data, so we raised this finding's severity by one level."
   },
   "Severity": {
     "critical": "Critical",
@@ -148,7 +150,21 @@
     "has_live_media": "Live voice/video chat",
     "is_emotional_support": "Emotional support platform",
     "has_anonymous_posting": "Anonymous posting",
-    "has_media_upload": "Media uploads"
+    "has_media_upload": "Media uploads",
+    "collects_special_category_data": "Special category data",
+    "is_dating_or_matching": "Dating/matching",
+    "has_login": "Login",
+    "special": {
+      "religion": "religion/belief",
+      "politics": "political views",
+      "health": "health",
+      "ethnicity": "ethnic origin",
+      "sexual": "sex life",
+      "biometric": "biometric",
+      "genetic": "genetic",
+      "criminal": "criminal records",
+      "union": "union membership"
+    }
   },
   "Evidence": {
     "keys": {
@@ -214,7 +230,20 @@
       "with_device_info": "Images with device/capture data",
       "matches": "Found",
       "patterns": "Address patterns",
-      "private_items_listed": "Private items in a public list"
+      "private_items_listed": "Private items in a public list",
+      "platform_types": "Platform type",
+      "allows_under_18_birth_year": "Birth year allows under-18s",
+      "pages_checked": "Pages checked",
+      "categories": "Categories",
+      "has_explicit_consent": "Explicit consent",
+      "multi_step_unverified": "Multi-step, earlier step unverified",
+      "bundled_consent": "One checkbox covers several purposes",
+      "platform": "Platform",
+      "transfer_basis_consent_only": "Transfers rely only on consent",
+      "consent_conditioned_on_service": "Consent made a condition of service",
+      "mentioned_destinations": "Countries mentioned",
+      "amendment_referenced": "Refers to Law No. 7499 amendment",
+      "page": "Page"
     },
     "values": {
       "no_https": "The site doesn't use HTTPS",
@@ -232,7 +261,13 @@
       "meta_auth": "Page behaves as if logged in",
       "rotating_identity": "Different username on every request",
       "rotating_session_cookie": "New session cookie on every request",
-      "emotional_support_platform": "Emotional support platform"
+      "emotional_support_platform": "Emotional support platform",
+      "dating_or_matching": "Dating/matching/marriage",
+      "live_media": "Live chat with strangers",
+      "special_category_data": "Collects special category data",
+      "payment": "Takes payments",
+      "has_login": "Has login",
+      "personal_data_form": "Has a personal data form"
     }
   },
   "Errors": {

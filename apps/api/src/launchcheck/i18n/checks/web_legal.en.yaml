@@ -1,0 +1,74 @@
+# Legal text, special category data and domain checks (English).
+
+web.content.template_placeholders:
+  title: "{headline}"
+  passed_title: "No unfilled template text on your pages"
+  description: "{situation} Examples are in the evidence: bracketed fields (like [Address]), sample email addresses/domains, \"Lorem ipsum\", TODO, or values like \"undefined\" left on screen."
+  why_it_matters: "Unfilled fields in legal texts make them invalid: users can't tell who processes their data and have no address to exercise their rights. On other pages the site looks unfinished and loses trust."
+  fix_steps:
+    - "Fill in every placeholder with real details: the real person's name or company name, a full address, a working email address."
+    - "If values like \"undefined\" or \"null\" show up on screen, add a check that doesn't render the text until the data is there."
+    - "Scan legal texts for placeholders before publishing, and add that to your build."
+  fix_prompt: |
+    My site has unfilled template placeholders (e.g. "[Address]", "[privacy@yourdomain.com]", "Lorem ipsum", "undefined"; examples in the evidence). Please:
+    1. Find placeholder patterns ([...], double-curly-brace variables, <<...>>, sample domains, Lorem ipsum, TODO/TBD) in every page, component and text file in the project, and list them by file and line.
+    2. Make the legal texts (privacy policy, data protection notice, consent, terms) read details such as company name, address and contact email from a single config file (e.g. site.config.ts) instead of hard-coding them.
+    3. Where "undefined"/"null" shows up on screen, render a safe default when the data is missing.
+    4. Add a build-time check (script) that fails if any of these patterns remain.
+  fragments:
+    headline_legal: "Your legal texts have unfilled fields"
+    headline_other: "Your site has unfilled template text"
+    situation_legal: "Your legal pages (privacy, data protection notice, terms) still contain unfilled placeholders (e.g. the data controller's name, address or contact email)."
+    situation_other: "Your pages contain unfilled template text or empty values that ended up on screen."
+
+web.privacy.special_category_without_consent:
+  title: "You collect sensitive personal data without explicit consent"
+  passed_title: "Forms asking for sensitive personal data collect explicit consent"
+  description: "Your forms ask for special categories of personal data such as religion/sect, political views or health, but there's no separate, explicit consent checkbox next to those questions (or a single checkbox covers several purposes at once). (This is general information; get legal advice for full compliance.)"
+  why_it_matters: "Religion, sect, political views, health and similar data are the most sensitive kinds of personal data. Collecting them requires separate, explicit consent first; a link in the footer isn't enough. If this data leaks, users can suffer serious harm such as discrimination."
+  fix_steps:
+    - "Before the sensitive questions, add explicit consent checkboxes with a link to the privacy notice, one per purpose (e.g. processing sensitive data separately from transfers abroad)."
+    - "Store the consent on the server with the date and the version of the consent text."
+    - "Without consent, don't send sensitive answers to the server at all, and reject them on the server too."
+    - "Let users withdraw their consent."
+    - "Get legal advice on the content of these texts."
+  fix_prompt: |
+    A form on my site asks for special categories of personal data (religion/sect, political views, health) without collecting explicit consent. Please:
+    1. Add separate, purpose-specific explicit consent checkboxes (unchecked by default) to the first step of the form, BEFORE the sensitive questions: "I give my explicit consent to the processing of my sensitive personal data" and, if needed, a separate "I give my explicit consent to my data being transferred abroad". Each one should link to the privacy notice.
+    2. Store consent records on the server: user, purpose, date, consent text version.
+    3. On the server, reject the sensitive fields (return 400) and don't store them if the matching consent record is missing.
+    4. Add an option on the profile page to withdraw consent; withdrawing should delete the sensitive data.
+    Note: I'll have a lawyer review the texts.
+
+web.infra.platform_default_domain:
+  title: "Your site is live on the platform's subdomain instead of your own domain"
+  passed_title: "The site that collects user data runs on its own domain"
+  description: "Your site collects information from users (login, personal data form, sensitive data or payments) but is live on the hosting platform's default subdomain (e.g. yoursite.vercel.app)."
+  why_it_matters: "People hesitate to enter sensitive details on a site living on a platform subdomain. It's easy to build a fake copy on a similar subdomain. Without your own domain you also have no business email address, which hurts trust in your legal texts and communication."
+  fix_steps:
+    - "Buy your own domain and connect it to your site in the hosting dashboard."
+    - "Add a permanent (301) redirect from the platform subdomain to your domain."
+    - "Create a business email on that domain (e.g. privacy@yourdomain.com) and use it in your legal texts."
+    - "Update the redirect URLs of your auth provider (Supabase, Firebase, NextAuth, etc.) for the new domain."
+  fix_prompt: |
+    My site is live on the hosting platform's default subdomain (address in the evidence) and I want to move to my own domain. Please:
+    1. Find platform subdomain URLs hard-coded in the project (canonical, og:url, sitemap, robots.txt, links in email templates, auth redirect/callback URLs) and move them to a single environment variable (e.g. NEXT_PUBLIC_SITE_URL).
+    2. Add a setting that redirects requests from the platform subdomain to my domain with a 301 (e.g. Vercel redirects or middleware).
+    3. List step by step the redirect URL and allowed domain settings I must update in my auth provider's dashboard (Supabase/Firebase/NextAuth); login breaks if they aren't updated.
+
+web.privacy.kvkk_transfer_basis:
+  title: "Data transfers abroad rely only on explicit consent"
+  passed_title: "Legal texts don't rely only on consent for transfers abroad"
+  description: "Your (Turkish) legal texts base transfers of personal data abroad only on explicit consent, or say the service can't be provided to users who don't consent. This is an automated text analysis, not legal advice. Consult a KVKK (Turkish data protection) expert for a definitive assessment."
+  why_it_matters: "In 2024 the KVKK article on transfers abroad (art. 9) changed: regular transfers should mainly rely on an adequacy decision or appropriate safeguards (e.g. standard contracts notified to the Board). Explicit consent is now meant for exceptional, occasional transfers. Making consent a condition of the service can also raise doubts about whether it was given freely. This is an automated text analysis, not legal advice. Consult a KVKK expert for a definitive assessment."
+  fix_steps:
+    - "Check with a KVKK expert whether standard contracts were signed with your providers (e.g. Supabase, Vercel, GitHub) and notified to the Board."
+    - "Update the legal basis for transfers in your privacy notice based on that review."
+    - "Where possible, keep data and backups in Turkey or in regions with adequate protection."
+    - "This is an automated text analysis, not legal advice; consult a KVKK expert for a definitive assessment."
+  fix_prompt: |
+    I want to make the "transfers abroad" section of my site's privacy notice easy for a lawyer to update (the legal assessment will be done by an expert). Please:
+    1. Make the transfer section configurable: recipients (provider names), data categories transferred, countries, legal basis and safeguard type (e.g. adequacy decision, standard contract, explicit consent) should come from a single config file, and the text should be generated from it.
+    2. Fill that file with a draft of the providers the project actually uses (database, hosting, email, analytics, backups) and their regions, taken from the code and environment variables.
+    3. Clearly mark the fields the lawyer must fill in (legal basis, safeguard type, Board notification date) as "TO BE FILLED" and make the build warn when they're empty.
+    4. Find and list the sentences that make consent a condition of the service; the lawyer will decide how to change them.

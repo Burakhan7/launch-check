@@ -1,28 +1,31 @@
 # Checks for user-generated content (UGC) and sensitive platforms (English).
 
-web.safety.live_chat_without_age_gate:
+web.safety.age_gate_missing:
   title: "{headline}"
-  passed_title: "Live chat has an age limit and terms acceptance"
-  description: "Your site offers live voice/video chat with strangers. {situation}"
-  why_it_matters: "Minors can have anonymous video calls with strangers on your platform. That leaves children exposed to abuse, and as the platform owner it creates serious legal liability for you."
+  passed_title: "Age-restricted features require being 18+ and confirming it"
+  description: "{platform} {situation}{under_18}"
+  why_it_matters: "Minors can match with adults or have live calls with strangers on your platform. That leaves children exposed to abuse, and as the platform owner it creates serious legal liability for you."
   fix_steps:
-    - "Ask for age confirmation and acceptance of the terms of use before anyone enters live chat, and check that confirmation on the server too."
-    - "Keep under-18s out of live video chat entirely."
-    - "Put a visible report/block button on the call screen."
-    - "Add extra protection for random matching: start calls with the camera off and show a short safety notice on the first call."
+    - "Ask for 18+ confirmation and acceptance of the terms of use at sign-up and first use (unchecked checkboxes), and check the confirmation on the server too."
+    - "Limit the birth year/date options so they can't cover under-18s, and enforce the same rule on the server."
+    - "Keep under-18s out of matching and live video chat entirely."
+    - "Make report/block visible on profile and call screens."
   fix_prompt: |
-    My site offers live voice/video chat with strangers but has no age limit or terms acceptance. Please:
-    1. Add a screen in front of the live chat flow: users can't continue without confirming "I am 18 or older" and accepting the terms of use (unchecked checkboxes).
-    2. Store the confirmation in the session on the server (with a timestamp) and require it on every live chat endpoint (matching, room creation, WebRTC signaling/token); return 403 without it. Hiding things in the UI isn't enough.
-    3. Add "Report" and "Block" buttons that are always visible on the call screen; reports should go to a moderation queue.
-    4. For random matching, start calls with the camera off and show a short safety notice on the first call.
+    My site has an age-restricted feature (dating/matching/marriage or live voice/video chat with strangers) but no 18+ requirement or confirmation. Please:
+    1. Add a step at the start of sign-up/onboarding: users can't continue without confirming "I am 18 or older" and accepting the terms of use (unchecked checkboxes). Store the confirmation on the server with a timestamp and the terms version.
+    2. Limit the birth year/date field in the UI so under-18 values can't be chosen (the year list should end 18 years before this year) and validate it on the server too: reject sign-ups under 18. Enforce this on the matching and live chat endpoints as well.
+    3. Write a script that finds existing accounts whose birth date shows they are under 18 and flags them (removes them from matching).
+    4. Add "Report" and "Block" buttons that are always visible on profile and call screens; reports should go to a moderation queue.
   fragments:
     headline_anonymous: "Strangers can video chat without signing up, and there's no age limit"
-    headline_no_age_limit: "Live chat has no age limit"
-    headline_statement_only: "Live chat mentions an age limit but never asks users to confirm it"
-    situation_anonymous: "It can be used without signing up, and on the pages we scanned we found no 18+ age limit, age confirmation or terms acceptance."
-    situation_no_age_limit: "On the pages we scanned we found no 18+ age limit, age confirmation or terms acceptance."
-    situation_statement_only: "Your pages mention an age limit, but users aren't asked to confirm their age or accept the terms before entering the chat."
+    headline_no_age_limit: "Your age-restricted platform has no 18+ requirement"
+    headline_statement_only: "An age limit is mentioned but never confirmed"
+    platform_live_media: "Your site offers live voice/video chat with strangers."
+    platform_dating_or_matching: "Your site looks like a dating, matching or marriage platform."
+    situation_anonymous: "It can be used without signing up, and on the pages we scanned we found no 18+ requirement, age confirmation or terms acceptance."
+    situation_no_age_limit: "On the pages we scanned and in the terms we found no 18+ requirement, age confirmation or terms acceptance."
+    situation_statement_only: "Your pages mention an age limit, but users aren't asked to confirm their age or accept the terms (or the birth year field lets under-18s pick their year)."
+    under_18_years: " On top of that, the birth year field offers years from the last 18 years, so someone under 18 can sign up."
 
 web.session.guest_account_per_request:
   title: "Every visitor seems to get an automatic account/session"

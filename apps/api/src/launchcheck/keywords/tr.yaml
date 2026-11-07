@@ -1,0 +1,80 @@
+# Türkçe tespit anahtar kelimeleri. Eşleşme Türkçe karakterler sadeleştirilmiş, küçük harfli
+# metinde ve kelime sınırlarıyla yapılır. Sonu "*" ile biten kelime ön ektir (Türkçe ekler serbest:
+# "mezhep*" → "mezhebiniz" değil ama "mezhepler"), diğerleri tam kelimedir.
+# Tek başına tespit için yeterli sayılmazlar; check'ler bağlam kurallarıyla birlikte kullanır.
+
+# KVKK md.6 özel nitelikli kişisel veri kategorileri (form alanı metinlerinde aranır)
+special_categories:
+  religion: [din, dini, dininiz, "mezhep*", "mezheb*", "cemaat*", "tarikat*", "inanc*", "namaz*", "basortu*", "ibadet*", "itikat*"]
+  politics: ["siyasi", "siyasal", "siyaset*", parti, partiniz, "ideoloji*", "dunya gorusu*"]
+  health: ["saglik*", "hastalik*", "ilac*", tani, tanisi, "engelli*", "psikiyatri*", "kronik", "tedavi*", "receteli"]
+  ethnicity: ["etnik*", irk, irkiniz, "koken*", "etnik kimlik*"]
+  sexual: ["cinsel yonelim*", "cinsel hayat*", "cinsel kimlik*"]
+  biometric: ["biyometrik*", "parmak izi*", "yuz tanima*"]
+  genetic: ["genetik*"]
+  criminal: ["sabika*", "ceza mahkumiyet*", "adli sicil*"]
+  union: ["sendika*", "dernek uyelig*"]
+
+# Flört/eşleşme/evlilik. "strong" eşleşme mekaniğini anlatır; "weak" sadece konuyu.
+dating:
+  strong: ["eslesme*", "eslestir*", "es aday*", "uyum testi*", "ruh ikizi*", "flort*", "tanisma sitesi*", "tanisma uygulama*"]
+  weak: ["evlilik*", "tanisma*", "partner*", "iliski*", "sevgili*", "hayat arkadas*"]
+
+# Canlı medyada yabancılarla bire bir görüşme bağlamı (canlı ders/yayın platformlarını ayırır)
+live_strangers: [rastgele, "yabanci*", "eslesme*", "eslestir*", anonim, "tanimadigin*", "yeni insan*"]
+
+# Giriş/kayıt
+login:
+  paths: [giris, giris-yap, kayit, kayit-ol, uye-ol, uyelik, oturum-ac]
+  texts: ["giris yap", "uye girisi", "kayit ol", "uye ol", "oturum ac", "hesap olustur"]
+
+# Ödeme sinyalleri (metin)
+payment_texts: [sepet, sepetim, "sepete ekle", odeme, "odemeye gec", "satin al"]
+
+# Yasal sayfa tespiti (URL veya h1)
+legal_pages: ["gizlilik*", kvkk, "aydinlatma*", "acik riza*", "kullanim kosul*", "kullanim sart*", "sartlar*", "kosullar*", "mesafeli satis*", "cerez*", "uyelik sozlesme*"]
+
+# Açık rıza onay kutusu metni
+# Sadece "kabul ediyorum" yeterli sayılmaz (kullanım koşulu kutuları da böyledir)
+explicit_consent: ["acik riza*", "riza veriyorum", "riza gosteriyorum", "rizam*", "onayliyorum"]
+# Tek onay kutusunda birlikte istendiğinde "paket rıza" sayılan diğer amaçlar
+bundled_purposes: ["yurt disi*", "yurtdisi*", "pazarlama*", "ticari ileti*", "kampanya*", "reklam*"]
+
+# Çok adımlı form işaretleri ve ana sayfa CTA düğmeleri
+multi_step: [devam, "devam et", ileri, "sonraki adim*", "adim"]
+cta: ["basla*", "teste basla*", "hemen basla*", "kayit ol", "uye ol", "katil*", "ucretsiz dene*"]
+
+# Doldurulmamış şablon yer tutucuları
+placeholders:
+  # Parantez içi yer tutucunun içeriğinde geçerse yer tutucu sayılır
+  content_words: [ad, adi, adiniz, soyad, soyadi, "ad soyad*", "unvan*", "sirket*", "adres*", "telefon*", "e-posta*", "eposta*", "tarih*", "alan adi*", "veri sorumlusu*", isim, "firma*", "sehir*", "il", "ilce*"]
+  # Bunlar iletişim/kimlik bilgisidir (yasal sayfada daha önemli)
+  contact_words: [ad, adi, adiniz, soyad, soyadi, "ad soyad*", "unvan*", "sirket*", "adres*", "telefon*", "e-posta*", "eposta*", "alan adi*", "veri sorumlusu*", isim, "firma*", "mersis*", "vergi*"]
+  # Örnek alan adı/e-posta parçaları (metin veya link içinde)
+  example_domains: [alanadiniz, alanadi.com, sirketiniz, sirketadi, ornek.com, ornekfirma]
+  # "buraya ... yazın" türü taslak cümleleri: (başlangıç, bitiş kelimeleri)
+  draft_phrase_start: [buraya]
+  draft_phrase_end: ["yazin", "yaziniz", "ekleyin", "ekleyiniz", "girin", "giriniz", "gelecek"]
+
+# Yurt dışı aktarım (KVKK md.9) — yasal metinlerde bölüm düzeyinde
+transfer:
+  section: ["yurt disi*", "yurtdisi*", "aktarim*", "aktarilm*"]
+  consent: ["acik riza*"]
+  safeguards: ["standart sozlesme*", "yeterlilik karar*", "uygun guvence*", "baglayici sirket kural*", "taahhutname*"]
+  # Rızanın hizmet şartına bağlanması: "rıza" kelimesinin yakınında hizmetin verilemeyeceği
+  service_denied: ["sunulamaz", "sunulamayacak*", "sunulamamakta*", "verilemez", "verilemeyecek*", "saglanamaz", "saglanamayacak*", "kullanamaz*", "yararlanamaz*", "faydalanamaz*"]
+  amendment_refs: ["7499"]
+countries:
+  irlanda: İrlanda
+  almanya: Almanya
+  hollanda: Hollanda
+  fransa: Fransa
+  ingiltere: İngiltere
+  abd: ABD
+  amerika: ABD
+  "amerika birlesik devletleri": ABD
+  singapur: Singapur
+  japonya: Japonya
+  hindistan: Hindistan
+  kanada: Kanada
+  avrupa birligi: Avrupa Birliği

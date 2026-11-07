@@ -31,6 +31,9 @@ const HIDDEN_KEYS = new Set([
   "pages_scanned",
   "majority_same_title",
   "sample_count",
+  "sensitive_data_note",
+  "escalated_due_to",
+  "original_severity",
 ]);
 
 function isLocation(v: unknown): v is { file: string; line: number } {
@@ -44,7 +47,7 @@ function isComponent(v: unknown): v is { type: string; name: string } {
 // Nesnenin "başlık" alanı (öncelik sırasıyla); kalan alanlar ayrıntı olarak eklenir.
 const PRIMARY_KEYS = ["pattern", "text", "url", "page", "title", "description", "src", "host"];
 // Ayrıntıda gösterilmeyen iç alanlar
-const OBJECT_HIDDEN_KEYS = new Set(["action"]);
+const OBJECT_HIDDEN_KEYS = new Set(["action", "kind", "legal_page"]);
 
 /** Nesne kanıtı: "https://site/tr — og:image, twitter_card_without_image" */
 function describeObject(v: Record<string, unknown>): string {

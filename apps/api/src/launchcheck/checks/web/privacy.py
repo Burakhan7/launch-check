@@ -143,18 +143,29 @@ def page_has_spam_protection(tree: LexborHTMLParser) -> bool:
     return any(marker in src for src in sources for marker in SPAM_SCRIPT_MARKERS)
 
 
+def personal_data_fields(form: LexborNode, labels: dict[str, str]) -> list[str]:
+    """Formun topladığı kişisel veri alan TÜRLERİ (ad, e-posta, telefon...). Arama ve giriş
+    (şifre + sadece e-posta) formlarında boş liste."""
+    inputs = _data_inputs(form)
+    if not inputs or _is_search_form(inputs):
+        return []
+    fields = sorted({f for n in inputs if (f := classify_field(n, _label_text(n, labels)))})
+    has_password = bool(form.css('input[type="password"]'))
+    if has_password and set(fields) <= {"email"}:
+        return []  # giriş formu: yeni kişisel veri toplanmıyor
+    return fields
+
+
+def page_labels(tree: LexborHTMLParser) -> dict[str, str]:
+    return {attr(n, "for"): n.text(deep=True, separator=" ") for n in tree.css("label[for]")}
+
+
 def _form_entry(
     page_url: str, form: LexborNode, labels: dict[str, str], page_spam: bool
 ) -> dict[str, Any] | None:
-    inputs = _data_inputs(form)
-    if not inputs or _is_search_form(inputs):
-        return None
-    fields = sorted({f for n in inputs if (f := classify_field(n, _label_text(n, labels)))})
+    fields = personal_data_fields(form, labels)
     if not fields:
         return None
-    has_password = bool(form.css('input[type="password"]'))
-    if has_password and set(fields) <= {"email"}:
-        return None  # giriş formu: yeni kişisel veri toplanmıyor
     action = urljoin(page_url, attr(form, "action") or page_url).split("?", 1)[0].split("#", 1)[0]
     has_consent = has_consent_near(form)
     has_spam = page_spam or _has_honeypot(form)
@@ -199,9 +210,7 @@ class FormWithoutConsent(WebCheck):
         forms: list[dict[str, Any]] = []
         seen: set[tuple[Any, ...]] = set()
         for page, tree in iter_pages(ctx):
-            labels = {
-                attr(n, "for"): n.text(deep=True, separator=" ") for n in tree.css("label[for]")
-            }
+            labels = page_labels(tree)
             page_spam = page_has_spam_protection(tree)
             for form in tree.css("form"):
                 entry = _form_entry(page.url, form, labels, page_spam)

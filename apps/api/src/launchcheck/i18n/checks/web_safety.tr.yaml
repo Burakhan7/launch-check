@@ -1,28 +1,31 @@
 # Kullanıcı içerikli (UGC) ve hassas platformlara özgü check'ler (Türkçe).
 
-web.safety.live_chat_without_age_gate:
+web.safety.age_gate_missing:
   title: "{headline}"
-  passed_title: "Canlı sohbette yaş sınırı ve kullanım şartı onayı var"
-  description: "Sitende yabancılarla canlı sesli/görüntülü sohbet özelliği var. {situation}"
-  why_it_matters: "Reşit olmayanlar platformunda yabancılarla anonim görüntülü görüşme yapabilir. Bu, çocukların istismar riskine açık kalması demek ve platform sahibi olarak senin için ciddi hukuki sorumluluk doğurur."
+  passed_title: "Yaş sınırı gerektiren özelliklerde 18 yaş şartı ve onayı var"
+  description: "{platform} {situation}{under_18}"
+  why_it_matters: "Reşit olmayanlar platformunda yetişkinlerle eşleşebilir veya yabancılarla canlı görüşebilir. Bu, çocukların istismar riskine açık kalması demek ve platform sahibi olarak senin için ciddi hukuki sorumluluk doğurur."
   fix_steps:
-    - "Canlı sohbete girmeden önce yaş onayı ve kullanım şartlarının kabulünü iste; onayı sunucu tarafında da kontrol et."
-    - "18 yaş altını canlı görüntülü sohbetten tamamen çıkar."
-    - "Görüşme ekranına görünür bir şikayet/engelle düğmesi koy."
-    - "Rastgele eşleşmede ek koruma uygula: görüşme kamera kapalı başlasın, ilk görüşmede kısa bir güvenlik uyarısı göster."
+    - "Kayıtta ve ilk kullanımda 18 yaş onayı ve kullanım koşullarının kabulünü iste (işaretlenmemiş onay kutuları); onayı sunucu tarafında da kontrol et."
+    - "Doğum yılı/tarihi seçeneklerini 18 yaş altını kapsamayacak şekilde sınırla ve aynı kontrolü sunucuda da yap."
+    - "18 yaş altını eşleşme ve canlı görüntülü sohbetten tamamen çıkar."
+    - "Şikayet/engelle özelliğini profil ve görüşme ekranlarında görünür kıl."
   fix_prompt: |
-    Sitemde yabancılarla canlı sesli/görüntülü sohbet özelliği var ama yaş sınırı ve kullanım şartı onayı yok. Lütfen:
-    1. Canlı sohbet akışının önüne bir ekran ekle: kullanıcı "18 yaşından büyüğüm" onayını ve kullanım şartlarının kabulünü (işaretlenmemiş onay kutuları) vermeden devam edemesin.
-    2. Onayı sunucu tarafında oturuma kaydet (zaman damgasıyla) ve tüm canlı sohbet endpoint'lerinde (eşleşme, oda oluşturma, WebRTC sinyal/token alma) bu onayı zorunlu kıl; onay yoksa 403 dönsün. Sadece arayüzde gizlemek yeterli değil.
-    3. Görüşme ekranına her zaman görünen "Şikayet et" ve "Engelle" düğmeleri ekle; şikayetler moderasyon kuyruğuna düşsün.
-    4. Rastgele eşleşmede görüşme kamera kapalı başlasın ve ilk görüşmede kısa bir güvenlik uyarısı gösterilsin.
+    Sitemde yaş sınırı gerektiren bir özellik (flört/eşleşme/evlilik veya yabancılarla canlı sesli/görüntülü sohbet) var ama 18 yaş şartı ve onayı yok. Lütfen:
+    1. Kayıt/onboarding akışının başına bir adım ekle: kullanıcı "18 yaşından büyüğüm" onayını ve kullanım koşullarının kabulünü (işaretlenmemiş onay kutuları) vermeden devam edemesin. Onayı sunucuda tarih ve koşul metni sürümüyle kaydet.
+    2. Doğum yılı/tarihi alanını arayüzde 18 yaş altını seçtirmeyecek şekilde sınırla (yıl listesi bu yıldan 18 yıl öncesinde bitsin) ve sunucu tarafında da doğrula: 18 yaş altıysa kaydı reddet. Bu kontrolü eşleşme ve canlı sohbet endpoint'lerinde de yap.
+    3. Mevcut kayıtlarda doğum tarihine göre 18 yaş altı görünen hesapları bulan ve işaretleyen (eşleşmeden çıkaran) bir betik yaz.
+    4. Profil ve görüşme ekranlarına her zaman görünen "Şikayet et" ve "Engelle" düğmeleri ekle; şikayetler moderasyon kuyruğuna düşsün.
   fragments:
     headline_anonymous: "Yabancılarla üyeliksiz görüntülü sohbet var ama yaş sınırı yok"
-    headline_no_age_limit: "Canlı sohbette yaş sınırı yok"
-    headline_statement_only: "Canlı sohbette yaş sınırı yazıyor ama onay alınmıyor"
-    situation_anonymous: "Üye olmadan kullanılabiliyor ve taradığımız sayfalarda 18 yaş sınırı, yaş onayı veya kullanım şartı onayı bulamadık."
-    situation_no_age_limit: "Taradığımız sayfalarda 18 yaş sınırı, yaş onayı veya kullanım şartı onayı bulamadık."
-    situation_statement_only: "Sayfalarında yaş sınırından bahsediliyor ama sohbete girmeden önce kullanıcıdan yaş veya kullanım şartı onayı alınmıyor."
+    headline_no_age_limit: "Yaş sınırı gerektiren platformunda 18 yaş şartı yok"
+    headline_statement_only: "Yaş sınırı yazıyor ama onay alınmıyor"
+    platform_live_media: "Sitende yabancılarla canlı sesli/görüntülü sohbet özelliği var."
+    platform_dating_or_matching: "Siten flört, eşleşme veya evlilik amaçlı bir platform gibi görünüyor."
+    situation_anonymous: "Üye olmadan kullanılabiliyor ve taradığımız sayfalarda 18 yaş şartı, yaş onayı veya kullanım koşulu onayı bulamadık."
+    situation_no_age_limit: "Taradığımız sayfalarda ve kullanım koşullarında 18 yaş şartı, yaş onayı veya kullanım koşulu onayı bulamadık."
+    situation_statement_only: "Sayfalarında yaş sınırından bahsediliyor ama kullanıcıdan yaş veya kullanım koşulu onayı alınmıyor (ya da doğum yılı alanı 18 yaş altını seçtiriyor)."
+    under_18_years: " Üstelik doğum yılı alanında son 18 yılın yılları da seçilebiliyor; yani 18 yaş altı biri kayıt olabilir."
 
 web.session.guest_account_per_request:
   title: "Her ziyaretçiye otomatik hesap/oturum açılıyor gibi görünüyor"

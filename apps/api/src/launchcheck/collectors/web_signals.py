@@ -8,10 +8,17 @@ import re
 from collections.abc import Iterable
 from dataclasses import dataclass, field
 from typing import Any
+from urllib.parse import urlsplit
 
 from selectolax.lexbor import LexborHTMLParser, LexborNode
 
+from launchcheck.checks.shared import keywords
 from launchcheck.checks.shared.text import fold, phrase_regex, squash, tokens
+from launchcheck.collectors.form_fields import (
+    FieldGroup,
+    field_groups,
+    qualified_categories,
+)
 
 NON_VISIBLE_TAGS = ("script", "style", "noscript", "template", "svg")
 UGC_BUTTON_RE = phrase_regex(
@@ -146,6 +153,9 @@ class PageSignals:
     live_phrases: list[str] = field(default_factory=list)
     live_js: list[str] = field(default_factory=list)  # sayfanın inline script'lerinde
     file_input: bool = False
+    groups: list[FieldGroup] = field(default_factory=list)  # form soruları
+    login: bool = False  # şifre alanı veya giriş/kayıt linki/düğmesi
+    surface: str = ""  # başlık + meta açıklama + h1/h2 + düğme/CTA metinleri (sade)
 
     @property
     def has_live_media(self) -> bool:
@@ -162,9 +172,21 @@ class ContentSignals:
     has_anonymous_posting: bool = False
     has_media_upload: bool = False
     emotional_concepts: list[str] = field(default_factory=list)
+    special_categories: list[str] = field(default_factory=list)
+    is_dating_or_matching: bool = False
+    has_login: bool = False
+    live_with_strangers: bool = False  # canlı medya + yabancılarla/rastgele görüşme bağlamı
 
-    def flags(self) -> dict[str, bool]:
+    @property
+    def collects_special_category_data(self) -> bool:
+        return bool(self.special_categories)
+
+    def flags(self) -> dict[str, Any]:
         return {
+            "collects_special_category_data": self.collects_special_category_data,
+            "special_categories": self.special_categories,
+            "is_dating_or_matching": self.is_dating_or_matching,
+            "has_login": self.has_login,
             "is_ugc": self.is_ugc,
             "has_live_media": self.has_live_media,
             "is_emotional_support": self.is_emotional_support,
@@ -182,6 +204,36 @@ class ContentSignals:
         return [p.url for p in self.pages if p.has_live_media]
 
 
+SURFACE_SELECTORS = "title, h1, h2, button, a[class*=btn], a[class*=button], [role=button]"
+MAX_LOGIN_TEXT_CHARS = 30
+MIN_DATING_SIGNALS = 2
+
+
+def _is_login_link(href: str, text: str) -> bool:
+    """Son yol parçası giriş/kayıt yolu (/giris, /login) veya kısa link metni "Giriş yap"."""
+    segments = [fold(s) for s in urlsplit(href).path.split("/") if s]
+    if segments and segments[-1] in {fold(w) for w in keywords.words("login.paths")}:
+        return True
+    short = fold(squash(text))
+    return len(short) <= MAX_LOGIN_TEXT_CHARS and keywords.has("login.texts", short)
+
+
+def has_login_ui(tree: LexborHTMLParser) -> bool:
+    if tree.css_first('input[type="password"]') is not None:
+        return True
+    return any(
+        _is_login_link(_attr(n, "href"), n.text(deep=True, separator=" "))
+        for n in tree.css("a[href]")
+    )
+
+
+def surface_text(tree: LexborHTMLParser) -> str:
+    """Ürünü anlatan yüzey: başlık, açıklama, ana başlıklar ve düğmeler (makale gövdesi değil)."""
+    parts = [n.text(deep=True, separator=" ") for n in tree.css(SURFACE_SELECTORS)]
+    parts.append(meta_value(tree, "description"))
+    return fold(squash(" ".join(parts)))
+
+
 def page_signals(url: str, html: str) -> PageSignals:
     tree = LexborHTMLParser(html)
     text = visible_text(html)
@@ -197,7 +249,29 @@ def page_signals(url: str, html: str) -> PageSignals:
         live_phrases=list(dict.fromkeys(m.group(0) for m in LIVE_TEXT_RE.finditer(text))),
         live_js=live_js_markers(n.text(deep=True) or "" for n in tree.css("script:not([src])")),
         file_input=tree.css_first('input[type="file"]') is not None,
+        groups=field_groups(tree),
+        login=has_login_ui(tree),
+        surface=surface_text(tree),
     )
+
+
+def detect_dating(pages: list[PageSignals], has_login: bool) -> bool:
+    """Konu (metinde en az 2 farklı sinyal, biri eşleşme mekaniği) + etkileşim: form
+    sorularında flört/eşleşme ifadesi, ya da giriş sistemi + ürün yüzeyinde (başlık, ana
+    başlıklar, düğmeler) eşleşme mekaniği. Evlilik konulu bir blog konuyu taşır, yorum formu
+    da olabilir, ama eşleşme etkileşimi taşımaz."""
+    text = " ".join(p.text for p in pages)
+    strong = keywords.found("dating.strong", text)
+    weak = keywords.found("dating.weak", text)
+    if not strong or len(strong | weak) < MIN_DATING_SIGNALS:
+        return False
+    for page in pages:
+        group_texts = " ".join(g.text for g in page.groups)
+        if has_login and keywords.has("dating.strong", page.surface):
+            return True
+        if keywords.has("dating.strong", group_texts) or keywords.has("dating.weak", group_texts):
+            return True
+    return False
 
 
 def live_js_markers(js_sources: Iterable[str]) -> list[str]:
@@ -217,16 +291,22 @@ def analyze_content(pages: Iterable[tuple[str, str]], js_sources: Iterable[str])
     concepts = [k for k, rx in _EMOTIONAL_RES.items() if rx.search(all_text)]
     ugc_form = any(p.ugc_form for p in page_list)
     articles = sum(p.article_with_author for p in page_list)
+    login = any(p.login for p in page_list)
+    live = bool(markers) or any(p.has_live_media for p in page_list)
     return ContentSignals(
         pages=page_list,
         live_js_markers=markers,
         is_ugc=ugc_form
         or any(p.comment_section for p in page_list)
         or articles >= MIN_ARTICLE_PAGES,
-        has_live_media=bool(markers) or any(p.has_live_media for p in page_list),
+        has_live_media=live,
         is_emotional_support=len(concepts) >= MIN_EMOTIONAL_CONCEPTS,
         has_anonymous_posting=ugc_form and bool(ANONYMOUS_RE.search(all_text)),
         has_media_upload=any(p.file_input for p in page_list)
         or bool(MEDIA_UPLOAD_RE.search(all_text)),
         emotional_concepts=concepts,
+        special_categories=qualified_categories([g for p in page_list for g in p.groups]),
+        is_dating_or_matching=detect_dating(page_list, login),
+        has_login=login,
+        live_with_strangers=live and keywords.has("live_strangers", all_text),
     )

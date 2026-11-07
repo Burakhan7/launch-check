@@ -128,6 +128,9 @@ class Settings(BaseSettings):
     web_img_alt_min_missing: int = 5
     web_img_alt_max_ratio: float = 0.2
 
+    # Tespit anahtar kelimelerinin dilleri: launchcheck/keywords/<dil>.yaml
+    keyword_languages: list[str] = Field(default_factory=lambda: ["tr", "en"])
+
     # web.session.guest_account_per_request: ana sayfa bu kadar kez daha çerezsiz çekilir
     web_cookieless_extra_samples: int = 2
     # Yaş/kriz bilgisi aramak için footer'daki hakkında/şartlar/yardım sayfalarından en fazla

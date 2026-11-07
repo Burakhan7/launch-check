@@ -1,0 +1,74 @@
+# Yasal metinler, özel nitelikli veri ve alan adı check'leri (Türkçe).
+
+web.content.template_placeholders:
+  title: "{headline}"
+  passed_title: "Sayfalarında doldurulmamış şablon metni yok"
+  description: "{situation} Örnekler kanıtta: köşeli parantezli alanlar ([Adres] gibi), örnek e-posta/alan adları, \"Lorem ipsum\", TODO veya ekranda kalmış \"undefined\" gibi değerler."
+  why_it_matters: "Yasal metinlerde doldurulmamış alanlar metni geçersiz kılar: kullanıcı verisini kimin işlediğini bilemez ve haklarını kullanabileceği bir adres yoktur. Diğer sayfalarda ise site yarım kalmış görünür ve güven kaybettirir."
+  fix_steps:
+    - "Tüm yer tutucuları gerçek bilgilerle doldur: gerçek kişi adı veya şirket unvanı, açık adres, çalışan bir e-posta adresi."
+    - "Ekranda \"undefined\", \"null\" gibi değerler görünüyorsa, ilgili veri gelmeden metni göstermeyen bir kontrol ekle."
+    - "Yasal metinleri yayınlamadan önce yer tutucu taraması yap; bunu build adımına ekle."
+  fix_prompt: |
+    Sitemde doldurulmamış şablon yer tutucuları var (ör. "[Adres]", "[kvkk@alanadiniz.com]", "Lorem ipsum", "undefined"; kanıttaki örnekler). Lütfen:
+    1. Projedeki tüm sayfa, bileşen ve metin dosyalarında yer tutucu kalıplarını ([...], çift süslü parantezli değişkenler, <<...>>, örnek alan adları, Lorem ipsum, TODO/TBD) bul ve dosya + satır olarak listele.
+    2. Yasal metinlerdeki (gizlilik, KVKK aydınlatma, açık rıza, kullanım koşulları) şirket adı, adres, iletişim e-postası gibi bilgileri tek bir yapılandırma dosyasından (ör. site.config.ts) okuyacak şekilde düzenle; metinlerde bu bilgileri sabit yazma.
+    3. Ekranda "undefined"/"null" görünen yerlerde veri yokken güvenli bir varsayılan göster.
+    4. Build sırasında bu kalıplardan biri kalmışsa hata veren bir kontrol (script) ekle.
+  fragments:
+    headline_legal: "Yasal metinlerinde doldurulmamış alanlar var"
+    headline_other: "Sitende doldurulmamış şablon metinleri var"
+    situation_legal: "Gizlilik, KVKK veya kullanım koşulları gibi yasal sayfalarında doldurulmamış yer tutucular kaldı (ör. veri sorumlusunun adı, adresi veya iletişim e-postası)."
+    situation_other: "Sayfalarında doldurulmamış şablon metinleri veya ekrana düşmüş boş değerler var."
+
+web.privacy.special_category_without_consent:
+  title: "Hassas kişisel veri topluyorsun ama açık rıza almıyorsun"
+  passed_title: "Hassas kişisel veri soran formlarda açık rıza alınıyor"
+  description: "Formlarında din/mezhep, siyasi görüş, sağlık gibi özel nitelikli kişisel veri soruluyor, ama bu soruların yanında ayrı ve açık bir rıza onay kutusu yok (ya da tek bir onay kutusu birden fazla amacı birlikte kapsıyor). (Bu genel bir bilgilendirmedir; kesin uyum için hukuki destek al.)"
+  why_it_matters: "Din, mezhep, siyasi görüş, sağlık gibi veriler en hassas kişisel veri türüdür. Bunları toplamadan önce kullanıcıdan ayrı ve açık bir onay alınması yasal bir zorunluluktur; footer'daki bir link yeterli değildir. Bu veriler sızarsa kullanıcıların ayrımcılığa uğraması gibi ciddi zararlar doğabilir."
+  fix_steps:
+    - "Hassas sorulardan önce, aydınlatma metni linkini içeren ve her amaç için ayrı işaretlenen açık rıza onay kutuları koy (ör. özel nitelikli veri işleme ayrı, yurt dışına aktarım ayrı)."
+    - "Onayı sunucuda tarih ve rıza metninin sürümüyle birlikte kaydet."
+    - "Onay yoksa hassas cevapları sunucuya hiç gönderme ve sunucuda da kabul etme."
+    - "Kullanıcının rızasını geri alabileceği bir seçenek sun."
+    - "Metinlerin içeriği için bir hukukçudan destek al."
+  fix_prompt: |
+    Sitemdeki form din/mezhep, siyasi görüş, sağlık gibi özel nitelikli kişisel veri soruyor ama açık rıza alınmıyor. Lütfen:
+    1. Formun ilk adımına, hassas sorulardan ÖNCE, amaç bazlı ayrı açık rıza onay kutuları ekle (varsayılan işaretsiz): "Özel nitelikli kişisel verilerimin işlenmesine açık rıza veriyorum" ve gerekiyorsa ayrıca "Verilerimin yurt dışına aktarılmasına açık rıza veriyorum". Her kutunun yanında aydınlatma metni linki olsun.
+    2. Rıza kayıtlarını sunucuda tut: kullanıcı, amaç, tarih, rıza metni sürümü.
+    3. Sunucu tarafında, ilgili rıza kaydı yoksa hassas alanları kabul etme (400 dön) ve veritabanına yazma.
+    4. Profil sayfasına rızayı geri alma seçeneği ekle; geri alınınca hassas veriler silinsin.
+    Not: Metinlerin içeriğini bir hukukçuya kontrol ettireceğim.
+
+web.infra.platform_default_domain:
+  title: "Siten kendi alan adı yerine platformun alt alan adında yayında"
+  passed_title: "Kullanıcı bilgisi alan site kendi alan adında"
+  description: "Siten kullanıcıdan bilgi topluyor (giriş, kişisel veri formu, hassas veri veya ödeme) ama hosting platformunun varsayılan alt alan adında (ör. siten.vercel.app) yayında."
+  why_it_matters: "Kullanıcılar hassas bilgilerini platform alt alan adındaki bir siteye girmekte tereddüt eder. Sitenin sahte bir kopyasını benzer bir alt alan adıyla yapmak kolaydır. Kendi alan adın olmadığı için kurumsal bir e-posta adresin de olmaz; bu, yasal metinlerde ve iletişimde güven sorunu doğurur."
+  fix_steps:
+    - "Kendi alan adını al ve hosting panelinden sitene bağla."
+    - "Platform alt alan adından kendi alan adına kalıcı (301) yönlendirme ekle."
+    - "Aynı alan adında kurumsal e-posta oluştur (ör. kvkk@alanadin.com) ve yasal metinlerde onu kullan."
+    - "Giriş sağlayıcının (Supabase, Firebase, NextAuth vb.) yönlendirme adreslerini yeni alan adıyla güncelle."
+  fix_prompt: |
+    Sitem hosting platformunun varsayılan alt alan adında yayında (kanıttaki adres) ve kendi alan adıma geçmek istiyorum. Lütfen:
+    1. Projede sabit yazılmış platform alt alan adı URL'lerini (canonical, og:url, sitemap, robots.txt, e-posta şablonlarındaki linkler, auth redirect/callback URL'leri) bul ve tek bir ortam değişkenine (ör. NEXT_PUBLIC_SITE_URL) taşı.
+    2. Platform alt alan adından gelen istekleri kendi alan adıma 301 ile yönlendiren ayarı ekle (ör. Vercel'de redirects veya middleware).
+    3. Auth sağlayıcımın (Supabase/Firebase/NextAuth) panelinde güncellemem gereken redirect URL ve izinli alan adı ayarlarını adım adım listele; bunlar güncellenmezse giriş çalışmaz.
+
+web.privacy.kvkk_transfer_basis:
+  title: "Yurt dışı veri aktarımı sadece açık rızaya dayandırılmış"
+  passed_title: "Yasal metinlerde yurt dışı aktarım dayanağı açık rızayla sınırlı değil"
+  description: "Yasal metinlerinde kişisel verilerin yurt dışına aktarımı yalnızca açık rızaya dayandırılmış veya rıza vermeyen kullanıcıya hizmet sunulamayacağı söyleniyor. Bu otomatik bir metin analizidir ve hukuki görüş değildir. Kesin değerlendirme için bir KVKK uzmanına danış."
+  why_it_matters: "2024'te KVKK'nın yurt dışı aktarım maddesi (md.9) değişti: düzenli aktarımlar için temel yollar yeterlilik kararı veya uygun güvencelerdir (ör. Kurul'a bildirilen standart sözleşme). Açık rıza artık istisnai, arızi aktarımlar için öngörülüyor. Rızayı hizmet şartına bağlamak da rızanın özgür iradeyle verildiği konusunda tartışma yaratabilir. Bu otomatik bir metin analizidir ve hukuki görüş değildir. Kesin değerlendirme için bir KVKK uzmanına danış."
+  fix_steps:
+    - "Hizmet sağlayıcılarınla (ör. Supabase, Vercel, GitHub) standart sözleşme imzalanıp imzalanmadığını ve Kurul'a bildirim yapılıp yapılmadığını bir KVKK uzmanıyla kontrol et."
+    - "Aydınlatma metnindeki aktarım hukuki sebebini bu değerlendirmeye göre güncelle."
+    - "Mümkünse verileri ve yedekleri Türkiye'de veya yeterli korumaya sahip bölgelerde tut."
+    - "Bu otomatik bir metin analizidir ve hukuki görüş değildir; kesin değerlendirme için bir KVKK uzmanına danış."
+  fix_prompt: |
+    Sitemin aydınlatma metnindeki "yurt dışına aktarım" bölümünü bir hukukçunun kolayca güncelleyebileceği hâle getirmek istiyorum (hukuki değerlendirmeyi uzmana yaptıracağım). Lütfen:
+    1. Aktarım bölümünü yapılandırılabilir yap: alıcılar (hizmet sağlayıcı adı), aktarılan veri kategorileri, ülkeler, hukuki sebep ve güvence türü (ör. yeterlilik kararı, standart sözleşme, açık rıza) tek bir yapılandırma dosyasından gelsin; metin bu dosyadan üretilsin.
+    2. Projede gerçekten kullanılan hizmet sağlayıcılarını (veritabanı, hosting, e-posta, analitik, yedekleme) ve bölgelerini koddan ve ortam değişkenlerinden çıkarıp bu dosyaya taslak olarak doldur.
+    3. Hukukçunun doldurması gereken alanları (hukuki sebep, güvence türü, Kurul bildirimi tarihi) "DOLDURULACAK" olarak açıkça işaretle ve bu alanlar boş kaldığında build'in uyarı vermesini sağla.
+    4. Rızayı hizmet şartına bağlayan cümleleri bul ve listele; nasıl değiştirileceğine hukukçu karar verecek.

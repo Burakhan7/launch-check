@@ -1,0 +1,17 @@
+<html>
+<head><meta charset="utf-8"><title>Üyelik Başvurusu - Meslek Birliği</title></head>
+<body>
+<h1>Üyelik Başvurusu</h1>
+<form method="post" action="/basvuru.php">
+  <table>
+    <tr><td>Ad Soyad</td><td><input name="adsoyad"></td></tr>
+    <tr><td>Bağlı olduğunuz sendika</td>
+      <td><select name="sendika"><option>Yok</option><option>Sendika A</option><option>Sendika B</option></select></td></tr>
+    <tr><td>Adli sicil (sabıka) kaydınız var mı?</td>
+      <td><input type="radio" name="sabika" value="e"> Evet <input type="radio" name="sabika" value="h"> Hayır</td></tr>
+  </table>
+  <input type="submit" value="Başvur">
+</form>
+<p><a href="/kvkk.html">KVKK Aydınlatma Metni</a></p>
+</body>
+</html>

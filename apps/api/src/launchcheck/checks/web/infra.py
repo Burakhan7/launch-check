@@ -1,5 +1,6 @@
-"""Hosting platformunun varsayılan alan adından (doğrudan uygulama sunucusundan) yüklenen
-kaynaklar. Pasif: kaynaklara istek atılmaz, sadece HTML/JS içindeki adreslere bakılır."""
+"""Hosting platformunun varsayılan alan adları: oradan (doğrudan uygulama sunucusundan) yüklenen
+kaynaklar ve sitenin kendisinin platform alt alan adında yayında olması. Pasif: kaynaklara
+istek atılmaz, sadece HTML/JS içindeki adreslere bakılır."""
 
 import re
 from collections.abc import Iterator
@@ -10,8 +11,13 @@ from selectolax.lexbor import LexborHTMLParser
 
 from launchcheck.checks.base import Category, Finding, Severity
 from launchcheck.checks.registry import register
+from launchcheck.checks.shared import keywords
 from launchcheck.checks.shared.dev_urls import URL_HOST_RE
+from launchcheck.checks.shared.domains import registered_domain
+from launchcheck.checks.shared.text import fold
 from launchcheck.checks.web._common import WebCheck, page_tree
+from launchcheck.checks.web._html import attr, content_signals, iter_pages
+from launchcheck.checks.web.privacy import page_labels, personal_data_fields
 from launchcheck.collectors.web_collector import WebContext
 from launchcheck.config import get_settings
 
@@ -125,3 +131,71 @@ class OriginExposed(WebCheck):
             )
             for host, h in hits.items()
         ]
+
+
+PAYMENT_SCRIPT_MARKERS = ("js.stripe.com", "stripe.com/v3", "iyzipay", "iyzico", "paytr.com")
+PAYMENT_PATH_SEGMENTS = {"checkout", "cart", "sepet", "sepetim", "odeme", "payment"}
+
+
+def platform_of(host: str, domains: list[str]) -> str | None:
+    """Sitenin kendi host'u bir platform varsayılan alan adının alt alan adıysa platform adı
+    (vercel.app → "vercel")."""
+    host = host.lower().rstrip(".")
+    for domain in domains:
+        base = domain.lower().lstrip("*.")
+        if host.endswith("." + base):
+            return registered_domain(base).split(".", 1)[0]
+    return None
+
+
+def has_payment_signals(ctx: WebContext) -> bool:
+    """Ödeme altyapısı script'i, sepet/ödeme yolu linki veya düğme/CTA'da sepet/ödeme ifadesi."""
+    sources = [*ctx.all_script_urls, *(s.content for s in ctx.scripts)]
+    if any(m in src.lower() for src in sources for m in PAYMENT_SCRIPT_MARKERS):
+        return True
+    for page, tree in iter_pages(ctx):
+        for node in tree.css("a[href]"):
+            segments = {
+                fold(s) for s in urlsplit(urljoin(page.url, attr(node, "href"))).path.split("/")
+            }
+            if segments & PAYMENT_PATH_SEGMENTS:
+                return True
+    surfaces = " ".join(p.surface for p in content_signals(ctx).pages)
+    return keywords.has("payment_texts", surfaces)
+
+
+def has_personal_data_form(ctx: WebContext) -> bool:
+    for _, tree in iter_pages(ctx):
+        labels = page_labels(tree)
+        if any(personal_data_fields(form, labels) for form in tree.css("form")):
+            return True
+    return False
+
+
+@register
+class PlatformDefaultDomain(WebCheck):
+    id = "web.infra.platform_default_domain"
+    category = Category.PROD_READINESS
+    default_severity = Severity.LOW
+
+    async def check(self, ctx: WebContext) -> list[Finding]:
+        host = (urlsplit(ctx.final_url).hostname or "").lower()
+        platform = platform_of(host, get_settings().web_platform_default_domains)
+        if platform is None:
+            return []
+        signals = content_signals(ctx)
+        reasons = [
+            name
+            for name, hit in (
+                ("special_category_data", signals.collects_special_category_data),
+                ("payment", has_payment_signals(ctx)),
+                ("has_login", signals.has_login),
+                ("personal_data_form", has_personal_data_form(ctx)),
+            )
+            if hit
+        ]
+        if not reasons:
+            return []  # demo/portföy sitesi: kullanıcıdan bilgi alınmıyor
+        serious = {"special_category_data", "payment"} & set(reasons)
+        evidence = {"host": host, "platform": platform, "reasons": reasons}
+        return [self.finding(evidence, severity=Severity.MEDIUM if serious else Severity.LOW)]

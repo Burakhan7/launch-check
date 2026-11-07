@@ -106,7 +106,9 @@
     "loading": "Rapor yükleniyor…",
     "detected": "Tespit edilen",
     "apkInfo": "Sürüm {version} · Hedef SDK {target}",
-    "phaseNote": "Bu rapor sadece herkese açık dosyalara bakan pasif kontrolleri içerir."
+    "phaseNote": "Bu rapor sadece herkese açık dosyalara bakan pasif kontrolleri içerir.",
+    "sensitiveNote": "Siten hassas (özel nitelikli) kişisel veri topluyor; bu bulgu bu yüzden daha da önemli.",
+    "sensitiveEscalated": "Siten hassas (özel nitelikli) kişisel veri topluyor; bu yüzden bu bulgunun önemini bir seviye yükselttik."
   },
   "Severity": {
     "critical": "Kritik",
@@ -148,7 +150,21 @@
     "has_live_media": "Canlı sesli/görüntülü sohbet",
     "is_emotional_support": "Duygusal destek platformu",
     "has_anonymous_posting": "Anonim paylaşım",
-    "has_media_upload": "Medya yükleme"
+    "has_media_upload": "Medya yükleme",
+    "collects_special_category_data": "Özel nitelikli veri",
+    "is_dating_or_matching": "Flört/eşleşme",
+    "has_login": "Giriş sistemi",
+    "special": {
+      "religion": "din/inanç",
+      "politics": "siyasi görüş",
+      "health": "sağlık",
+      "ethnicity": "etnik köken",
+      "sexual": "cinsel hayat",
+      "biometric": "biyometrik",
+      "genetic": "genetik",
+      "criminal": "adli sicil",
+      "union": "sendika/dernek"
+    }
   },
   "Evidence": {
     "keys": {
@@ -214,7 +230,20 @@
       "with_device_info": "Cihaz/çekim bilgisi olan görsel",
       "matches": "Bulunanlar",
       "patterns": "Adres desenleri",
-      "private_items_listed": "Özel öğeler herkese açık listede"
+      "private_items_listed": "Özel öğeler herkese açık listede",
+      "platform_types": "Platform türü",
+      "allows_under_18_birth_year": "Doğum yılında 18 yaş altı seçilebiliyor",
+      "pages_checked": "Kontrol edilen sayfalar",
+      "categories": "Kategoriler",
+      "has_explicit_consent": "Açık rıza onayı",
+      "multi_step_unverified": "Çok adımlı, önceki adım doğrulanamadı",
+      "bundled_consent": "Tek kutuda birden fazla amaç",
+      "platform": "Platform",
+      "transfer_basis_consent_only": "Aktarım sadece açık rızaya dayanıyor",
+      "consent_conditioned_on_service": "Rıza hizmet şartına bağlanmış",
+      "mentioned_destinations": "Geçen ülkeler",
+      "amendment_referenced": "7499 sayılı değişikliğe atıf",
+      "page": "Sayfa"
     },
     "values": {
       "no_https": "Site HTTPS kullanmıyor",
@@ -232,7 +261,13 @@
       "meta_auth": "Sayfa giriş yapılmış gibi davranıyor",
       "rotating_identity": "Her istekte farklı kullanıcı adı",
       "rotating_session_cookie": "Her istekte yeni oturum çerezi",
-      "emotional_support_platform": "Duygusal destek platformu"
+      "emotional_support_platform": "Duygusal destek platformu",
+      "dating_or_matching": "Flört/eşleşme/evlilik",
+      "live_media": "Yabancılarla canlı sohbet",
+      "special_category_data": "Özel nitelikli veri topluyor",
+      "payment": "Ödeme alıyor",
+      "has_login": "Giriş sistemi var",
+      "personal_data_form": "Kişisel veri formu var"
     }
   },
   "Errors": {

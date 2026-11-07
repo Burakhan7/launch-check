@@ -1,0 +1,61 @@
+# English detection keywords. Matching runs on lower-cased text with word boundaries.
+# A trailing "*" means prefix ("diagnos*" → "diagnosis", "diagnosed"); others are whole words.
+# None of these is enough on its own; checks combine them with context rules.
+
+# GDPR art.9 special categories of personal data (searched in form field texts)
+special_categories:
+  religion: [religion, religious, "sect", sects, faith, "denomination*", "worship*", church, mosque]
+  politics: [political, politics, "party affiliation", "political party", "political view*", "ideolog*"]
+  health: ["health*", "diagnos*", "disabilit*", "medication*", "medical condition*", "illness*", "psychiatr*", "chronic"]
+  ethnicity: ["ethnic*", race, racial, "ethnic origin"]
+  sexual: ["sexual orientation", "sex life", "sexual life"]
+  biometric: ["biometric*", "fingerprint*", "face recognition", "facial recognition"]
+  genetic: ["genetic*"]
+  criminal: ["criminal record*", "criminal conviction*", "conviction*"]
+  union: ["union membership", "trade union*"]
+
+dating:
+  strong: ["matchmak*", "dating", "soulmate*", "compatibility test*", "find your match", "find a match"]
+  weak: ["marriage*", "partner*", "relationship*", match, matches, "romance*", "single*"]
+
+live_strangers: [random, "stranger*", "match*", anonymous, "new people", "meet people"]
+
+login:
+  paths: [login, log-in, signin, sign-in, signup, sign-up, register, auth]
+  texts: ["log in", "login", "sign in", "sign up", "create account", "register"]
+
+payment_texts: [cart, checkout, "add to cart", "buy now", "proceed to payment"]
+
+legal_pages: ["privacy*", "terms*", "cookie*", legal, "consent*", "data protection", gdpr, "distance sales"]
+
+explicit_consent: ["explicit consent", "i consent", "i give my consent", consent]
+bundled_purposes: ["transfer abroad", "transferred abroad", "international transfer*", "marketing*", "newsletter*", "advertis*", "promotion*"]
+
+multi_step: [continue, next, "next step", step]
+cta: ["get started", "start*", "begin", "take the test", "sign up", "join*", "try free"]
+
+placeholders:
+  content_words: [name, "first name", "last name", "full name", "company*", "address*", "email*", "e-mail*", "phone*", "date*", "domain*", your, "city", "organization*", "controller"]
+  contact_words: [name, "first name", "last name", "full name", "company*", "address*", "email*", "e-mail*", "phone*", "domain*", "organization*", "controller", "registration number"]
+  example_domains: [yourdomain, yourcompany, yoursite, example.com, example.org, example.net, domain.com, test.com, "email@", "info@example"]
+  draft_phrase_start: [insert, "add your", "enter your", "put your"]
+  draft_phrase_end: [here]
+
+transfer:
+  section: ["transfer*", "outside the eea", "third countr*", "abroad"]
+  consent: ["explicit consent", consent]
+  safeguards: ["standard contractual clause*", "adequacy decision*", "appropriate safeguard*", "binding corporate rule*", "data processing agreement*"]
+  service_denied: ["cannot be provided", "unable to provide", "cannot provide", "will not be able to use", "cannot use"]
+  amendment_refs: []
+countries:
+  ireland: Ireland
+  germany: Germany
+  netherlands: Netherlands
+  france: France
+  "united kingdom": United Kingdom
+  "united states": United States
+  usa: United States
+  singapore: Singapore
+  japan: Japan
+  india: India
+  canada: Canada

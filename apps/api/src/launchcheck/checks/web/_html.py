@@ -1,13 +1,14 @@
 """HTML içerik check'leri için ortak yardımcılar (metin sadeleştirme, konum, onay tespiti)."""
 
 import asyncio
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator
 from typing import Any
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlsplit
 
 from selectolax.lexbor import LexborHTMLParser, LexborNode
 
-from launchcheck.checks.shared.text import fold
+from launchcheck.checks.shared import keywords
+from launchcheck.checks.shared.text import fold, squash
 from launchcheck.checks.shared.text import tokens as tokens  # yeniden dışa aktarım
 from launchcheck.checks.web._common import page_tree
 from launchcheck.collectors.web_assets import origin_of
@@ -136,12 +137,25 @@ def _is_info_link(node: LexborNode) -> bool:
     return any(w.startswith(INFO_PAGE_KEYWORDS) for w in words)
 
 
-def _info_link_candidates(ctx: WebContext) -> list[str]:
+def is_legal_link(node: LexborNode) -> bool:
+    href_words = " ".join(tokens(urlsplit(attr(node, "href")).path))
+    text = fold(squash(node.text(deep=True, separator=" ")))
+    return keywords.has("legal_pages", href_words) or keywords.has("legal_pages", text)
+
+
+LINK_KINDS: dict[str, Callable[[LexborNode], bool]] = {
+    "info": _is_info_link,  # hakkında/şartlar/kurallar/yardım/güvenlik
+    "legal": is_legal_link,  # gizlilik/KVKK/aydınlatma/açık rıza/koşullar/çerez
+}
+
+
+def _footer_link_candidates(ctx: WebContext, kind: str) -> list[str]:
     crawled = {p.url.rstrip("/") for p in ctx.pages}
+    matcher = LINK_KINDS[kind]
     found: list[str] = []
     for page, tree in iter_pages(ctx):
         for node in tree.css("a[href]"):
-            if location_of(node) != "footer" or not _is_info_link(node):
+            if location_of(node) != "footer" or not matcher(node):
                 continue
             url = urljoin(page.url, attr(node, "href")).split("#", 1)[0]
             if origin_of(url) != ctx.origin or url.rstrip("/") in crawled or url in found:
@@ -150,18 +164,20 @@ def _info_link_candidates(ctx: WebContext) -> list[str]:
     return found
 
 
-async def extra_info_pages(ctx: WebContext) -> list[PageSnapshot]:
-    """Footer'da linklenen ve taranmamış hakkında/şartlar/yardım/güvenlik sayfaları
-    (en fazla `web_extra_info_pages`). SSRF korumalı, önbellekli; check'ler ortak kullanır."""
-    if EXTRA_PAGES_KEY not in ctx.cache:
-        ctx.cache[EXTRA_PAGES_KEY] = asyncio.ensure_future(_load_info_pages(ctx))
-    pages: list[PageSnapshot] = await asyncio.shield(ctx.cache[EXTRA_PAGES_KEY])
+async def extra_info_pages(ctx: WebContext, kind: str = "info") -> list[PageSnapshot]:
+    """Footer'da linklenen ve taranmamış ek sayfalar: `kind="info"` hakkında/şartlar/yardım,
+    `kind="legal"` yasal metinler. Tür başına en fazla `web_extra_info_pages`. SSRF korumalı;
+    istekler URL bazında önbelleklidir, check'ler ortak kullanır."""
+    key = f"{EXTRA_PAGES_KEY}:{kind}"
+    if key not in ctx.cache:
+        ctx.cache[key] = asyncio.ensure_future(_load_footer_pages(ctx, kind))
+    pages: list[PageSnapshot] = await asyncio.shield(ctx.cache[key])
     return pages
 
 
-async def _load_info_pages(ctx: WebContext) -> list[PageSnapshot]:
+async def _load_footer_pages(ctx: WebContext, kind: str) -> list[PageSnapshot]:
     limit = get_settings().web_extra_info_pages
-    urls = _info_link_candidates(ctx)[:limit]
+    urls = _footer_link_candidates(ctx, kind)[:limit]
     results = await asyncio.gather(*(ctx.fetch_url(u, follow_redirects=True) for u in urls))
     pages = []
     for res in results:
@@ -171,3 +187,11 @@ async def _load_info_pages(ctx: WebContext) -> list[PageSnapshot]:
             continue
         pages.append(PageSnapshot(res.final_url, res.status, res.headers, res.text))
     return pages
+
+
+def is_legal_page(url: str, tree: LexborHTMLParser) -> bool:
+    """URL yolu veya h1'i yasal metin bildiriyor mu (gizlilik, KVKK, koşullar...)?"""
+    path_words = " ".join(tokens(urlsplit(url).path))
+    h1 = tree.css_first("h1")
+    heading = fold(squash(h1.text(deep=True, separator=" "))) if h1 is not None else ""
+    return keywords.has("legal_pages", path_words) or keywords.has("legal_pages", heading)

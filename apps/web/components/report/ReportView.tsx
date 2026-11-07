@@ -161,6 +161,9 @@ const CONTENT_FLAGS = [
   "is_emotional_support",
   "has_anonymous_posting",
   "has_media_upload",
+  "collects_special_category_data",
+  "is_dating_or_matching",
+  "has_login",
 ] as const;
 
 function TargetBadges({ report }: { report: ScanReport }) {
@@ -169,6 +172,7 @@ function TargetBadges({ report }: { report: ScanReport }) {
   const tf = useTranslations("ContentFlag");
   const meta = report.meta;
   const flags = CONTENT_FLAGS.filter((flag) => meta[flag] === true);
+  const specialCategories = (meta.special_categories as string[] | undefined) ?? [];
   const names: string[] =
     report.target_type === "apk"
       ? [String(meta.framework ?? ""), meta.hermes ? "hermes" : ""].filter(Boolean)
@@ -192,6 +196,14 @@ function TargetBadges({ report }: { report: ScanReport }) {
           className="rounded-full border border-brand/30 px-2.5 py-0.5 text-xs font-medium text-brand"
         >
           {tf(flag)}
+          {flag === "collects_special_category_data" && specialCategories.length > 0 && (
+            <>
+              :{" "}
+              {specialCategories
+                .map((c) => (tf.has(`special.${c}`) ? tf(`special.${c}`) : c))
+                .join(", ")}
+            </>
+          )}
         </span>
       ))}
       {report.target_type === "apk" && meta.version_name !== undefined && (
