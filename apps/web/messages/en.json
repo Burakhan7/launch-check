@@ -177,7 +177,17 @@
       "sample_urls": "Sample addresses",
       "pages": "Pages",
       "behind_cdn": "Site is behind a CDN",
-      "reference_median_words": "Typical words on other pages"
+      "reference_median_words": "Typical words on other pages",
+      "duplicate_titles": "Same title",
+      "duplicate_descriptions": "Same description",
+      "description_equals_title": "Description equals title",
+      "short_descriptions": "Short description",
+      "forms": "Forms",
+      "embeds": "Embedded forms",
+      "links": "Links",
+      "total_images": "Total images",
+      "missing_alt": "Missing alt text",
+      "samples": "Samples"
     },
     "values": {
       "no_https": "The site doesn't use HTTPS",

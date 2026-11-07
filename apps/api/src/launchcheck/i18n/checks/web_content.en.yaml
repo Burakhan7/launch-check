@@ -1,0 +1,109 @@
+# Content, privacy and link checks (English).
+
+web.seo.duplicate_title_description:
+  title: "{headline}"
+  passed_title: "Page titles and descriptions are unique"
+  description: "The pages we scanned have repeated or problematic titles or meta descriptions: {details}."
+  why_it_matters: "In Google all your pages show up with the same title, so people can't tell which one to click. Google also can't decide which page to show, and your pages end up competing with each other in search."
+  fix_steps:
+    - "Give every page a unique title that describes its content (50-60 characters, e.g. 'Contact | Site Name')."
+    - "Write a 120-160 character description specific to each page; it shouldn't be a copy of the title."
+    - "Generate the title and description from per-page values instead of hard-coding them in the shared layout."
+  fix_prompt: |
+    Several pages on my site use the same title and/or meta description: {details}.
+    Please:
+    1. Find the title and description hard-coded in the shared layout/template.
+    2. Make every page/route produce a unique title (50-60 characters) and description (120-160 characters) that fit its content; for dynamic pages (products, categories, posts) build them from the page's data.
+    3. Make sure the description isn't a copy of the title.
+    4. If my framework supports per-page metadata (e.g. Next.js generateMetadata, react-helmet), use it.
+  fragments:
+    headline_majority: "Most of your pages use the same title"
+    headline_titles: "{count} of your pages use the same title"
+    headline_descriptions: "Your page descriptions (meta description) have problems"
+    detail_title: "the title “{title}” is used on {count} pages"
+    detail_descriptions: "some pages use the same description"
+    detail_equals_title: "on {count} pages the description is the same as the title"
+    detail_short: "on {count} pages the description is shorter than 50 characters"
+
+web.privacy.form_without_consent:
+  title: "{headline}"
+  passed_title: "Personal data forms have a privacy notice/consent and spam protection"
+  description: "Your site has forms that collect personal data such as name, email or phone, and we see these problems: {details}. (This is general information; get legal advice for full compliance.)"
+  why_it_matters: "If you collect personal data, privacy laws (KVKK in Turkey, GDPR in the EU) require you to inform people when you collect it; some cases also require explicit consent. If the form is sent unencrypted, the data can be read on the network. Without spam protection, the form fills up with fake sign-ups and spam."
+  fix_steps:
+    - "Add a link to your privacy notice below the form."
+    - "If explicit consent is needed (e.g. marketing permission), add an unchecked consent checkbox and verify it on the server too."
+    - "Add spam protection with Cloudflare Turnstile, reCAPTCHA or a honeypot (hidden trap field)."
+    - "The address the form submits to should start with https://."
+    - "Get legal advice on the content of these texts."
+  fix_prompt: |
+    The forms on my site that collect personal data have these problems: {details}. Please:
+    1. Add a link to the privacy notice below the form (if there's no notice, draft a /privacy page).
+    2. If needed, add an explicit consent checkbox that is unchecked by default; the consent must also be verified on the server, and submissions without it must be rejected.
+    3. Add Cloudflare Turnstile to the form (or at least a honeypot field checked on the server).
+    4. Make the form action an https:// address.
+    Note: I'll have a lawyer review the privacy notice.
+  fragments:
+    headline_insecure: "Your personal data form is sent unencrypted (http://)"
+    headline_no_consent: "Your form collects personal data without a privacy notice or consent"
+    headline_no_spam: "Your personal data form has no visible spam protection"
+    issue_insecure_action: "the form data is sent to an unencrypted http:// address"
+    issue_no_consent: "there's no privacy notice link or consent checkbox near the form"
+    issue_no_spam_protection: "there's no visible spam protection such as a CAPTCHA or honeypot"
+
+web.privacy.third_party_form_embed:
+  title: "A third-party form service collects personal data on your site"
+  description: "Your site embeds a form from an external service such as Google Forms, Typeform, Jotform or monday.com. The data people enter goes to that service's servers (usually abroad). (This is general information; get legal advice for full compliance.)"
+  why_it_matters: "Privacy laws (KVKK, GDPR) require you to tell people to whom and where their data is transferred; transfers abroad bring extra obligations. If the page has no privacy notice, that obligation may not be met."
+  fix_steps:
+    - "Add a privacy notice to the page with the form and state clearly which service (and which country) the data is transferred to."
+    - "If possible, collect the form on your own server or use a service with data centers in your region."
+    - "Check the service's data processing agreement (DPA) and server region."
+  fix_prompt: |
+    My site embeds a third-party form service (e.g. Google Forms, Typeform, monday.com) that collects personal data. Please guide me through two options:
+    A) Move the form to my own backend: build a form with the same fields, store the data in my database, and add a privacy notice link, a consent checkbox (verified on the server) and Cloudflare Turnstile.
+    B) Keep the embedded form: add a privacy notice above it, state clearly which service and country the data goes to, and add a consent checkbox.
+    Explain which one fits my project better.
+
+web.links.insecure_http_links:
+  title: "Your site links to unencrypted (http://) addresses"
+  description: "Your pages link to addresses starting with http://, which use unencrypted connections. Some are in the menu/footer or go to your own domains."
+  why_it_matters: "People who click these links land on a page opened over an unencrypted connection; if that page has a login or a form, passwords and personal data can be read on the network. Browsers also show a 'Not secure' warning, which costs trust."
+  fix_steps:
+    - "Update the links to https://."
+    - "If the target site doesn't support HTTPS, have an SSL certificate installed there (Let's Encrypt is free), especially for your own domains."
+    - "Fix menu and footer links first; they get the most clicks."
+  fix_prompt: |
+    My site has links starting with http:// (addresses in the evidence). Please:
+    1. Find every http:// link in the project (templates, components, and menu/content links stored in the database).
+    2. Replace them with https://.
+    3. If any of my own domains don't support HTTPS, explain the steps to install a free SSL certificate (Let's Encrypt).
+
+web.links.malformed_youtube:
+  title: "Some of your YouTube links are broken"
+  description: "Some YouTube links or embedded videos on your site have a broken video ID: the share parameter (?si=...) got mixed into the video ID, the ID is missing or the wrong length, or the v= parameter is missing."
+  why_it_matters: "Visitors who click the video see a 'Video unavailable' error, so your promo and content videos don't get watched."
+  fix_steps:
+    - "Update the links with a clean video ID (e.g. https://www.youtube.com/watch?v=Jmtb5ryNsQ4)."
+    - "Remove the ?si= part that comes from YouTube's 'Share' button."
+    - "Add a check to the admin field where YouTube links are entered that validates the link and converts it to the standard format."
+  fix_prompt: |
+    My site has broken YouTube links (addresses in the evidence; e.g. the ?si= parameter got URL-encoded into the video ID). Please:
+    1. Write a helper that extracts the 11-character video ID from any YouTube address (watch, youtu.be, embed, shorts) and builds the standard https://www.youtube.com/watch?v=ID (https://www.youtube.com/embed/ID for embeds) address.
+    2. Prepare a one-off script that fixes the YouTube links stored in the project and the database with this helper.
+    3. Make links get validated this way when they're saved; show the user an error for invalid links.
+
+web.a11y.img_missing_alt:
+  title: "Some images have no alt text"
+  description: "Some images on your pages have no alt attribute at all. (alt=\"\" is the right choice for decorative images and wasn't counted as a problem.)"
+  why_it_matters: "Screen readers used by blind and low-vision visitors can't describe these images. Google can't understand them either, so you won't show up in image search."
+  fix_steps:
+    - "Add a short, descriptive alt text to images that carry meaning (products, people, charts)."
+    - "Give decorative images alt=\"\" so screen readers skip them."
+    - "Make alt text a required field in your image component."
+  fix_prompt: |
+    Some img tags on my site have no alt attribute. Please:
+    1. Find every img tag (and Image component) in the project.
+    2. Add short alt texts describing what each content image shows (use the product name for product images).
+    3. Give decorative images alt="".
+    4. Make alt a required prop on shared components that render images.

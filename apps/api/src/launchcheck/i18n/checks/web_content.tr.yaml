@@ -1,0 +1,109 @@
+# İçerik, gizlilik ve link check'leri (Türkçe).
+
+web.seo.duplicate_title_description:
+  title: "{headline}"
+  passed_title: "Sayfa başlıkları ve açıklamaları benzersiz"
+  description: "Taradığımız sayfalarda başlık (title) veya açıklama (meta description) tekrarları ya da sorunları var: {details}."
+  why_it_matters: "Google'da tüm sayfaların aynı başlıkla görünür; kullanıcı hangi sayfaya tıklayacağını anlayamaz. Google da hangi sayfayı göstereceğine karar veremez ve sayfaların aramalarda birbirinin rakibi olur."
+  fix_steps:
+    - "Her sayfaya içeriğini anlatan benzersiz bir başlık ver (50-60 karakter, ör. 'İletişim | Site Adı')."
+    - "Her sayfaya 120-160 karakterlik, o sayfaya özel bir açıklama yaz; açıklama başlığın kopyası olmasın."
+    - "Başlık ve açıklamayı ortak şablona (layout) sabit yazmak yerine sayfa bazlı değişkenlerden üret."
+  fix_prompt: |
+    Sitemde birden fazla sayfa aynı title ve/veya meta description'ı kullanıyor: {details}.
+    Lütfen:
+    1. Ortak layout/şablonda sabit yazılmış title ve description'ı bul.
+    2. Her sayfa/route için içeriğine uygun, benzersiz bir title (50-60 karakter) ve description (120-160 karakter) üretilmesini sağla; dinamik sayfalarda (ürün, kategori, yazı) bunları sayfanın verisinden oluştur.
+    3. Description'ın title'ın kopyası olmadığından emin ol.
+    4. Framework'üm sayfa bazlı metadata destekliyorsa (ör. Next.js generateMetadata, react-helmet) onu kullan.
+  fragments:
+    headline_majority: "Sayfalarının çoğu aynı başlığı kullanıyor"
+    headline_titles: "{count} sayfan aynı başlığı kullanıyor"
+    headline_descriptions: "Sayfa açıklamalarında (meta description) sorunlar var"
+    detail_title: "“{title}” başlığı {count} sayfada"
+    detail_descriptions: "bazı sayfalar aynı açıklamayı kullanıyor"
+    detail_equals_title: "{count} sayfada açıklama başlıkla aynı"
+    detail_short: "{count} sayfada açıklama 50 karakterden kısa"
+
+web.privacy.form_without_consent:
+  title: "{headline}"
+  passed_title: "Kişisel veri formlarında KVKK onayı ve spam koruması var"
+  description: "Sitende ad, e-posta, telefon gibi kişisel veri toplayan formlar var ve şu sorunlar görünüyor: {details}. (Bu genel bir bilgilendirmedir; kesin uyum için hukuki destek al.)"
+  why_it_matters: "Kişisel veri topluyorsan KVKK kapsamında kullanıcıyı veri toplanırken bilgilendirmek (aydınlatma) yasal bir yükümlülüktür; bazı durumlarda açık rıza da gerekir. Form şifresiz gönderiliyorsa veriler ağda okunabilir. Spam koruması yoksa form sahte kayıt ve spam mesajlarla dolar."
+  fix_steps:
+    - "Formun altına KVKK aydınlatma metnine bir link ekle."
+    - "Açık rıza gerekiyorsa (ör. pazarlama izni) işaretlenmemiş bir onay kutusu ekle ve sunucu tarafında da kontrol et."
+    - "Cloudflare Turnstile, reCAPTCHA veya bir honeypot (gizli tuzak alanı) ile spam koruması ekle."
+    - "Formun gönderildiği adres https:// ile başlamalı."
+    - "Metinlerin içeriği için bir hukukçudan destek al."
+  fix_prompt: |
+    Sitemdeki kişisel veri toplayan formlarda şu sorunlar var: {details}. Lütfen:
+    1. İlgili formun altına KVKK aydınlatma metnine link ekle (metin yoksa /kvkk sayfası için bir taslak oluştur).
+    2. Gerekiyorsa varsayılan olarak işaretsiz bir açık rıza onay kutusu ekle; onay sunucu tarafında da doğrulansın, işaretlenmeden gönderim kabul edilmesin.
+    3. Forma Cloudflare Turnstile ekle (veya en azından bir honeypot alanı ve sunucu tarafında kontrolü).
+    4. Formun action adresi https:// olsun.
+    Not: Aydınlatma metninin içeriğini bir hukukçuya kontrol ettireceğim.
+  fragments:
+    headline_insecure: "Kişisel veri formun şifresiz (http://) gönderiliyor"
+    headline_no_consent: "Kişisel veri toplayan formunda KVKK aydınlatması/onayı yok"
+    headline_no_spam: "Kişisel veri formunda spam koruması görünmüyor"
+    issue_insecure_action: "form verileri şifresiz http:// adresine gönderiliyor"
+    issue_no_consent: "formun yanında KVKK aydınlatma metni linki veya onay kutusu yok"
+    issue_no_spam_protection: "CAPTCHA veya honeypot gibi bir spam koruması görünmüyor"
+
+web.privacy.third_party_form_embed:
+  title: "Sitende 3. parti bir form servisi kişisel veri topluyor"
+  description: "Sitende Google Forms, Typeform, Jotform, monday.com gibi bir dış servisin formu gömülü. Formu dolduranların verisi bu servisin (çoğunlukla yurt dışındaki) sunucularına gidiyor. (Bu genel bir bilgilendirmedir; kesin uyum için hukuki destek al.)"
+  why_it_matters: "KVKK kapsamında kullanıcıyı verinin kime ve nereye aktarıldığı konusunda bilgilendirmen gerekir; yurt dışına veri aktarımı ek yükümlülükler doğurur. Sayfada aydınlatma metni yoksa bu yükümlülük karşılanmamış olabilir."
+  fix_steps:
+    - "Formun bulunduğu sayfaya aydınlatma metnini ekle ve verinin hangi servise (ve hangi ülkeye) aktarıldığını açıkça belirt."
+    - "Mümkünse formu kendi sunucunda topla veya veri merkezi Türkiye'de olan bir servis kullan."
+    - "Kullandığın servisin veri işleme sözleşmesini (DPA) ve sunucu bölgesini kontrol et."
+  fix_prompt: |
+    Sitemde 3. parti bir form servisi (ör. Google Forms, Typeform, monday.com) gömülü ve kişisel veri topluyor. Lütfen iki seçenek için yol göster:
+    A) Formu kendi backend'ime taşı: aynı alanlarla bir form oluştur, veriyi kendi veritabanıma kaydet, KVKK aydınlatma linki, onay kutusu (sunucu tarafında doğrulanan) ve Cloudflare Turnstile ekle.
+    B) Gömülü formu koru: formun üstüne aydınlatma metni ekle; verinin hangi servise ve hangi ülkeye aktarıldığını açıkça yaz ve bir onay kutusu ekle.
+    Hangisinin benim projeme daha uygun olduğunu açıkla.
+
+web.links.insecure_http_links:
+  title: "Sitende şifresiz (http://) adreslere linkler var"
+  description: "Sayfalarında http:// ile başlayan, şifresiz bağlantı kullanan adreslere linkler var. Bazıları menüde/footer'da veya kendi alan adlarına gidiyor."
+  why_it_matters: "Bu linke tıklayan kullanıcı şifresiz bağlantıyla açılan bir sayfaya gider; o sayfada giriş veya form varsa şifre ve kişisel veriler ağda okunabilir. Tarayıcılar da 'Güvenli değil' uyarısı gösterir ve bu güven kaybettirir."
+  fix_steps:
+    - "Linkleri https:// ile güncelle."
+    - "Hedef site HTTPS desteklemiyorsa ona SSL sertifikası kurdur (Let's Encrypt ücretsizdir); özellikle kendi alan adların için."
+    - "Menü ve footer linklerini öncelikli olarak düzelt; en çok tıklananlar onlardır."
+  fix_prompt: |
+    Sitemde http:// ile başlayan linkler var (kanıttaki adresler). Lütfen:
+    1. Projede (şablonlar, bileşenler, veritabanında saklanan menü/içerik linkleri dahil) tüm http:// linkleri bul.
+    2. Bunları https:// ile değiştir.
+    3. Kendi alan adlarımdan HTTPS desteklemeyen varsa, ona ücretsiz SSL (Let's Encrypt) kurmam için adımları anlat.
+
+web.links.malformed_youtube:
+  title: "Bazı YouTube linklerin bozuk"
+  description: "Sitendeki bazı YouTube linklerinde veya gömülü videolarda video kimliği bozuk: paylaşım parametresi (?si=...) video kimliğinin içine karışmış, kimlik eksik/yanlış uzunlukta ya da v= parametresi yok."
+  why_it_matters: "Ziyaretçi videoya tıklayınca 'Video kullanılamıyor' hatası görür; tanıtım ve içerik videoların izlenmez."
+  fix_steps:
+    - "Linkleri temiz video kimliğiyle güncelle (ör. https://www.youtube.com/watch?v=Jmtb5ryNsQ4)."
+    - "YouTube'un 'Paylaş' düğmesinden gelen ?si= kısmını sil."
+    - "Yönetim panelinde YouTube linki girilen alana, linki doğrulayan ve standart biçime çeviren bir kontrol ekle."
+  fix_prompt: |
+    Sitemde bozuk YouTube linkleri var (kanıttaki adresler; ör. ?si= parametresi video kimliğinin içine URL-encode edilerek karışmış). Lütfen:
+    1. Herhangi bir YouTube adresinden (watch, youtu.be, embed, shorts) 11 karakterlik video kimliğini çıkaran ve standart https://www.youtube.com/watch?v=ID (gömme için https://www.youtube.com/embed/ID) adresi üreten bir yardımcı fonksiyon yaz.
+    2. Projede ve veritabanında kayıtlı YouTube linklerini bu fonksiyonla düzelten tek seferlik bir betik hazırla.
+    3. Link kaydedilirken bu doğrulamanın yapılmasını sağla; geçersiz linklerde kullanıcıya hata göster.
+
+web.a11y.img_missing_alt:
+  title: "Bazı görsellerin alt metni (alt) yok"
+  description: "Sayfalarındaki görsellerin bir kısmında alt özniteliği hiç yok. (alt=\"\" dekoratif görseller için doğru kullanımdır ve sorun sayılmadı.)"
+  why_it_matters: "Görme engelli kullanıcıların ekran okuyucuları bu görselleri anlatamaz. Google da görselleri anlayamaz; görsel aramalarda çıkmazsın."
+  fix_steps:
+    - "Anlam taşıyan görsellere (ürün, kişi, grafik) kısa ve açıklayıcı bir alt metni ekle."
+    - "Süs amaçlı görsellere alt=\"\" ver; ekran okuyucular onları atlar."
+    - "Görsel ekleme bileşeninde alt metnini zorunlu bir alan yap."
+  fix_prompt: |
+    Sitemdeki bazı img etiketlerinde alt özniteliği yok. Lütfen:
+    1. Projedeki tüm img etiketlerini (ve Image bileşenlerini) bul.
+    2. İçerik taşıyan görsellere, görselin ne gösterdiğini anlatan kısa alt metinleri ekle (ürün görsellerinde ürün adını kullan).
+    3. Süs amaçlı görsellere alt="" ver.
+    4. Görsel kullanan ortak bileşenlerde alt'ı zorunlu bir prop yap.

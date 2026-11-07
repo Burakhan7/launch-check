@@ -177,7 +177,17 @@
       "sample_urls": "Örnek adresler",
       "pages": "Sayfalar",
       "behind_cdn": "Site CDN arkasında",
-      "reference_median_words": "Diğer sayfalarda ortalama kelime"
+      "reference_median_words": "Diğer sayfalarda ortalama kelime",
+      "duplicate_titles": "Aynı başlık",
+      "duplicate_descriptions": "Aynı açıklama",
+      "description_equals_title": "Açıklaması başlıkla aynı",
+      "short_descriptions": "Açıklaması kısa",
+      "forms": "Formlar",
+      "embeds": "Gömülü formlar",
+      "links": "Linkler",
+      "total_images": "Toplam görsel",
+      "missing_alt": "Alt metni olmayan",
+      "samples": "Örnekler"
     },
     "values": {
       "no_https": "Site HTTPS kullanmıyor",

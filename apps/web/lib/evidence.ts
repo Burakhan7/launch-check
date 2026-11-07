@@ -22,7 +22,15 @@ const CODE_KEYS = new Set([
   "host",
 ]);
 // Satır olarak gösterilmeyen yardımcı alanlar (sayılar listelerin "+N daha" bilgisinde kullanılır)
-const HIDDEN_KEYS = new Set(["count", "location_count", "kind", "searched", "home_url"]);
+const HIDDEN_KEYS = new Set([
+  "count",
+  "location_count",
+  "kind",
+  "searched",
+  "home_url",
+  "pages_scanned",
+  "majority_same_title",
+]);
 
 function isLocation(v: unknown): v is { file: string; line: number } {
   return typeof v === "object" && v !== null && "file" in v && "line" in v;
@@ -32,27 +40,34 @@ function isComponent(v: unknown): v is { type: string; name: string } {
   return typeof v === "object" && v !== null && "type" in v && "name" in v;
 }
 
-function isPage(v: unknown): v is { url: string } & Record<string, unknown> {
-  return typeof v === "object" && v !== null && "url" in v;
-}
+// Nesnenin "başlık" alanı (öncelik sırasıyla); kalan alanlar ayrıntı olarak eklenir.
+const PRIMARY_KEYS = ["url", "page", "title", "description", "src", "host"];
+// Ayrıntıda gösterilmeyen iç alanlar
+const OBJECT_HIDDEN_KEYS = new Set(["action"]);
 
-/** Sayfa bazlı kanıt: "https://site/tr — og:image, twitter_card_without_image" */
-function describePage(v: { url: string } & Record<string, unknown>): string {
+/** Nesne kanıtı: "https://site/tr — og:image, twitter_card_without_image" */
+function describeObject(v: Record<string, unknown>): string {
+  const primaryKey = PRIMARY_KEYS.find((k) => typeof v[k] === "string" && v[k]);
   const details = Object.entries(v)
-    .filter(([k]) => k !== "url")
+    .filter(([k]) => k !== primaryKey && !OBJECT_HIDDEN_KEYS.has(k))
     .flatMap(([k, val]) => {
-      if (Array.isArray(val)) return val.map(String);
+      if (Array.isArray(val)) return val.length ? [val.map(String).join(", ")] : [];
       if (typeof val === "boolean") return val ? [k] : [];
+      if (val === null || val === undefined || val === "") return [];
       return [`${k}: ${String(val)}`];
     });
-  return details.length ? `${v.url} — ${details.join(", ")}` : v.url;
+  const head = primaryKey ? String(v[primaryKey]) : "";
+  if (!head) return details.join(", ");
+  return details.length ? `${head} — ${details.join(", ")}` : head;
 }
 
 function stringify(v: unknown): string {
   if (isLocation(v)) return `${v.file}:${v.line}`;
   if (isComponent(v)) return `${v.type} ${v.name}`;
-  if (isPage(v)) return describePage(v);
   if (typeof v === "string") return v;
+  if (typeof v === "object" && v !== null && !Array.isArray(v)) {
+    return describeObject(v as Record<string, unknown>);
+  }
   return JSON.stringify(v);
 }
 

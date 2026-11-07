@@ -95,6 +95,35 @@ class Settings(BaseSettings):
             "koyeb.app",
         ]
     )
+    # web.seo.duplicate_title_description: en az bu kadar (canonical'a göre tekil) sayfa gerekir
+    web_duplicate_min_pages: int = 3
+    web_short_description_chars: int = 50
+    # web.privacy.third_party_form_embed: 3. parti form servisleri ("host" veya "host/yol-öneki").
+    # Host eşleşmesi alt alan adlarını da kapsar (typeform.com → x.typeform.com).
+    web_third_party_form_hosts: list[str] = Field(
+        default_factory=lambda: [
+            "forms.monday.com",
+            "docs.google.com/forms",
+            "forms.gle",
+            "typeform.com",
+            "jotform.com",
+            "tally.so",
+            "forms.office.com",
+            "forms.microsoft.com",
+            "surveymonkey.com",
+            "airtable.com/embed",
+            "js.hsforms.net",
+            "share.hsforms.com",
+            "formspree.io",
+            "paperform.co",
+            "fillout.com",
+        ]
+    )
+    # web.links.malformed_youtube: bu sayıdan itibaren önem medium
+    web_youtube_medium_threshold: int = 4
+    # web.a11y.img_missing_alt: alt'sız görsel sayısı >= bu VEYA oranı > aşağıdaki → bulgu
+    web_img_alt_min_missing: int = 5
+    web_img_alt_max_ratio: float = 0.2
 
     # APK yükleme / analiz
     max_apk_bytes: int = 150 * 1024 * 1024

@@ -61,3 +61,30 @@ describe("page evidence", () => {
     });
   });
 });
+
+describe("generic object evidence", () => {
+  it("uses a primary field and lists the rest", () => {
+    const rows = evidenceRows({
+      duplicate_titles: [
+        { title: "Vakıf Genel Merkezi", pages: ["https://a/", "https://a/iletisim"] },
+      ],
+      forms: [
+        {
+          page: "https://a/iletisim",
+          fields: ["email", "name"],
+          has_consent: false,
+          action: "https://a/send",
+          issues: ["no_consent"],
+        },
+      ],
+      majority_same_title: true,
+    });
+    expect(rows.map((r) => r.key)).toEqual(["duplicate_titles", "forms"]);
+    expect(rows[0].value).toMatchObject({
+      items: ["Vakıf Genel Merkezi — https://a/, https://a/iletisim"],
+    });
+    expect(rows[1].value).toMatchObject({
+      items: ["https://a/iletisim — email, name, no_consent"],
+    });
+  });
+});
