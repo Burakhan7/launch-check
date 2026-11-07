@@ -86,11 +86,15 @@ class SafeFetcher:
         except TargetValidationError as exc:
             raise FetchError(exc.code) from exc
 
-    async def fetch(self, url: str, max_bytes: int, follow_redirects: bool = True) -> FetchResult:
+    async def fetch(
+        self, url: str, max_bytes: int, follow_redirects: bool = True, cookieless: bool = False
+    ) -> FetchResult:
+        """`cookieless=True`: istemcinin çerez kavanozundaki çerezler gönderilmez (ilk ziyaret
+        eden biri gibi)."""
         current = await self._validate(url)
         redirects: list[str] = []
         for _ in range(self._settings.max_redirects + 1):
-            result = await self._get_once(current, max_bytes)
+            result = await self._get_once(current, max_bytes, cookieless)
             location = result.headers.get("location")
             if not (follow_redirects and result.status in REDIRECT_STATUSES and location):
                 result.url, result.redirects = url, redirects
@@ -99,19 +103,25 @@ class SafeFetcher:
             redirects.append(current)
         raise FetchError("too_many_redirects")
 
-    async def _get_once(self, url: str, max_bytes: int) -> FetchResult:
+    async def _get_once(self, url: str, max_bytes: int, cookieless: bool = False) -> FetchResult:
         limit = min(max_bytes, self._budget)
         try:
-            async with self._client.stream("GET", url) as resp:
+            request = self._client.build_request("GET", url)
+            if cookieless:
+                request.headers.pop("cookie", None)
+            resp = await self._client.send(request, stream=True)
+            try:
                 body, truncated = await self._read_limited(resp, limit)
-                return FetchResult(
-                    url=url,
-                    final_url=str(resp.url),
-                    status=resp.status_code,
-                    headers=_flatten_headers(resp.headers),
-                    body=body,
-                    truncated=truncated,
-                )
+            finally:
+                await resp.aclose()
+            return FetchResult(
+                url=url,
+                final_url=str(resp.url),
+                status=resp.status_code,
+                headers=_flatten_headers(resp.headers),
+                body=body,
+                truncated=truncated,
+            )
         except httpx.ConnectError as exc:
             code = "url_not_public" if "url_not_public" in str(exc) else "site_unreachable"
             raise FetchError(code) from exc

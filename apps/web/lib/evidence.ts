@@ -30,6 +30,7 @@ const HIDDEN_KEYS = new Set([
   "home_url",
   "pages_scanned",
   "majority_same_title",
+  "sample_count",
 ]);
 
 function isLocation(v: unknown): v is { file: string; line: number } {
@@ -41,7 +42,7 @@ function isComponent(v: unknown): v is { type: string; name: string } {
 }
 
 // Nesnenin "başlık" alanı (öncelik sırasıyla); kalan alanlar ayrıntı olarak eklenir.
-const PRIMARY_KEYS = ["url", "page", "title", "description", "src", "host"];
+const PRIMARY_KEYS = ["pattern", "text", "url", "page", "title", "description", "src", "host"];
 // Ayrıntıda gösterilmeyen iç alanlar
 const OBJECT_HIDDEN_KEYS = new Set(["action"]);
 

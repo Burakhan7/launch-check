@@ -1,0 +1,135 @@
+# Kullanıcı içerikli (UGC) ve hassas platformlara özgü check'ler (Türkçe).
+
+web.safety.live_chat_without_age_gate:
+  title: "{headline}"
+  passed_title: "Canlı sohbette yaş sınırı ve kullanım şartı onayı var"
+  description: "Sitende yabancılarla canlı sesli/görüntülü sohbet özelliği var. {situation}"
+  why_it_matters: "Reşit olmayanlar platformunda yabancılarla anonim görüntülü görüşme yapabilir. Bu, çocukların istismar riskine açık kalması demek ve platform sahibi olarak senin için ciddi hukuki sorumluluk doğurur."
+  fix_steps:
+    - "Canlı sohbete girmeden önce yaş onayı ve kullanım şartlarının kabulünü iste; onayı sunucu tarafında da kontrol et."
+    - "18 yaş altını canlı görüntülü sohbetten tamamen çıkar."
+    - "Görüşme ekranına görünür bir şikayet/engelle düğmesi koy."
+    - "Rastgele eşleşmede ek koruma uygula: görüşme kamera kapalı başlasın, ilk görüşmede kısa bir güvenlik uyarısı göster."
+  fix_prompt: |
+    Sitemde yabancılarla canlı sesli/görüntülü sohbet özelliği var ama yaş sınırı ve kullanım şartı onayı yok. Lütfen:
+    1. Canlı sohbet akışının önüne bir ekran ekle: kullanıcı "18 yaşından büyüğüm" onayını ve kullanım şartlarının kabulünü (işaretlenmemiş onay kutuları) vermeden devam edemesin.
+    2. Onayı sunucu tarafında oturuma kaydet (zaman damgasıyla) ve tüm canlı sohbet endpoint'lerinde (eşleşme, oda oluşturma, WebRTC sinyal/token alma) bu onayı zorunlu kıl; onay yoksa 403 dönsün. Sadece arayüzde gizlemek yeterli değil.
+    3. Görüşme ekranına her zaman görünen "Şikayet et" ve "Engelle" düğmeleri ekle; şikayetler moderasyon kuyruğuna düşsün.
+    4. Rastgele eşleşmede görüşme kamera kapalı başlasın ve ilk görüşmede kısa bir güvenlik uyarısı gösterilsin.
+  fragments:
+    headline_anonymous: "Yabancılarla üyeliksiz görüntülü sohbet var ama yaş sınırı yok"
+    headline_no_age_limit: "Canlı sohbette yaş sınırı yok"
+    headline_statement_only: "Canlı sohbette yaş sınırı yazıyor ama onay alınmıyor"
+    situation_anonymous: "Üye olmadan kullanılabiliyor ve taradığımız sayfalarda 18 yaş sınırı, yaş onayı veya kullanım şartı onayı bulamadık."
+    situation_no_age_limit: "Taradığımız sayfalarda 18 yaş sınırı, yaş onayı veya kullanım şartı onayı bulamadık."
+    situation_statement_only: "Sayfalarında yaş sınırından bahsediliyor ama sohbete girmeden önce kullanıcıdan yaş veya kullanım şartı onayı alınmıyor."
+
+web.session.guest_account_per_request:
+  title: "Her ziyaretçiye otomatik hesap/oturum açılıyor gibi görünüyor"
+  passed_title: "Giriş yapmamış ziyaretçilere otomatik hesap açılmıyor"
+  description: "Ana sayfanı çerezsiz olarak birkaç kez açtık; sayfa her seferinde giriş yapılmış gibi davranıyor veya her seferinde farklı bir kullanıcı adı gösteriyor. Yani sitene gelen her ziyaretçi (Google botu dahil) için otomatik bir kullanıcı veya oturum oluşturuluyor olabilir."
+  why_it_matters: "Google botu dahil her ziyaret yeni bir kullanıcı kaydı/oturumu oluşturuyorsa veritabanın ve oturum depolaman hızla şişer, sahte hesap üretmek bedava olur ve kullanıcı istatistiklerin anlamsızlaşır."
+  fix_steps:
+    - "Misafir kimliğini sadece kullanıcı ilk etkileşimi yaptığında (paylaşım, yorum, sohbet) oluştur."
+    - "Bilinen botlara (Googlebot vb.) oturum ve misafir hesap açma."
+    - "IP başına misafir hesap oluşturmaya bir sınır (rate limit) koy."
+    - "Belirli bir süre kullanılmayan misafir hesapları otomatik temizle."
+  fix_prompt: |
+    Sitem giriş yapmamış her ziyaretçiye (botlar dahil) sayfa açılır açılmaz otomatik bir misafir kullanıcı/oturum oluşturuyor. Lütfen:
+    1. Misafir kullanıcı oluşturmayı "lazy" yap: sadece ilk yazma işleminde (paylaşım, yorum, sohbete katılma) oluşturulsun; sayfa görüntüleme hiçbir kayıt oluşturmasın.
+    2. Bilinen bot user-agent'larına (Googlebot, Bingbot vb.) oturum açma ve Set-Cookie gönderme.
+    3. IP başına misafir oluşturmaya rate limit ekle (ör. saatte birkaç tane).
+    4. Belirli bir süredir (ör. 30 gün) hiç etkileşimi olmayan misafir hesapları ve oturumları silen periyodik bir temizlik işi yaz.
+
+web.privacy.sensitive_ugc_indexed:
+  title: "Hassas kullanıcı paylaşımların Google'a açık"
+  passed_title: "Hassas kullanıcı paylaşımları arama motorlarına kapalı"
+  description: "Sağlık, ilişki, aile, itiraf gibi hassas konulardaki kullanıcı gönderileri arama motorlarının dizinine (index) açık yayınlanıyor. Bazı sayfalarda meta açıklama (description) gönderi metninin kendisiyle başlıyor; yani hikâye Google sonuçlarında da görünüyor."
+  why_it_matters: "\"Anonim\" yazılsa bile detaylı hikâyeler (şehir, süre, isimler) Google'da aranarak kişiyle eşleştirilebilir. Kullanıcı yazdığını silse bile metin bir süre Google önbelleğinde ve arama sonuçlarında kalır."
+  fix_steps:
+    - "Hassas kategorilerdeki gönderilere robots noindex ver veya kullanıcıya \"Arama motorlarında görünsün mü?\" seçeneği sun (varsayılan kapalı)."
+    - "Meta ve og:description'a hikâye metni yerine kategoriye göre genel bir açıklama koy."
+    - "Kullanıcı gönderisini silince sayfa 410 (kalıcı olarak silindi) dönsün; böylece Google sayfayı daha hızlı kaldırır."
+  fix_prompt: |
+    Sitemde sağlık, ilişki, aile, itiraf gibi hassas konulardaki kullanıcı gönderileri Google'a açık ve meta açıklamaları gönderi metninin kendisi. Lütfen:
+    1. Hassas kategorilerdeki gönderi sayfalarına <meta name="robots" content="noindex"> ekle.
+    2. Gönderi bazlı bir "Arama motorlarında görünsün" ayarı ekle (varsayılan kapalı); sadece açıkça izin verilen gönderiler indexlensin ve sitemap'e girsin.
+    3. Gönderi sayfalarındaki meta description ve og:description'ı gönderi metni yerine kategoriye göre genel bir metinle değiştir (ör. "İlişki kategorisinde anonim bir paylaşım").
+    4. Silinen gönderilerin adresi 404 yerine 410 dönsün ve sitemap'ten çıkarılsın.
+
+web.safety.crisis_resources_missing:
+  title: "{headline}"
+  passed_title: "Gönderi ve sohbet sayfalarında acil yardım yönlendirmesi var"
+  description: "Siten insanların dertlerini, yalnızlıklarını veya ruh sağlıklarını paylaştığı bir platform gibi görünüyor. {situation}{report_option}"
+  why_it_matters: "Platformuna zor bir anında gelen biri olabilir. Acil durumda nereye başvuracağını göstermek, kullanıcı güvenliği için temel bir sorumluluktur."
+  fix_steps:
+    - "Gönderi, sohbet ve paylaşım ekranlarına görünür bir \"Acil durumdaysan\" kutusu ekle: 112 Acil Çağrı ve resmi/profesyonel destek kaynaklarına link ver."
+    - "Kaynak listesindeki numara ve adresleri resmi kaynaklardan doğrula ve düzenli olarak güncelle; numaraları koda gömme."
+    - "Kendine zarar ifadesi içeren paylaşımlarda yazara otomatik olarak destek kaynaklarını göster ve bu gönderileri moderasyonda öne al."
+  fix_prompt: |
+    Sitem duygusal destek/dert paylaşımı platformu ama gönderi ve sohbet sayfalarında acil yardım ve profesyonel destek yönlendirmesi yok. Lütfen:
+    1. "Acil durumdaysan" adında bir bileşen yaz ve gönderi, sohbet ve paylaşım ekranlarında görünür bir yere ekle. Örnek olarak 112 Acil Çağrı'yı göster; diğer destek kaynaklarını ekle.
+    2. Telefon numaralarını ve linkleri koda gömme: ülke/dil bazlı, yapılandırılabilir bir kaynak listesinden (JSON veya veritabanı) oku. Listeye eklenecek her numara ve adresi resmi kaynaklardan doğrulamam gerektiğini hatırlat; doğrulanmamış numara ekleme.
+    3. Kendine zarar sinyali içeren gönderileri (anahtar kelime veya kullanıcının "zarar riski" bildirimi) tespit et: yazara gönderiden hemen sonra destek kaynaklarını göster ve bu gönderileri moderasyon kuyruğunda en öne al.
+  fragments:
+    headline_none: "Dert paylaşım platformunda acil yardım bilgisi yok"
+    headline_partial: "Acil yardım bilgisi gönderi ve sohbet sayfalarından görünmüyor"
+    situation_none: "Taradığımız sayfalarda acil yardım hattı, kriz desteği veya profesyonel destek yönlendirmesi bulamadık."
+    situation_partial: "Acil yardım bilgisi sadece bazı sayfalarda var; gönderi ve sohbet sayfalarında görünmüyor."
+    report_option: " Bildir menüsünde \"zarar riski\" seçeneği olması iyi bir adım."
+
+web.privacy.exif_in_uploads:
+  title: "{headline}"
+  passed_title: "Yüklenen görsellerde konum ve cihaz bilgisi yok"
+  description: "{situation}"
+  why_it_matters: "Telefonla çekilen fotoğraflar çoğu zaman çekildiği yerin GPS konumunu içerir. Bu bilgi silinmeden yayınlanırsa \"anonim\" paylaşım yapan birinin ev adresi bulunabilir."
+  fix_steps:
+    - "Yüklenen her görseli sunucu tarafında yeniden kodla ve tüm metadata'yı (EXIF, XMP, IPTC) sil."
+    - "Videolarda da metadata'yı temizle (ör. ffmpeg ile)."
+    - "Daha önce yüklenmiş dosyaları da tek seferlik bir betikle temizle."
+  fix_prompt: |
+    Sitemde kullanıcıların yüklediği görseller EXIF bilgisi (GPS konumu, cihaz modeli, çekim zamanı) silinmeden yayınlanıyor olabilir. Lütfen:
+    1. Görsel yükleme endpoint'inde her görseli sunucu tarafında yeniden kodla (Pillow, sharp veya libvips ile) ve tüm EXIF/XMP/IPTC verisini sil; yönlendirme (orientation) bilgisini silmeden önce görsele uygula.
+    2. Videolar için ffmpeg ile metadata'yı temizle (-map_metadata -1).
+    3. Mevcut yüklenmiş tüm dosyaları aynı şekilde temizleyen tek seferlik bir betik yaz.
+    4. Temizliğin çalıştığını doğrulayan bir test ekle (GPS'li örnek görsel yükle, çıktıda GPS olmadığını kontrol et).
+  fragments:
+    headline_gps: "Yüklenen görsellerde konum (GPS) bilgisi var"
+    headline_device: "Yüklenen görsellerde cihaz ve çekim bilgisi kalmış"
+    headline_unchecked: "Yüklenen görsellerin konum bilgisini kontrol edemedik"
+    situation_gps: "Kullanıcıların yüklediği bazı görsellerde, fotoğrafın çekildiği yerin GPS konumu silinmeden duruyor. (Koordinatları kaydetmedik; sadece varlığını kontrol ettik.)"
+    situation_device: "Kullanıcıların yüklediği bazı görsellerde telefon modeli, seri numarası veya çekim zamanı gibi bilgiler silinmeden duruyor."
+    situation_unchecked: "Sitende fotoğraf/video yükleme özelliği var ama taradığımız sayfalarda kontrol edebileceğimiz bir kullanıcı görseli bulamadık. Sunucunun yüklenen dosyalardaki EXIF bilgisini (GPS konumu dahil) temizlediğinden emin ol."
+
+web.content.test_data_in_production:
+  title: "Canlı sitende test verisi görünüyor"
+  passed_title: "Herkese açık sayfalarda test verisi yok"
+  description: "Sayfalarında \"Test\", \"deneme\", \"lorem ipsum\" gibi test sırasında girilmiş olduğu anlaşılan başlıklar herkese görünüyor."
+  why_it_matters: "Ziyaretçiler test verisini görünce siteyi yarım kalmış ve güvenilmez bulur."
+  fix_steps:
+    - "Test verilerini sil."
+    - "Testleri ayrı bir staging (deneme) ortamında veya test hesaplarıyla yap."
+    - "Test hesaplarının içeriklerini herkese açık listelerden gizle."
+  fix_prompt: |
+    Canlı sitemde test sırasında oluşturulmuş kayıtlar (ör. "Test", "deneme" adlı odalar/ürünler/gönderiler) herkese görünüyor (kanıttaki başlıklar). Lütfen:
+    1. Veritabanında bu tür test kayıtlarını bulan bir sorgu/betik yaz; silmeden önce listeyi bana göstersin, onayımla silsin.
+    2. Kullanıcılara "test hesabı" işareti (is_test) ekle ve bu hesapların içeriklerini herkese açık listelerden, aramadan ve sitemap'ten filtrele.
+    3. Bundan sonra testleri ayrı bir staging ortamında yapabilmem için kısa bir kurulum önerisi ver.
+
+web.ids.sequential_public_ids:
+  title: "Odalar/mesajlar tahmin edilebilir sıralı numaralarla adresleniyor"
+  passed_title: "Herkese açık adreslerde tahmin edilebilir sıralı ID yok"
+  description: "Sitendeki oda, sohbet, mesaj, sipariş veya kullanıcı gibi kaynakların adreslerinde küçük, sıralı numaralar kullanılıyor (ör. /oda/18, /oda/19). Bu bir uyarıdır; bu adreslerin yetkisiz açılıp açılamadığını test etmedik.{private_note}"
+  why_it_matters: "Sıralı ID'ler tahmin edilebilir. Sunucu her istekte \"bu kişinin buna erişim hakkı var mı\" diye kontrol etmiyorsa, biri sayıları değiştirerek başkalarının odalarına, mesajlarına veya siparişlerine ulaşabilir. Özel odaların herkese açık listede görünmesi de varlıklarını ve isimlerini sızdırır."
+  fix_steps:
+    - "Herkese görünen adreslerde UUID veya rastgele kısa ID (ör. nanoid) kullan."
+    - "Her endpoint'te sahiplik/yetki kontrolü yap; adresi bilmek erişim için yeterli olmasın."
+    - "Şifreli/özel odaları herkese açık listelerden çıkar."
+  fix_prompt: |
+    Sitemde oda/sohbet/mesaj gibi kaynaklar /oda/18 gibi sıralı sayısal ID'lerle adresleniyor (kanıttaki desenler). Lütfen:
+    1. İlgili tablolara tahmin edilemez bir public_id sütunu (UUID v4 veya nanoid) ekle, mevcut kayıtlar için doldur ve URL'leri bu ID'ye geçir; eski sayısal adresler çalışmaya devam edecekse yetki kontrolüyle yönlendirsin.
+    2. Bu kaynakları okuyan/değiştiren tüm endpoint'lere sahiplik/üyelik kontrolü ekle (kullanıcı bu odanın üyesi mi, bu sipariş onun mu); yetkisizse 404 dönsün.
+    3. Şifreli/özel odaları herkese açık oda listesinden ve aramadan çıkar.
+    4. Başka bir kullanıcının ID'siyle erişimin reddedildiğini doğrulayan testler ekle.
+  fragments:
+    private_listed: " Ayrıca \"şifreli\" veya \"özel\" olarak işaretlenmiş öğeler de herkese açık listede adlarıyla görünüyor."

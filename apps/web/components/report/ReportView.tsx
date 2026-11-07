@@ -154,23 +154,44 @@ function Report({ report }: { report: ScanReport }) {
   );
 }
 
+// Web taramasında tespit edilen içerik türü bayrakları (meta.<bayrak> === true ise rozet)
+const CONTENT_FLAGS = [
+  "is_ugc",
+  "has_live_media",
+  "is_emotional_support",
+  "has_anonymous_posting",
+  "has_media_upload",
+] as const;
+
 function TargetBadges({ report }: { report: ScanReport }) {
   const t = useTranslations("Report");
   const tp = useTranslations("Platform");
+  const tf = useTranslations("ContentFlag");
   const meta = report.meta;
+  const flags = CONTENT_FLAGS.filter((flag) => meta[flag] === true);
   const names: string[] =
     report.target_type === "apk"
       ? [String(meta.framework ?? ""), meta.hermes ? "hermes" : ""].filter(Boolean)
       : ((meta.platform as string[] | undefined) ?? []);
   return (
     <div className="flex flex-wrap items-center gap-2">
-      {names.length > 0 && <span className="text-xs text-muted">{t("detected")}:</span>}
+      {names.length + flags.length > 0 && (
+        <span className="text-xs text-muted">{t("detected")}:</span>
+      )}
       {names.map((name) => (
         <span
           key={name}
           className="rounded-full bg-brand-soft px-2.5 py-0.5 text-xs font-semibold text-brand"
         >
           {tp.has(name) ? tp(name) : name}
+        </span>
+      ))}
+      {flags.map((flag) => (
+        <span
+          key={flag}
+          className="rounded-full border border-brand/30 px-2.5 py-0.5 text-xs font-medium text-brand"
+        >
+          {tf(flag)}
         </span>
       ))}
       {report.target_type === "apk" && meta.version_name !== undefined && (

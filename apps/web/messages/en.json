@@ -143,6 +143,13 @@
     "native": "Native Android",
     "hermes": "Hermes"
   },
+  "ContentFlag": {
+    "is_ugc": "User-generated content",
+    "has_live_media": "Live voice/video chat",
+    "is_emotional_support": "Emotional support platform",
+    "has_anonymous_posting": "Anonymous posting",
+    "has_media_upload": "Media uploads"
+  },
   "Evidence": {
     "keys": {
       "masked": "Masked value",
@@ -187,7 +194,27 @@
       "links": "Links",
       "total_images": "Total images",
       "missing_alt": "Missing alt text",
-      "samples": "Samples"
+      "samples": "Samples",
+      "live_media_pages": "Live chat pages",
+      "signals": "Signals",
+      "age_statement_found": "Age limit statement",
+      "age_checkbox_found": "Age/terms checkbox",
+      "no_signup_required": "Usable without signing up",
+      "sample_identities": "Sample guest identities",
+      "session_cookie_names": "Session cookies",
+      "indexable": "Open to search engines",
+      "full_text_in_meta": "Post text in meta description",
+      "sensitive_signals": "Sensitive topic signals",
+      "found_on": "Pages with emergency help",
+      "missing_on_post_pages": "Missing on post/chat pages",
+      "post_pages_missing": "Pages without it",
+      "self_harm_report_option": "Risk-of-harm option in report menu",
+      "images_checked": "Images checked",
+      "with_gps": "Images with GPS location",
+      "with_device_info": "Images with device/capture data",
+      "matches": "Found",
+      "patterns": "Address patterns",
+      "private_items_listed": "Private items in a public list"
     },
     "values": {
       "no_https": "The site doesn't use HTTPS",
@@ -201,7 +228,11 @@
       "http_api_urls": "API addresses starting with http://",
       "default": "Not set (default: on)",
       "true": "Yes",
-      "false": "No"
+      "false": "No",
+      "meta_auth": "Page behaves as if logged in",
+      "rotating_identity": "Different username on every request",
+      "rotating_session_cookie": "New session cookie on every request",
+      "emotional_support_platform": "Emotional support platform"
     }
   },
   "Errors": {

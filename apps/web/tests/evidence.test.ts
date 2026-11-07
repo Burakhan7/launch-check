@@ -87,4 +87,15 @@ describe("generic object evidence", () => {
       items: ["https://a/iletisim — email, name, no_consent"],
     });
   });
+
+  it("uses pattern/text as the heading of id-pattern and test-data evidence", () => {
+    const rows = evidenceRows({
+      patterns: [{ pattern: "/canli/{id}", sample_ids: [9, 18], pages: ["https://a/"] }],
+      matches: [{ text: "Test Ozel Oda", page: "https://a/canli" }],
+      sample_count: 3,
+    });
+    expect(rows.map((r) => r.key)).toEqual(["patterns", "matches"]);
+    expect(rows[0].value).toMatchObject({ items: ["/canli/{id} — 9, 18, https://a/"] });
+    expect(rows[1].value).toMatchObject({ items: ["Test Ozel Oda — page: https://a/canli"] });
+  });
 });

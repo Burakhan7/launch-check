@@ -53,6 +53,9 @@ class Settings(BaseSettings):
 
     # İç sayfa taraması: ana sayfa + en fazla bu kadar iç sayfa (LC_WEB_MAX_INTERNAL_PAGES)
     web_max_internal_pages: int = 10
+    # Bu sayfaların en az bu kadarı menü dışı (sayfa içi) linklere ayrılır: gönderi, ürün
+    # detayı gibi sayfalar da taransın diye. İçerik linki azsa yer menü linkleriyle dolar.
+    web_internal_content_link_slots: int = 3
     # İç sayfa çekimleri için süre sınırı. Dolarsa elde olan sayfalarla devam edilir; böylece
     # toplam web tarama süresi (web_scan_timeout_s) aşılıp tarama başarısız olmaz.
     web_internal_pages_timeout_s: float = 30.0
@@ -124,6 +127,122 @@ class Settings(BaseSettings):
     # web.a11y.img_missing_alt: alt'sız görsel sayısı >= bu VEYA oranı > aşağıdaki → bulgu
     web_img_alt_min_missing: int = 5
     web_img_alt_max_ratio: float = 0.2
+
+    # web.session.guest_account_per_request: ana sayfa bu kadar kez daha çerezsiz çekilir
+    web_cookieless_extra_samples: int = 2
+    # Yaş/kriz bilgisi aramak için footer'daki hakkında/şartlar/yardım sayfalarından en fazla
+    # bu kadarı ayrıca çekilir (taranmış sayfalar tekrar çekilmez)
+    web_extra_info_pages: int = 3
+    # web.privacy.exif_in_uploads: kullanıcı yüklemesi gibi görünen görseller
+    web_exif_max_images: int = 10
+    web_exif_max_image_bytes: int = 5 * 1024 * 1024
+    web_exif_upload_path_markers: list[str] = Field(
+        default_factory=lambda: [
+            "/uploads/",
+            "/upload/",
+            "/storage/",
+            "/media/",
+            "/user/",
+            "/users/",
+            "/posts/",
+            "/attachments/",
+            "/user-content/",
+        ]
+    )
+    # Logo, ikon, tema görselleri (yolun herhangi bir yerinde geçerse atlanır)
+    web_exif_skip_path_markers: list[str] = Field(
+        default_factory=lambda: [
+            "/theme/",
+            "/themes/",
+            "/assets/",
+            "/static/",
+            "/icons/",
+            "/icon/",
+            "favicon",
+            "logo",
+            "/emoji/",
+        ]
+    )
+    # web.content.test_data_in_production: tam kelime eşleşmesi (Türkçe karakterler
+    # sadeleştirilmiş). "foo"/"bar" sadece başlığın tamamıysa sayılır (aşağıda).
+    web_test_data_keywords: list[str] = Field(
+        default_factory=lambda: [
+            "test",
+            "testing",
+            "deneme",
+            "denemee",
+            "asdf",
+            "qwerty",
+            "lorem ipsum",
+            "dummy",
+            "sample",
+            "ornek urun",
+            "test urun",
+            "test123",
+            "aaa",
+            "xxx",
+        ]
+    )
+    web_test_data_exact_only: list[str] = Field(default_factory=lambda: ["foo", "bar"])
+    # Bu ifadeleri içeren metinler test verisi sayılmaz
+    web_test_data_exceptions: list[str] = Field(
+        default_factory=lambda: [
+            "hiz testi",
+            "hizli okuma testi",
+            "test sonuclari",
+            "test sonucu",
+            "testimonial",
+            "a/b test",
+            "ab test",
+            "speed test",
+            "test drive",
+            "kisilik testi",
+            "seviye testi",
+            "online test",
+            "covid test",
+            "pcr test",
+            "test et",
+            "ucretsiz dene",
+        ]
+    )
+    # web.ids.sequential_public_ids: hassas yol parçaları / query parametreleri
+    web_sequential_id_names: list[str] = Field(
+        default_factory=lambda: [
+            "room",
+            "rooms",
+            "oda",
+            "odalar",
+            "canli",
+            "chat",
+            "chats",
+            "sohbet",
+            "message",
+            "messages",
+            "mesaj",
+            "mesajlar",
+            "conversation",
+            "conversations",
+            "inbox",
+            "gelen",
+            "order",
+            "orders",
+            "siparis",
+            "siparisler",
+            "invoice",
+            "invoices",
+            "fatura",
+            "user",
+            "users",
+            "kullanici",
+            "profile",
+            "ticket",
+            "tickets",
+            "alinti",
+            "dm",
+        ]
+    )
+    web_sequential_id_min_distinct: int = 3
+    web_sequential_id_max_value: int = 100_000
 
     # APK yükleme / analiz
     max_apk_bytes: int = 150 * 1024 * 1024

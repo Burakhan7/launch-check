@@ -1,5 +1,10 @@
 from launchcheck.collectors.platform import backend_hints, detect_platforms
-from launchcheck.collectors.web_assets import extract_chunk_refs, extract_html_scripts
+from launchcheck.collectors.web_assets import (
+    extract_chunk_refs,
+    extract_html_scripts,
+    pick_crawl_links,
+    split_internal_links,
+)
 
 ORIGIN = "https://app.example.com"
 
@@ -82,3 +87,23 @@ def test_backend_hints() -> None:
         "supabase_urls": ["https://abcdefghijklmnopqrst.supabase.co"],
         "firebase_project_ids": ["my-proj-42"],
     }
+
+
+def test_pick_crawl_links_reserves_slots_for_content_links() -> None:
+    nav = [f"/n{i}" for i in range(12)]
+    content = ["/post/a", "/post/b", "/post/c", "/post/d"]
+    picked = pick_crawl_links(nav, content, limit=10, content_slots=3)
+    assert picked == [*nav[:7], "/post/a", "/post/b", "/post/c"]
+    # İçerik linki azsa kalan yer menü linkleriyle dolar; menü azsa içerik linkleriyle
+    assert pick_crawl_links(nav, ["/post/a"], 10, 3) == [*nav[:9], "/post/a"]
+    assert pick_crawl_links(["/n0"], content, 10, 3) == ["/n0", *content]
+
+
+def test_split_internal_links_groups_nav_and_content() -> None:
+    html = (
+        '<nav><a href="/a">A</a></nav><main><a href="/iliski/x">X</a><a href="/a">A</a></main>'
+        '<footer><a href="/kurallar">K</a></footer>'
+    )
+    nav, content = split_internal_links(html, "https://s.com/", exclude=("https://s.com/",))
+    assert nav == ["https://s.com/a", "https://s.com/kurallar"]
+    assert content == ["https://s.com/iliski/x"]

@@ -131,20 +131,39 @@ def _link_key(url: str) -> str:
     return url.rstrip("/") or url
 
 
-def extract_internal_links(html: str, base_url: str, exclude: tuple[str, ...] = ()) -> list[str]:
-    """Aynı origin iç sayfa linkleri: önce nav/header/footer içindekiler, sonra diğerleri.
+def split_internal_links(
+    html: str, base_url: str, exclude: tuple[str, ...] = ()
+) -> tuple[list[str], list[str]]:
+    """Aynı origin iç sayfa linkleri iki grup hâlinde: (nav/header/footer içindekiler, diğerleri).
     Tekilleştirilir; query/fragment, dosya linkleri ve mailto/tel gibi şemalar atılır."""
     tree = LexborHTMLParser(html)
     origin = origin_of(base_url)
     seen = {_link_key(u) for u in exclude}
-    links: list[str] = []
+    groups: tuple[list[str], list[str]] = ([], [])
     for selector in (*PRIORITY_LINK_SELECTORS, "a[href]"):
+        group = groups[0] if selector in PRIORITY_LINK_SELECTORS else groups[1]
         for node in tree.css(selector):
             url = _normalize_link(node.attributes.get("href") or "", base_url, origin)
             if url is not None and _link_key(url) not in seen:
                 seen.add(_link_key(url))
-                links.append(url)
-    return links
+                group.append(url)
+    return groups
+
+
+def extract_internal_links(html: str, base_url: str, exclude: tuple[str, ...] = ()) -> list[str]:
+    """Aynı origin iç sayfa linkleri: önce nav/header/footer içindekiler, sonra diğerleri."""
+    priority, content = split_internal_links(html, base_url, exclude)
+    return priority + content
+
+
+def pick_crawl_links(
+    priority: list[str], content: list[str], limit: int, content_slots: int
+) -> list[str]:
+    """Önce menü linkleri, ama en az `content_slots` yer sayfa içi linklere (gönderi, ürün
+    detayı gibi) ayrılır; içerik linki azsa kalan yer menü linkleriyle dolar."""
+    reserved = min(content_slots, len(content), limit)
+    head = priority[: limit - reserved]
+    return head + content[: limit - len(head)]
 
 
 def _resolve_chunk(path: str, js_url: str, origin: str) -> str | None:

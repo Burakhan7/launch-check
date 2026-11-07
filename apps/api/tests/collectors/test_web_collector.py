@@ -250,3 +250,36 @@ async def test_collector_page_timeout_keeps_what_it_has() -> None:
         assert isinstance(ctx, WebContext)
         assert [p.url for p in ctx.pages] == [f"{SITE}/", f"{SITE}/fast"]  # tarama başarısız olmadı
         await ctx.aclose()
+
+
+async def test_cookieless_samples_and_content_flags() -> None:
+    home = (
+        '<html><body><a href="/canli">Canlı</a><p>Rastgele biriyle görüntülü sohbet</p>'
+        '<form><textarea name="t"></textarea><button>Paylaş</button></form></body></html>'
+    )
+    with respx.mock(assert_all_called=False) as router:
+        route = router.get(f"{SITE}/").mock(
+            return_value=httpx.Response(
+                200,
+                text=home,
+                headers={"content-type": "text/html", "set-cookie": "sid=abc; Path=/"},
+            )
+        )
+        inner = router.get(f"{SITE}/canli").mock(
+            return_value=httpx.Response(
+                200, text="<html></html>", headers={"content-type": "text/html"}
+            )
+        )
+        ctx = await collector().collect(uuid.uuid4(), {"url": f"{SITE}/"})
+        assert isinstance(ctx, WebContext)
+        try:
+            assert route.call_count == 3  # ana sayfa + 2 çerezsiz örnek
+            assert len(ctx.cookieless_samples) == 3
+            # Ana sayfa çerez koydu; örnek istekleri yine de çerezsiz gitmeli
+            assert all("cookie" not in c.request.headers for c in route.calls)
+            assert inner.calls[0].request.headers.get("cookie") == "sid=abc"  # normal istekler
+            assert ctx.meta["is_ugc"] is True
+            assert ctx.meta["has_live_media"] is True
+            assert ctx.meta["is_emotional_support"] is False
+        finally:
+            await ctx.aclose()

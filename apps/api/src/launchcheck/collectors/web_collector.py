@@ -15,9 +15,11 @@ from launchcheck.collectors.platform import backend_hints, detect_platforms
 from launchcheck.collectors.web_assets import (
     extract_chunk_refs,
     extract_html_scripts,
-    extract_internal_links,
     origin_of,
+    pick_crawl_links,
+    split_internal_links,
 )
+from launchcheck.collectors.web_signals import analyze_content
 from launchcheck.config import Settings
 from launchcheck.security.ssrf import UrlGuard
 from launchcheck.security.url import normalize_target_url
@@ -43,7 +45,7 @@ class PageSnapshot:
 
 class Fetcher(Protocol):
     async def fetch(
-        self, url: str, max_bytes: int, follow_redirects: bool = True
+        self, url: str, max_bytes: int, follow_redirects: bool = True, cookieless: bool = False
     ) -> FetchResult: ...
 
     async def aclose(self) -> None: ...
@@ -60,6 +62,9 @@ class WebContext(ScanContext):
     all_script_urls: list[str] = field(default_factory=list)
     # Ana sayfa + aynı origin iç sayfalar (sadece 200 + text/html olanlar)
     pages: list[PageSnapshot] = field(default_factory=list)
+    # Ana sayfanın çerezsiz yanıtları (ilki ana sayfa isteğinin kendisi). Her ziyaretçiye
+    # otomatik hesap/oturum açılıyor mu karşılaştırması için.
+    cookieless_samples: list[PageSnapshot] = field(default_factory=list)
     fetcher: Fetcher | None = None
     probe_max_bytes: int = 0
     # Eşzamanlı check'ler aynı yolu isterse tek istek atılır.
@@ -94,6 +99,16 @@ class WebContext(ScanContext):
             )
         return await asyncio.shield(self._fetch_tasks[key])
 
+    async def fetch_uncached(self, url: str, max_bytes: int) -> FetchResult | None:
+        """Önbelleğe ALINMAYAN tek istek (redirect takip eder, SSRF korumalı). Yanıt gövdesi
+        bellekte tutulmamalı olan içerikler için (ör. kullanıcı görselleri)."""
+        if self.fetcher is None:
+            return None
+        try:
+            return await self.fetcher.fetch(url, max_bytes, True)
+        except FetchError:
+            return None
+
     async def probe(self, path: str) -> FetchResult | None:
         """Aynı origin'de bir yolu redirect takip etmeden çeker."""
         return await self.fetch_url(self.origin + path)
@@ -121,6 +136,7 @@ class WebContext(ScanContext):
             self.fetcher = None
 
 
+CONTENT_SIGNALS_KEY = "content_signals"
 HTTP_ERROR_MIN = 400
 HTTP_OK = 200
 BOT_CHALLENGE_MARKERS = (
@@ -191,7 +207,13 @@ class WebCollector:
         scripts += await self._fetch_scripts(fetcher, page.external, origin_of(main.final_url))
 
         home = PageSnapshot(main.final_url, main.status, main.headers, html)
-        pages = [home, *await self._fetch_pages(fetcher, home)]
+        inner, extra_samples = await asyncio.gather(
+            self._fetch_pages(fetcher, home), self._cookieless_samples(fetcher, home.url)
+        )
+        pages = [home, *inner]
+        signals = analyze_content(
+            ((p.url, p.html) for p in pages), [*page.all_external, *(s.content for s in scripts)]
+        )
 
         external = [s for s in scripts if not s.inline]
         sources = [html] + [s.content for s in scripts]
@@ -202,6 +224,7 @@ class WebCollector:
             "js_files_scanned": len(external),
             "js_truncated": any(s.truncated for s in external) or main.truncated,
             "pages_scanned": len(pages),
+            **signals.flags(),
             **backend_hints(sources),
         }
         return WebContext(
@@ -216,9 +239,27 @@ class WebCollector:
             scripts=scripts,
             all_script_urls=page.all_external,
             pages=pages,
+            cookieless_samples=[home, *extra_samples],
             fetcher=fetcher,
             probe_max_bytes=self._settings.probe_max_bytes,
+            cache={CONTENT_SIGNALS_KEY: signals},
         )
+
+    async def _cookieless_samples(self, fetcher: SafeFetcher, url: str) -> list[PageSnapshot]:
+        """Ana sayfayı çerez göndermeden birkaç kez daha çeker (hata olanlar atlanır)."""
+        count = self._settings.web_cookieless_extra_samples
+        results = await asyncio.gather(
+            *(
+                fetcher.fetch(url, self._settings.max_html_bytes, cookieless=True)
+                for _ in range(count)
+            ),
+            return_exceptions=True,
+        )
+        return [
+            PageSnapshot(r.final_url, r.status, r.headers, r.text)
+            for r in results
+            if isinstance(r, FetchResult) and r.status == HTTP_OK
+        ]
 
     async def _fetch_page(
         self, fetcher: SafeFetcher, url: str, origin: str, sem: asyncio.Semaphore
@@ -239,7 +280,10 @@ class WebCollector:
         """Ana sayfadaki iç linklerden en fazla `web_max_internal_pages` sayfa çeker.
         Süre sınırı dolarsa bitmeyen istekler iptal edilir ve elde olanlarla devam edilir."""
         limit = self._settings.web_max_internal_pages
-        links = extract_internal_links(home.html, home.url, exclude=(home.url,))[:limit]
+        priority, content = split_internal_links(home.html, home.url, exclude=(home.url,))
+        links = pick_crawl_links(
+            priority, content, limit, self._settings.web_internal_content_link_slots
+        )
         if not links:
             return []
         origin = origin_of(home.url)

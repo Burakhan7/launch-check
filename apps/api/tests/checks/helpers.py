@@ -62,7 +62,9 @@ class FakeFetcher:
         self.spa = spa
         self.calls: list[str] = []
 
-    async def fetch(self, url: str, max_bytes: int, follow_redirects: bool = True) -> FetchResult:
+    async def fetch(
+        self, url: str, max_bytes: int, follow_redirects: bool = True, cookieless: bool = False
+    ) -> FetchResult:
         self.calls.append(url)
         if url in self.routes:
             return self.routes[url]
@@ -83,8 +85,10 @@ def make_ctx(
     spa: bool = False,
     inline: list[str] | None = None,
     pages: list[tuple[str, str]] | None = None,
+    samples: list[tuple[str, dict[str, str]]] | None = None,
 ) -> WebContext:
-    """`pages`: ana sayfadan SONRAKİ iç sayfalar (url, html). Ana sayfa `html`'den oluşur."""
+    """`pages`: ana sayfadan SONRAKİ iç sayfalar (url, html). Ana sayfa `html`'den oluşur.
+    `samples`: ana sayfanın çerezsiz yanıtları (html, header'lar); verilmezse sadece ana sayfa."""
     files = [ScriptFile(url=u, content=c) for u, c in (scripts or {}).items()]
     home_headers = {k.lower(): v for k, v in (headers or {}).items()}
     snapshots = [PageSnapshot(final_url, 200, home_headers, html)]
@@ -103,6 +107,12 @@ def make_ctx(
         html=html,
         scripts=files,
         pages=snapshots,
+        cookieless_samples=[
+            PageSnapshot(final_url, 200, {k.lower(): v for k, v in h.items()}, body)
+            for body, h in samples
+        ]
+        if samples
+        else [snapshots[0]],
         fetcher=FakeFetcher(routes, spa=spa),
         probe_max_bytes=1024 * 1024,
     )

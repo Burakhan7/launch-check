@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <title>Dertleşme Köşesi — Anonim dert paylaş, rastgele biriyle konuş</title>
+  <meta name="description" content="İçini dök, anonim paylaş. Yalnızlık, ilişki, sağlık ve gece sohbetleri.">
+  <meta name="auth" content="1">
+  <meta name="csrf-token" content="q8Zr0aLk2nV1">
+</head>
+<body>
+  <header>
+    <nav>
+      <a href="/">Ana sayfa</a>
+      <a href="/yalnizlik">Yalnızlık</a>
+      <a href="/iliski">İlişki</a>
+      <a href="/saglik">Sağlık</a>
+      <a href="/gece-sohbetleri">Gece Sohbetleri</a>
+      <a href="/canli">Canlı</a>
+      <a href="/hizli-okuma-testi">Hızlı Okuma Testi</a>
+      <a href="/ben">AAnonim4227</a>
+    </nav>
+  </header>
+  <main>
+    <h1>İçini dök, yalnız değilsin</h1>
+    <p>Yalnızlık, kaygı ya da depresyon hissediyorsan derdini anonim olarak paylaşabilirsin.
+       Rumuzunla yaz, kimse kim olduğunu bilmez.</p>
+
+    <section class="share-box">
+      <form action="/paylas" method="post">
+        <input type="text" name="rumuz" placeholder="Rumuz (takma ad)">
+        <select name="kategori">
+          <option>Yalnızlık</option><option>İlişki</option><option>Sağlık</option>
+        </select>
+        <textarea name="icerik" placeholder="Derdini yaz..."></textarea>
+        <label>Fotoğraf ekle <input type="file" name="foto" accept="image/*"></label>
+        <button type="submit">Paylaş</button>
+      </form>
+    </section>
+
+    <section>
+      <h2>Rastgele biriyle görüntülü sohbet</h2>
+      <p>Üye olmaya gerek yok. Bir rumuz seç, rastgele biriyle görüntülü görüşme başlat.</p>
+      <h3>Açık odalar</h3>
+      <ul class="rooms">
+        <li><a href="/canli/9"><span class="room-name">Test</span></a></li>
+        <li><a href="/canli/18"><span class="room-name">Test Ozel Oda</span> <small>Şifreli</small></a></li>
+        <li><a href="/canli/19"><span class="room-name">bu neymiş</span></a></li>
+      </ul>
+    </section>
+
+    <section class="posts">
+      <article class="post-card">
+        <h3><a href="/iliski/alti-yillik-iliskim-bir-mesajla-bitti">Altı yıllık ilişkim bir mesajla bitti</a></h3>
+        <img src="/uploads/posts/2024/kahve.jpg" alt="Kahve fincanı">
+        <a href="/paylas?alinti=8">Alıntıla</a>
+        <div class="report-menu">
+          <button>Bildir</button>
+          <ul>
+            <li>Spam</li>
+            <li>Hakaret</li>
+            <li>Kendine ya da başkasına zarar riski</li>
+          </ul>
+        </div>
+      </article>
+    </section>
+  </main>
+  <footer>
+    <a href="/hakkinda">Hakkında</a>
+    <a href="/kurallar">Kurallar</a>
+    <a href="/gizlilik">Gizlilik</a>
+    <img src="/assets/logo.png" alt="Logo">
+  </footer>
+  <script>window.__app = { currentUser: null };</script>
+</body>
+</html>

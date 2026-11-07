@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <title>Canlı Odalar — Dertleşme Köşesi</title>
+</head>
+<body>
+  <header><nav><a href="/">Ana sayfa</a><a href="/canli">Canlı</a></nav></header>
+  <main>
+    <h1>Canlı görüşme odaları</h1>
+    <p>Sesli sohbet veya görüntülü sohbet için bir oda seç.</p>
+    <ul class="rooms">
+      <li><a href="/canli/9">Test</a></li>
+      <li><a href="/canli/18">Test Ozel Oda <span class="badge">Şifreli</span></a></li>
+      <li><a href="/canli/19">bu neymiş</a></li>
+    </ul>
+    <button id="start">Kamerayı aç</button>
+  </main>
+  <footer>
+    <a href="/hakkinda">Hakkında</a>
+    <a href="/kurallar">Kurallar</a>
+  </footer>
+  <script>
+    document.getElementById("start").onclick = async () => {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+      const pc = new RTCPeerConnection();
+      stream.getTracks().forEach((t) => pc.addTrack(t, stream));
+    };
+  </script>
+</body>
+</html>

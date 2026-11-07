@@ -1,0 +1,135 @@
+# Checks for user-generated content (UGC) and sensitive platforms (English).
+
+web.safety.live_chat_without_age_gate:
+  title: "{headline}"
+  passed_title: "Live chat has an age limit and terms acceptance"
+  description: "Your site offers live voice/video chat with strangers. {situation}"
+  why_it_matters: "Minors can have anonymous video calls with strangers on your platform. That leaves children exposed to abuse, and as the platform owner it creates serious legal liability for you."
+  fix_steps:
+    - "Ask for age confirmation and acceptance of the terms of use before anyone enters live chat, and check that confirmation on the server too."
+    - "Keep under-18s out of live video chat entirely."
+    - "Put a visible report/block button on the call screen."
+    - "Add extra protection for random matching: start calls with the camera off and show a short safety notice on the first call."
+  fix_prompt: |
+    My site offers live voice/video chat with strangers but has no age limit or terms acceptance. Please:
+    1. Add a screen in front of the live chat flow: users can't continue without confirming "I am 18 or older" and accepting the terms of use (unchecked checkboxes).
+    2. Store the confirmation in the session on the server (with a timestamp) and require it on every live chat endpoint (matching, room creation, WebRTC signaling/token); return 403 without it. Hiding things in the UI isn't enough.
+    3. Add "Report" and "Block" buttons that are always visible on the call screen; reports should go to a moderation queue.
+    4. For random matching, start calls with the camera off and show a short safety notice on the first call.
+  fragments:
+    headline_anonymous: "Strangers can video chat without signing up, and there's no age limit"
+    headline_no_age_limit: "Live chat has no age limit"
+    headline_statement_only: "Live chat mentions an age limit but never asks users to confirm it"
+    situation_anonymous: "It can be used without signing up, and on the pages we scanned we found no 18+ age limit, age confirmation or terms acceptance."
+    situation_no_age_limit: "On the pages we scanned we found no 18+ age limit, age confirmation or terms acceptance."
+    situation_statement_only: "Your pages mention an age limit, but users aren't asked to confirm their age or accept the terms before entering the chat."
+
+web.session.guest_account_per_request:
+  title: "Every visitor seems to get an automatic account/session"
+  passed_title: "Visitors who aren't logged in don't get automatic accounts"
+  description: "We opened your home page several times without cookies; each time it behaves as if someone is logged in or shows a different username. That means every visitor (including Google's bot) may be getting an automatically created user or session."
+  why_it_matters: "If every visit, including Google's bot, creates a new user record or session, your database and session storage grow fast, creating fake accounts costs nothing, and your user statistics become meaningless."
+  fix_steps:
+    - "Create the guest identity only when the user first interacts (posts, comments, joins a chat)."
+    - "Don't open sessions or guest accounts for known bots (Googlebot etc.)."
+    - "Rate-limit guest account creation per IP."
+    - "Automatically clean up guest accounts that haven't been used for a while."
+  fix_prompt: |
+    My site automatically creates a guest user/session for every visitor who isn't logged in (bots included) as soon as a page loads. Please:
+    1. Make guest creation lazy: create it only on the first write action (posting, commenting, joining a chat); page views should create no records.
+    2. Don't open sessions or send Set-Cookie to known bot user agents (Googlebot, Bingbot, etc.).
+    3. Add a per-IP rate limit on guest creation (e.g. a few per hour).
+    4. Write a periodic cleanup job that deletes guest accounts and sessions with no activity for a while (e.g. 30 days).
+
+web.privacy.sensitive_ugc_indexed:
+  title: "Sensitive user posts are open to Google"
+  passed_title: "Sensitive user posts are hidden from search engines"
+  description: "User posts on sensitive topics such as health, relationships, family or confessions are published open to search engine indexing. On some pages the meta description starts with the post text itself, so the story shows up in Google results too."
+  why_it_matters: "Even when marked \"anonymous\", detailed stories (city, duration, names) can be searched on Google and matched to a person. Even if the user deletes the post, the text stays in Google's cache and search results for a while."
+  fix_steps:
+    - "Give posts in sensitive categories robots noindex, or offer users a \"Show in search engines?\" option (off by default)."
+    - "Use a generic, category-based text in meta and og:description instead of the story."
+    - "When a user deletes a post, return 410 (permanently gone) so Google removes the page faster."
+  fix_prompt: |
+    On my site, user posts on sensitive topics (health, relationships, family, confessions) are open to Google and their meta descriptions are the post text itself. Please:
+    1. Add <meta name="robots" content="noindex"> to post pages in sensitive categories.
+    2. Add a per-post "Show in search engines" setting (off by default); only posts with explicit permission should be indexed and included in the sitemap.
+    3. Replace the meta description and og:description on post pages with a generic category-based text instead of the post text (e.g. "An anonymous post in Relationships").
+    4. Make deleted posts return 410 instead of 404 and remove them from the sitemap.
+
+web.safety.crisis_resources_missing:
+  title: "{headline}"
+  passed_title: "Post and chat pages point to emergency help"
+  description: "Your site looks like a platform where people share their troubles, loneliness or mental health. {situation}{report_option}"
+  why_it_matters: "Someone may come to your platform at a very hard moment. Showing them where to turn in an emergency is a basic responsibility for user safety."
+  fix_steps:
+    - "Add a visible \"If you're in crisis\" box to post, chat and sharing screens, linking to the local emergency number (e.g. 112 in Turkey and the EU) and official/professional support services."
+    - "Verify the numbers and addresses on your resource list with official sources and keep them up to date; don't hard-code them."
+    - "When a post contains self-harm language, automatically show support resources to its author and move the post up in moderation."
+  fix_prompt: |
+    My site is an emotional support / sharing platform but its post and chat pages don't point to emergency help or professional support. Please:
+    1. Write an "If you're in crisis" component and add it somewhere visible on post, chat and sharing screens. Show the local emergency number as an example (e.g. 112 in Turkey and the EU) and add other support resources.
+    2. Don't hard-code phone numbers or links: read them from a configurable, per-country/per-language resource list (JSON or database). Remind me that every number and address on the list must be verified with official sources; don't add unverified numbers.
+    3. Detect posts with self-harm signals (keywords or a user's "risk of harm" report): show the author support resources right after posting and move these posts to the front of the moderation queue.
+  fragments:
+    headline_none: "Your support platform has no emergency help information"
+    headline_partial: "Emergency help isn't visible on post and chat pages"
+    situation_none: "On the pages we scanned we found no emergency line, crisis support or pointer to professional help."
+    situation_partial: "Emergency help information is only on some pages; it isn't visible on post and chat pages."
+    report_option: " Having a \"risk of harm\" option in the report menu is a good step."
+
+web.privacy.exif_in_uploads:
+  title: "{headline}"
+  passed_title: "Uploaded images contain no location or device data"
+  description: "{situation}"
+  why_it_matters: "Photos taken with a phone often contain the GPS location where they were taken. If that isn't removed before publishing, someone posting \"anonymously\" can have their home address found."
+  fix_steps:
+    - "Re-encode every uploaded image on the server and remove all metadata (EXIF, XMP, IPTC)."
+    - "Strip metadata from videos too (e.g. with ffmpeg)."
+    - "Clean up previously uploaded files with a one-off script."
+  fix_prompt: |
+    Images uploaded by users on my site may be published with their EXIF data (GPS location, device model, capture time) intact. Please:
+    1. In the image upload endpoint, re-encode every image on the server (with Pillow, sharp or libvips) and remove all EXIF/XMP/IPTC data; apply the orientation to the image before removing it.
+    2. For videos, strip metadata with ffmpeg (-map_metadata -1).
+    3. Write a one-off script that cleans all existing uploaded files the same way.
+    4. Add a test that proves it works (upload a sample image with GPS, check there's no GPS in the output).
+  fragments:
+    headline_gps: "Uploaded images contain location (GPS) data"
+    headline_device: "Uploaded images still contain device and capture data"
+    headline_unchecked: "We couldn't check uploaded images for location data"
+    situation_gps: "Some images uploaded by users still contain the GPS location where the photo was taken. (We didn't record the coordinates; we only checked whether they exist.)"
+    situation_device: "Some images uploaded by users still contain data such as the phone model, serial number or capture time."
+    situation_unchecked: "Your site lets people upload photos/videos, but on the pages we scanned we found no user image we could check. Make sure the server strips EXIF data (including GPS location) from uploaded files."
+
+web.content.test_data_in_production:
+  title: "Test data is visible on your live site"
+  passed_title: "No test data on public pages"
+  description: "Your pages show titles that look like they were entered during testing, such as \"Test\", \"deneme\" or \"lorem ipsum\"."
+  why_it_matters: "When visitors see test data, the site looks unfinished and untrustworthy."
+  fix_steps:
+    - "Delete the test data."
+    - "Do your testing in a separate staging environment or with test accounts."
+    - "Hide test accounts' content from public lists."
+  fix_prompt: |
+    My live site shows records created during testing (e.g. rooms/products/posts named "Test" or "deneme") to everyone (titles in the evidence). Please:
+    1. Write a query/script that finds such test records; it should show me the list before deleting and delete only after I confirm.
+    2. Add a "test account" flag (is_test) to users and filter their content out of public lists, search and the sitemap.
+    3. Suggest a short setup so I can do future testing in a separate staging environment.
+
+web.ids.sequential_public_ids:
+  title: "Rooms/messages use guessable sequential numbers in their addresses"
+  passed_title: "No guessable sequential IDs in public addresses"
+  description: "Resources on your site such as rooms, chats, messages, orders or users use small sequential numbers in their addresses (e.g. /room/18, /room/19). This is a warning; we didn't test whether these addresses can be opened without permission.{private_note}"
+  why_it_matters: "Sequential IDs are guessable. If the server doesn't check \"is this person allowed to access this?\" on every request, someone can change the number and reach other people's rooms, messages or orders. Private rooms showing up in a public list also leaks their existence and names."
+  fix_steps:
+    - "Use a UUID or a random short ID (e.g. nanoid) in public addresses."
+    - "Check ownership/permission on every endpoint; knowing the address shouldn't be enough to get access."
+    - "Remove password-protected/private rooms from public lists."
+  fix_prompt: |
+    On my site, resources such as rooms/chats/messages use sequential numeric IDs like /room/18 (patterns in the evidence). Please:
+    1. Add an unguessable public_id column (UUID v4 or nanoid) to the relevant tables, fill it for existing records and switch URLs to it; if old numeric addresses keep working, redirect them only after a permission check.
+    2. Add ownership/membership checks to every endpoint that reads or changes these resources (is the user a member of this room, is this order theirs); return 404 if not.
+    3. Remove password-protected/private rooms from the public room list and search.
+    4. Add tests proving access with another user's ID is denied.
+  fragments:
+    private_listed: " Items marked \"password-protected\" or \"private\" also appear by name in a public list."
