@@ -34,6 +34,8 @@ const HIDDEN_KEYS = new Set([
   "sensitive_data_note",
   "escalated_due_to",
   "original_severity",
+  "covered_by",
+  "no_register_path",
 ]);
 
 function isLocation(v: unknown): v is { file: string; line: number } {

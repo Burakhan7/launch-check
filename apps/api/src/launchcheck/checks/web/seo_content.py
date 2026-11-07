@@ -8,6 +8,8 @@ from launchcheck.checks.base import Category, Finding, FragmentFn, Severity
 from launchcheck.checks.registry import register
 from launchcheck.checks.web._common import WebCheck, is_noindex, meta_content
 from launchcheck.checks.web._html import attr, iter_pages
+from launchcheck.checks.web._shell import covered_urls
+from launchcheck.checks.web.render import covered_note
 from launchcheck.collectors.web_collector import WebContext
 from launchcheck.config import get_settings
 
@@ -50,8 +52,9 @@ class DuplicateTitleDescription(WebCheck):
         titles: dict[str, str] = {}
         descriptions: dict[str, str] = {}
         seen: set[str] = set()
+        covered = covered_urls(ctx)  # ana sayfa kopyası dönen sayfalar ayrı raporlanır
         for page, tree in iter_pages(ctx):
-            if is_noindex(page, tree):
+            if is_noindex(page, tree) or page.url in covered:
                 continue  # indekslenmeyen sayfanın başlığı aramada görünmez
             canonical = tree.css_first('link[rel="canonical"]')
             href = attr(canonical, "href") if canonical is not None else ""
@@ -87,6 +90,7 @@ class DuplicateTitleDescription(WebCheck):
             "short_descriptions": short,
             "pages_scanned": len(seen),
             "majority_same_title": largest > len(seen) / 2,
+            **covered_note(covered),
         }
         severity = Severity.MEDIUM if dup_titles else Severity.LOW
         return [self.finding(evidence, severity=severity)]

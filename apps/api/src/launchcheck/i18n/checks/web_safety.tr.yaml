@@ -22,6 +22,7 @@ web.safety.age_gate_missing:
     headline_statement_only: "Yaş sınırı yazıyor ama onay alınmıyor"
     platform_live_media: "Sitende yabancılarla canlı sesli/görüntülü sohbet özelliği var."
     platform_dating_or_matching: "Siten flört, eşleşme veya evlilik amaçlı bir platform gibi görünüyor."
+    platform_public_community_live: "Sitende herkese açık topluluk/sunucu dizini ve sesli/görüntülü sohbet odaları var; kullanıcılar tanımadıkları kişilerle canlı görüşebilir."
     situation_anonymous: "Üye olmadan kullanılabiliyor ve taradığımız sayfalarda 18 yaş şartı, yaş onayı veya kullanım koşulu onayı bulamadık."
     situation_no_age_limit: "Taradığımız sayfalarda ve kullanım koşullarında 18 yaş şartı, yaş onayı veya kullanım koşulu onayı bulamadık."
     situation_statement_only: "Sayfalarında yaş sınırından bahsediliyor ama kullanıcıdan yaş veya kullanım koşulu onayı alınmıyor (ya da doğum yılı alanı 18 yaş altını seçtiriyor)."

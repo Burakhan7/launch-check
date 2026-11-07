@@ -108,7 +108,9 @@
     "apkInfo": "Sürüm {version} · Hedef SDK {target}",
     "phaseNote": "Bu rapor sadece herkese açık dosyalara bakan pasif kontrolleri içerir.",
     "sensitiveNote": "Siten hassas (özel nitelikli) kişisel veri topluyor; bu bulgu bu yüzden daha da önemli.",
-    "sensitiveEscalated": "Siten hassas (özel nitelikli) kişisel veri topluyor; bu yüzden bu bulgunun önemini bir seviye yükselttik."
+    "sensitiveEscalated": "Siten hassas (özel nitelikli) kişisel veri topluyor; bu yüzden bu bulgunun önemini bir seviye yükselttik.",
+    "conversionTitle": "Satışı/büyümeyi etkileyenler",
+    "conversionHint": "Güvenlik açığı değil ama ziyaretçinin kayıt olmasını veya satın almasını zorlaştıran şeyler."
   },
   "Severity": {
     "critical": "Kritik",
@@ -243,7 +245,28 @@
       "consent_conditioned_on_service": "Rıza hizmet şartına bağlanmış",
       "mentioned_destinations": "Geçen ülkeler",
       "amendment_referenced": "7499 sayılı değişikliğe atıf",
-      "page": "Sayfa"
+      "page": "Sayfa",
+      "dead_items": "Çalışmayan öğeler",
+      "missing_on_homepage": "Ana sayfada eksik linkler",
+      "header_login": "Menüde giriş",
+      "header_register": "Menüde kayıt",
+      "last_section_cta": "Son CTA",
+      "cta_counts": "CTA sayıları",
+      "item_count": "Öğe sayısı",
+      "visible_counters": "Görünen sayaçlar",
+      "empty_state_text": "Boş durum metni",
+      "role_labels": "Rol adları",
+      "json_fields": "JSON alan adları",
+      "sensitive_user_fields_in_json": "JSON'da hassas kullanıcı alanları",
+      "tokens": "Sürüm ifadeleri",
+      "is_primary_cta": "Birincil buton",
+      "labeled_as_beta": "Beta olarak etiketli",
+      "is_pricing_or_product": "Fiyat/ürün sayfası",
+      "phrase": "Öbek",
+      "density": "Yoğunluk",
+      "meta_keywords_count": "Meta keywords sayısı",
+      "meta_keyword_variants": "Aynı kelimeli varyant",
+      "covered_pages": "Ayrıca raporlanan sayfalar"
     },
     "values": {
       "no_https": "Site HTTPS kullanmıyor",
@@ -267,7 +290,8 @@
       "special_category_data": "Özel nitelikli veri topluyor",
       "payment": "Ödeme alıyor",
       "has_login": "Giriş sistemi var",
-      "personal_data_form": "Kişisel veri formu var"
+      "personal_data_form": "Kişisel veri formu var",
+      "public_community_live": "Herkese açık topluluk + canlı odalar"
     }
   },
   "Errors": {

@@ -164,9 +164,10 @@ def age_signals(tree: LexborHTMLParser, text: str, year: int) -> AgeSignals:
 
 @register
 class AgeGateMissing(WebCheck):
-    """Yaş sınırı gerektiren platformlar: yabancılarla canlı sesli/görüntülü sohbet veya
-    flört/eşleşme/evlilik. Canlı ders/yayın gibi bire çok yayınlar (yabancılarla eşleşme
-    olmadan) ve evlilik konulu bloglar (eşleşme etkileşimi olmadan) kapsam dışıdır."""
+    """Yaş sınırı gerektiren platformlar: yabancılarla canlı sesli/görüntülü sohbet,
+    herkese açık topluluk + canlı sesli/görüntülü odalar veya flört/eşleşme/evlilik.
+    Canlı ders/yayın gibi bire çok yayınlar (yabancılarla eşleşme olmadan) ve evlilik
+    konulu bloglar (eşleşme etkileşimi olmadan) kapsam dışıdır."""
 
     id = "web.safety.age_gate_missing"
     category = Category.SECURITY
@@ -179,6 +180,11 @@ class AgeGateMissing(WebCheck):
             for name, hit in (
                 ("live_media", signals.live_with_strangers),
                 ("dating_or_matching", signals.is_dating_or_matching),
+                # Herkese açık sunucu/topluluk + sesli/görüntülü oda: yabancılarla canlı temas
+                (
+                    "public_community_live",
+                    signals.has_public_community and signals.has_live_media,
+                ),
             )
             if hit
         ]

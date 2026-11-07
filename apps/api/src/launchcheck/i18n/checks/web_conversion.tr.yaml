@@ -1,0 +1,134 @@
+# İndirmeler, yönlendirme, rol sızıntısı ve dönüşüm (satış/büyüme) check'leri (Türkçe).
+
+web.downloads.non_release_build:
+  title: "İndirme linkin test/geliştirme sürümüne gidiyor"
+  passed_title: "İndirme linkleri yayın (release) sürümüne gidiyor"
+  description: "Sitendeki indirme linklerinden bazıları adında test, dev, beta, debug gibi ifadeler geçen bir dosyaya gidiyor (kanıttaki adresler). Kullanıcılarına muhtemelen yayın sürümü yerine test sürümünü dağıtıyorsun. (Dosyaları indirmedik; sadece adreslerine baktık.)"
+  why_it_matters: "Kullanıcılar test sürümünü kuruyor. Test sürümleri genellikle imzasızdır, hata ayıklama kodu içerir ve farklı bir güncelleme kanalından beslenir. Windows veya macOS güvenlik uyarısı gösterirse indirmelerin çoğu yarıda kalır."
+  fix_steps:
+    - "Yayın için ayrı bir release build'i oluştur."
+    - "Release build'ini kod imzalama sertifikasıyla imzala (Windows: signtool veya Azure Trusted Signing, macOS: notarization)."
+    - "Sitedeki indirme linkini sabit bir \"latest\" adresine bağla (ör. /download/windows/latest)."
+    - "Beta sürümü sunmak istiyorsan ayrı bir linkle ve açıkça \"Beta\" etiketiyle sun."
+  fix_prompt: |
+    Sitemdeki indirme butonları test/geliştirme build'ine gidiyor (kanıttaki dosya adresleri). Lütfen:
+    1. CI'da (ör. GitHub Actions) release ve test build'lerini ayıran iki ayrı iş tanımla; release sadece etiketlenmiş (tag) commit'lerde çalışsın.
+    2. Release build'ine kod imzalama adımı ekle: Windows için signtool veya Azure Trusted Signing, macOS için codesign + notarization. Sertifika ve şifreleri CI secret'larından oku.
+    3. Release çıktısını sabit bir "latest" adresinden sunan bir yönlendirme kur (ör. /download/windows/latest → en son release dosyası) ve sitedeki indirme linklerini buna bağla.
+    4. Beta/test build'lerini ayrı bir "Beta" sayfasından, açık etiketle sun.
+
+web.render.route_serves_root_shell:
+  title: "Bazı sayfaların sunucudan ana sayfanın kopyası olarak geliyor"
+  passed_title: "İç sayfalar sunucudan kendi içerikleriyle geliyor"
+  description: "Bazı iç sayfalar (kanıttaki adresler) sunucudan kendi içerikleri yerine ana sayfanın HTML'ini dönüyor: canonical adresi ana sayfayı gösteriyor, başlığı ve içeriği ana sayfayla aynı. Bu genelde tek sayfalık uygulamalarda (SPA) yanlış yapılandırılmış yönlendirmeden olur."
+  why_it_matters: "Google bu sayfayı ana sayfanın kopyası sayar ve indekslemez; link paylaşıldığında da ana sayfanın önizlemesi çıkar. Bu bir fiyat veya ürün sayfasıysa, satın alma kararı verdirecek sayfan aramada ve paylaşımda görünmez."
+  fix_steps:
+    - "Bu sayfaları sunucu tarafında render et (SSR) veya derleme sırasında statik HTML üret (SSG/prerender)."
+    - "En azından her sayfa için başlık, açıklama, canonical ve og etiketlerini sunucuda üret."
+    - "Canonical'ı sayfanın kendi adresine ayarla."
+  fix_prompt: |
+    Sitemde bazı sayfalar (kanıttaki adresler) sunucudan ana sayfanın HTML'i olarak geliyor: canonical ana sayfayı gösteriyor, title ve içerik ana sayfayla aynı. Lütfen:
+    1. Projenin framework'ünü ve SPA fallback yapılandırmasını (ör. vercel.json rewrites, netlify _redirects, nginx try_files) incele.
+    2. Bu route'lar için sayfa bazlı title, meta description, canonical (sayfanın kendi adresi) ve og etiketlerini sunucuda üret: Next.js ise generateMetadata/metadata; Vite/React SPA ise bir prerender eklentisi (ör. vite-plugin-prerender) veya route bazlı statik HTML; kendi sunucun varsa route bazlı HTML şablonu.
+    3. Mümkünse bu sayfaların ana içeriğini de sunucuda render et (SSR/SSG).
+    4. Değişiklikten sonra her route'un HTML'inde doğru canonical ve title olduğunu doğrulayan küçük bir test/script ekle.
+
+web.privacy.internal_role_exposed:
+  title: "Herkese açık sayfalarda iç rol adları veya yönetici bilgileri görünüyor"
+  passed_title: "Herkese açık sayfalarda iç rol adları ve kullanıcı alanları yok"
+  description: "Herkese açık sayfalarında SUPER_ADMIN, ADMIN gibi iç yetki/rol adları görünüyor veya sayfaya gömülü verilerde (JSON) kullanıcıların rol bilgisi, bazen e-posta/telefon gibi alanlarla birlikte yer alıyor. (Kullanıcı adlarını ve alan değerlerini kaydetmedik; sadece alan adlarına baktık.)"
+  why_it_matters: "Herkese açık sayfada iç rol adları ve yönetici hesapları görününce saldırganlar kimi hedef alacağını bilir; aynı adla sahte \"yönetici\" hesapları açıp kullanıcıları dolandırmak kolaylaşır. Ham rol adları kodunun iç yapısını da sızdırır; sayfaya gömülü e-posta/telefon gibi alanlar ise doğrudan kişisel veri sızıntısıdır."
+  fix_steps:
+    - "Herkese açık sayfa ve API'lerde kullanıcı nesnesini sadece gösterilecek alanlarla döndür (ayrı bir \"public\" veri modeli/DTO)."
+    - "İç rol adlarını kullanıcıya yönelik etiketlerle değiştir (ör. doğrulanmış \"Ekip\" rozeti)."
+    - "Yönetici hesaplarını herkese açık dizinlerden çıkar."
+  fix_prompt: |
+    Sitemin herkese açık sayfalarında iç rol adları (ör. SUPER_ADMIN) görünüyor ve/veya sayfaya gömülü JSON'da kullanıcı nesneleri role, e-posta gibi alanlarla geliyor (kanıttaki alan adları). Lütfen:
+    1. Herkese açık profil/dizin endpoint'leri ve sayfaları için ayrı bir public DTO tanımla: sadece görünen ad, avatar ve herkese açık profil bilgileri olsun; rol, e-posta, telefon, iç ID, token gibi alanlar hiç dönmesin.
+    2. Sunucu tarafında render edilen sayfalarda (ör. Next.js getServerSideProps/__NEXT_DATA__) da sadece bu DTO'yu kullan.
+    3. İç rolleri kullanıcıya yönelik, doğrulanmış rozetlere eşle (ör. ADMIN → "Ekip" rozeti); ham rol adını arayüzde gösterme.
+    4. Yönetici hesaplarını herkese açık dizin sorgularından hariç tut.
+
+web.links.dead_or_inconsistent_nav:
+  title: "Menü/footer'da çalışmayan öğeler veya eksik linkler var"
+  passed_title: "Menü ve footer linkleri çalışıyor ve sayfalar arasında tutarlı"
+  description: "Menünde veya footer'ında link gibi görünüp çalışmayan öğeler var (ör. tıklanamayan \"İletişim\") ve/veya bazı yasal/destek linkleri diğer sayfalarda olduğu hâlde ana sayfanın footer'ında yok (kanıtta)."
+  why_it_matters: "Satın almadan veya kayıt olmadan önce kullanıcılar iletişim ve yasal sayfalara bakar; çalışmayan bir \"İletişim\" ya da eksik yasal linkler güveni düşürür. En çok ziyaret edilen sayfa genelde ana sayfadır."
+  fix_steps:
+    - "Tüm sayfalarda tek, paylaşılan bir footer bileşeni kullan."
+    - "İletişim öğesini çalışan bir sayfaya veya e-posta (mailto:) linkine bağla."
+    - "Link gibi görünen her menü öğesinin gerçekten bir yere gittiğini kontrol et."
+  fix_prompt: |
+    Sitemin menü/footer'ında link gibi görünüp çalışmayan öğeler var ve footer sayfadan sayfaya farklı (kanıttaki öğeler ve eksik linkler). Lütfen:
+    1. Projedeki tüm footer ve header varyantlarını bul ve tek bir paylaşılan bileşende birleştir; ana sayfa dahil her sayfa bunu kullansın.
+    2. Footer'da gizlilik, çerez, kullanım koşulları, topluluk kuralları, iletişim ve destek linklerinin hepsi olsun.
+    3. href'siz, href="#" olan veya düz metin olarak duran menü öğelerini çalışan linklere çevir (iletişim için /iletisim sayfası veya mailto:).
+    4. Build'de veya testte href'siz menü linklerini yakalayan basit bir kontrol ekle.
+
+web.conversion.cta_targets_login:
+  title: "{headline}"
+  passed_title: "Ana sayfa yeni ziyaretçiyi kayda yönlendiriyor"
+  description: "{situation}"
+  why_it_matters: "Sayfanı okuyup ikna olan yeni ziyaretçi, kayıt yerine giriş ekranıyla karşılaşırsa \"hesabım yok\" deyip çoğu zaman gider. Her gereksiz adım kayıt oranını düşürür."
+  fix_steps:
+    - "Header'a giriş linkinin yanına belirgin bir \"Ücretsiz başla\" / \"Kayıt ol\" butonu koy."
+    - "Sayfanın son CTA'sını kayıt sayfasına yönlendir."
+    - "Giriş ve kayıt ekranları arasında tek tıkla geçiş olsun (\"Hesabın yok mu? Kayıt ol\")."
+  fix_prompt: |
+    Ana sayfamdaki CTA'lar yeni ziyaretçiyi kayıt yerine giriş ekranına yönlendiriyor (kanıttaki sayılar ve son CTA). Lütfen:
+    1. Header'a giriş linkinin yanına belirgin, birincil stilde bir kayıt butonu ekle ("Ücretsiz başla" / "Kayıt ol").
+    2. Sayfanın son CTA bölümündeki birincil butonu kayıt akışına yönlendir; giriş linki ikincil (daha sade) bir link olarak kalabilir.
+    3. Giriş sayfasına "Hesabın yok mu? Kayıt ol", kayıt sayfasına "Zaten hesabın var mı? Giriş yap" geçiş linkleri ekle.
+    4. Kayıt kapalıysa (davetli beta), bunu ana sayfada açıkça yaz ve bekleme listesi formu koy.
+  fragments:
+    headline_login: "Ana sayfan yeni ziyaretçiyi kayda değil girişe yönlendiriyor"
+    headline_no_register: "Ana sayfanda kayıt olma yolu görünmüyor"
+    situation_login: "Ana sayfandaki belirgin butonlar ve menü çoğunlukla giriş ekranına gidiyor: üst menüde sadece giriş olabilir, sayfanın son CTA'sı girişe gidebilir veya CTA'ların çoğu girişi gösteriyor olabilir (ayrıntılar kanıtta)."
+    situation_no_register: "Ana sayfanda kayıt sayfasına giden bir link ve taradığımız sayfalarda bir kayıt formu bulamadık; sadece giriş var. Davetli/kapalı bir beta ise bunu ziyaretçiye açıkça söylemek iyi olur."
+
+web.conversion.empty_public_listing:
+  title: "Herkese açık listelerin neredeyse boş görünüyor"
+  passed_title: "Herkese açık listeler dolu görünüyor"
+  description: "Dizin, üye, ürün veya yorum gibi herkese açık liste sayfalarında çok az öğe var ya da küçük sayaçlar/\"henüz yok\" mesajları görünüyor (kanıttaki sayfalar)."
+  why_it_matters: "Boş bir dizin veya küçük sayılar ziyaretçiye \"burada kimse yok\" mesajı verir. İnsanlar kalabalık olan yere katılır; boş vitrin kayıt oranını düşürür."
+  fix_steps:
+    - "Belirli bir öğe sayısına ulaşana kadar bu sayfaları gizle veya noindex yap."
+    - "Ham liste yerine küratörlü \"öne çıkanlar\" göster."
+    - "Küçük aktivite sayaçlarını kaldır, büyüdüğünde geri getir."
+  fix_prompt: |
+    Sitemin herkese açık dizin/liste sayfaları neredeyse boş görünüyor (kanıttaki sayfalar ve sayılar). Lütfen:
+    1. Bu sayfalara minimum öğe eşiği ekle (ör. 6): eşiğin altındayken sayfa noindex olsun ve liste yerine "yakında" mesajı veya küratörlü öne çıkan içerik göstersin.
+    2. Üye/yorum/aktivite sayaçlarını bir eşiğin (ör. 20) altındayken gizle.
+    3. "Henüz hiç ... yok" boş durum metinlerini, ziyaretçiyi ilk katılımcı olmaya davet eden bir CTA ile değiştir.
+    4. Eşikleri tek bir yapılandırma dosyasından oku.
+
+web.conversion.keyword_stuffing:
+  title: "Sayfalarında aynı ifade doğal olmayan sıklıkta tekrarlanıyor"
+  passed_title: "Metinlerde aşırı anahtar kelime tekrarı yok"
+  description: "Bazı sayfalarında aynı kelime öbeği metnin önemli bir kısmını oluşturacak kadar sık tekrarlanıyor (kanıttaki öbek ve sıklık). Varsa meta keywords etiketinde de çok sayıda tekrar eden ifade var."
+  why_it_matters: "Aynı ifadeyi sürekli tekrarlamak metni robotik gösterir ve ziyaretçinin güvenini düşürür; Google bunu manipülasyon olarak görüp sıralamanı düşürebilir. Meta keywords etiketini ise Google yıllardır kullanmıyor."
+  fix_steps:
+    - "Metni insan için yaz: anahtar ifadeyi başlıkta ve ilk paragrafta bir kez kullan."
+    - "Metnin geri kalanında eş anlamlılar ve somut faydalar kullan."
+    - "Meta keywords etiketini kaldır."
+  fix_prompt: |
+    Sitemin bazı sayfalarında aynı kelime öbeği çok sık tekrarlanıyor (kanıttaki öbekler ve sayfalar). Lütfen:
+    1. Belirtilen sayfalardaki tekrar eden öbekleri bul ve anlamı koruyarak doğal varyantlarla yeniden yaz; öbek başlıkta ve ilk paragrafta bir kez kalsın.
+    2. SSS gibi bölümlerde her cevabı o soruya özgü, somut bilgiyle yeniden yaz.
+    3. Meta keywords etiketini kaldır.
+    4. Değişiklik öncesi ve sonrası metinleri yan yana göster.
+
+web.conversion.value_proposition:
+  title: "Ana sayfanın değer önerisi daha net olabilir"
+  passed_title: "Ana sayfanın değer önerisi net"
+  description: "Ana sayfanın ilk ekranını ne yaptığın, kimin için olduğu, farkın, güven unsurları, tek ana eylem, fiyat şeffaflığı ve tutarlılık açısından değerlendirdik. Ayrıntılar ve öneriler kanıtta."
+  why_it_matters: "Ziyaretçi ilk birkaç saniyede ne sunduğunu, kendisi için olup olmadığını ve neden sana güvenmesi gerektiğini anlamazsa sayfadan çıkar."
+  fix_steps:
+    - "İlk ekranda ürünün ne yaptığını ve kimin için olduğunu tek cümleyle yaz."
+    - "Alternatiflere göre farkını görünür metinde anlat."
+    - "İlk ekranda tek ve net bir birincil buton bırak."
+  fix_prompt: |
+    Ana sayfamın değer önerisini netleştirmek istiyorum (kanıttaki değerlendirme ve öneriler). Lütfen:
+    1. İlk ekran için ürünün ne yaptığını ve kimin için olduğunu anlatan 3 farklı başlık + alt başlık önerisi yaz.
+    2. Alternatiflere göre farkı somut faydalarla anlatan kısa bir bölüm öner; rakip marka adı kullanacaksan marka hukuku açısından kontrol etmem gerektiğini not et.
+    3. İlk ekranda tek bir birincil CTA bırakacak şekilde mevcut butonları sadeleştir.

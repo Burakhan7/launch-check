@@ -19,6 +19,7 @@ from launchcheck.collectors.form_fields import (
     field_groups,
     qualified_categories,
 )
+from launchcheck.config import get_settings
 
 NON_VISIBLE_TAGS = ("script", "style", "noscript", "template", "svg")
 UGC_BUTTON_RE = phrase_regex(
@@ -156,6 +157,7 @@ class PageSignals:
     groups: list[FieldGroup] = field(default_factory=list)  # form soruları
     login: bool = False  # şifre alanı veya giriş/kayıt linki/düğmesi
     surface: str = ""  # başlık + meta açıklama + h1/h2 + düğme/CTA metinleri (sade)
+    link_paths: list[str] = field(default_factory=list)  # iç linklerin yol parçaları (sade)
 
     @property
     def has_live_media(self) -> bool:
@@ -175,6 +177,7 @@ class ContentSignals:
     special_categories: list[str] = field(default_factory=list)
     is_dating_or_matching: bool = False
     has_login: bool = False
+    has_public_community: bool = False
     live_with_strangers: bool = False  # canlı medya + yabancılarla/rastgele görüşme bağlamı
 
     @property
@@ -187,6 +190,7 @@ class ContentSignals:
             "special_categories": self.special_categories,
             "is_dating_or_matching": self.is_dating_or_matching,
             "has_login": self.has_login,
+            "has_public_community": self.has_public_community,
             "is_ugc": self.is_ugc,
             "has_live_media": self.has_live_media,
             "is_emotional_support": self.is_emotional_support,
@@ -234,6 +238,54 @@ def surface_text(tree: LexborHTMLParser) -> str:
     return fold(squash(" ".join(parts)))
 
 
+SENTENCE_SPLIT_RE = re.compile("[.!?;:•|]+")  # görünür metin zaten tek satır
+COMMUNITY_MIN_PATH_SIGNALS = 2
+
+
+def _word_index(sentence: str, position: int) -> int:
+    return sentence.count(" ", 0, position)
+
+
+def live_media_mentions(text: str) -> list[str]:
+    """Medya token'ı (sesli, görüntülü, video, ekran paylaşımı...) ile iletişim token'ı
+    (sohbet, görüşme, oda, kanal, chat, call...) aynı cümlede ve en fazla N kelime arayla.
+    "sesli, görüntülü ve yazılı sohbet" yakalanır; "görüntülü kayıt", "sesli kitap" değil.
+    Ayrıca dar kalıp: "rastgele ... sohbet" (LIVE_TEXT_RE)."""
+    media_rx = keywords.pattern("live_media.media")
+    comm_rx = keywords.pattern("live_media.communication")
+    window = get_settings().web_live_media_window_words
+    found = [m.group(0) for m in LIVE_TEXT_RE.finditer(text)]
+    if media_rx is None or comm_rx is None:
+        return list(dict.fromkeys(found))
+    for sentence in SENTENCE_SPLIT_RE.split(text):
+        sentence = sentence.strip()
+        media = [
+            (_word_index(sentence, m.start()), m.group(0)) for m in media_rx.finditer(sentence)
+        ]
+        if not media:
+            continue
+        comm = [(_word_index(sentence, m.start()), m.group(0)) for m in comm_rx.finditer(sentence)]
+        for mi, mword in media:
+            close = [cword for ci, cword in comm if abs(ci - mi) <= window]
+            if close:
+                found.append(f"{mword} … {close[0]}")
+    return list(dict.fromkeys(found))
+
+
+def detect_public_community(pages: list[PageSignals], all_text: str, has_login: bool) -> bool:
+    """Herkese açık topluluk/sunucu/profil dizini. "Topluluk kur", "herkese açık sunucu" gibi
+    ifadeler tek başına yeter; yol/başlık sinyali (/explore, /sunucular, "Profiller")
+    ise ya en az 2 farklı tane olmalı ya da giriş sistemiyle birlikte görülmeli."""
+    if keywords.has("public_community.phrases", all_text):
+        return True
+    hits: set[str] = set()
+    for page in pages:
+        segments = [fold(s) for s in urlsplit(page.url).path.split("/") if s]
+        for source in [*segments, *page.link_paths, page.surface]:
+            hits |= keywords.found("public_community.paths", source)
+    return len(hits) >= COMMUNITY_MIN_PATH_SIGNALS or (bool(hits) and has_login)
+
+
 def page_signals(url: str, html: str) -> PageSignals:
     tree = LexborHTMLParser(html)
     text = visible_text(html)
@@ -246,13 +298,26 @@ def page_signals(url: str, html: str) -> PageSignals:
         comment_section=has_comment_section(tree),
         article=og_type == "article" or author,
         article_with_author=og_type == "article" and author,
-        live_phrases=list(dict.fromkeys(m.group(0) for m in LIVE_TEXT_RE.finditer(text))),
+        live_phrases=live_media_mentions(text),
         live_js=live_js_markers(n.text(deep=True) or "" for n in tree.css("script:not([src])")),
         file_input=tree.css_first('input[type="file"]') is not None,
         groups=field_groups(tree),
         login=has_login_ui(tree),
         surface=surface_text(tree),
+        link_paths=_link_segments(tree),
     )
+
+
+def _link_segments(tree: LexborHTMLParser) -> list[str]:
+    segments: list[str] = []
+    for node in tree.css("a[href]"):
+        parts = urlsplit(_attr(node, "href"))
+        if parts.netloc:
+            continue  # sadece göreli (iç) linkler
+        for seg in parts.path.split("/"):
+            if seg and fold(seg) not in segments:
+                segments.append(fold(seg))
+    return segments
 
 
 def detect_dating(pages: list[PageSignals], has_login: bool) -> bool:
@@ -308,5 +373,6 @@ def analyze_content(pages: Iterable[tuple[str, str]], js_sources: Iterable[str])
         special_categories=qualified_categories([g for p in page_list for g in p.groups]),
         is_dating_or_matching=detect_dating(page_list, login),
         has_login=login,
+        has_public_community=detect_public_community(page_list, all_text, login),
         live_with_strangers=live and keywords.has("live_strangers", all_text),
     )

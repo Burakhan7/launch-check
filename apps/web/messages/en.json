@@ -108,7 +108,9 @@
     "apkInfo": "Version {version} · Target SDK {target}",
     "phaseNote": "This report only includes passive checks that look at public files.",
     "sensitiveNote": "Your site collects sensitive (special category) personal data, which makes this finding even more important.",
-    "sensitiveEscalated": "Your site collects sensitive (special category) personal data, so we raised this finding's severity by one level."
+    "sensitiveEscalated": "Your site collects sensitive (special category) personal data, so we raised this finding's severity by one level.",
+    "conversionTitle": "Things affecting sales and growth",
+    "conversionHint": "Not security issues, but things that make it harder for visitors to sign up or buy."
   },
   "Severity": {
     "critical": "Critical",
@@ -243,7 +245,28 @@
       "consent_conditioned_on_service": "Consent made a condition of service",
       "mentioned_destinations": "Countries mentioned",
       "amendment_referenced": "Refers to Law No. 7499 amendment",
-      "page": "Page"
+      "page": "Page",
+      "dead_items": "Items that don't work",
+      "missing_on_homepage": "Links missing on home page",
+      "header_login": "Login in menu",
+      "header_register": "Sign-up in menu",
+      "last_section_cta": "Last CTA",
+      "cta_counts": "CTA counts",
+      "item_count": "Item count",
+      "visible_counters": "Visible counters",
+      "empty_state_text": "Empty state text",
+      "role_labels": "Role names",
+      "json_fields": "JSON field names",
+      "sensitive_user_fields_in_json": "Sensitive user fields in JSON",
+      "tokens": "Version tokens",
+      "is_primary_cta": "Primary button",
+      "labeled_as_beta": "Labeled as beta",
+      "is_pricing_or_product": "Pricing/product page",
+      "phrase": "Phrase",
+      "density": "Density",
+      "meta_keywords_count": "Meta keywords count",
+      "meta_keyword_variants": "Variants sharing a word",
+      "covered_pages": "Reported separately"
     },
     "values": {
       "no_https": "The site doesn't use HTTPS",
@@ -267,7 +290,8 @@
       "special_category_data": "Collects special category data",
       "payment": "Takes payments",
       "has_login": "Has login",
-      "personal_data_form": "Has a personal data form"
+      "personal_data_form": "Has a personal data form",
+      "public_community_live": "Public communities + live rooms"
     }
   },
   "Errors": {

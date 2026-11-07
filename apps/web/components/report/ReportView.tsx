@@ -80,6 +80,9 @@ export function ReportView() {
 function Report({ report }: { report: ScanReport }) {
   const t = useTranslations("Report");
   const tc = useTranslations("Category");
+  // Satışı/büyümeyi etkileyen (conversion) bulgular ayrı bölümde gösterilir
+  const coreFindings = report.findings.filter((f) => f.category !== "conversion");
+  const conversionFindings = report.findings.filter((f) => f.category === "conversion");
   const ts = useTranslations("ScoreLabel");
   const format = useFormatter();
   const score = report.score ?? 0;
@@ -134,17 +137,37 @@ function Report({ report }: { report: ScanReport }) {
             {t("noFindings")}
           </p>
         ) : (
+          coreFindings.length > 0 && (
+            <div className="flex flex-col gap-3">
+              {coreFindings.map((finding, i) => (
+                <FindingCard
+                  key={`${finding.check_id}-${i}`}
+                  finding={finding}
+                  defaultOpen={i === 0 && finding.severity === "critical"}
+                />
+              ))}
+            </div>
+          )
+        )}
+      </section>
+
+      {conversionFindings.length > 0 && (
+        <section className="flex flex-col gap-4">
+          <div className="flex flex-col gap-1">
+            <h2 className="text-xl font-semibold">{t("conversionTitle")}</h2>
+            <p className="text-sm text-muted">{t("conversionHint")}</p>
+          </div>
           <div className="flex flex-col gap-3">
-            {report.findings.map((finding, i) => (
+            {conversionFindings.map((finding, i) => (
               <FindingCard
-                key={`${finding.check_id}-${i}`}
+                key={`${finding.check_id}-c${i}`}
                 finding={finding}
-                defaultOpen={i === 0 && finding.severity === "critical"}
+                defaultOpen={false}
               />
             ))}
           </div>
-        )}
-      </section>
+        </section>
+      )}
 
       {report.passed.length > 0 && <PassedList report={report} />}
 

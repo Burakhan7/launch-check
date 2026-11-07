@@ -12,7 +12,11 @@ from launchcheck.checks.base import Category, Check, Finding, ScanContext, Sever
 logger = logging.getLogger(__name__)
 
 CHECK_ID_PATTERN = re.compile(r"^(web|apk)\.[a-z0-9_]+\.[a-z0-9_]+$")
-BUILTIN_CHECK_PACKAGES = ("launchcheck.checks.web", "launchcheck.checks.apk")
+BUILTIN_CHECK_PACKAGES = (
+    "launchcheck.checks.web",
+    "launchcheck.checks.apk",
+    "launchcheck.checks.conversion",  # LLM tabanlı (Faz 2) check'ler
+)
 
 
 class Registry:

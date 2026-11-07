@@ -110,8 +110,16 @@ async def test_render_layout_without_content_only_that_page_reported() -> None:
         final_url="https://www.metalgymturkey.com/tr",
         pages=[
             ("https://www.metalgymturkey.com/tr/shop", fixture_html("render_layout_only.html")),
-            ("https://www.metalgymturkey.com/tr/kategori/bench", full),
-            ("https://www.metalgymturkey.com/tr/kategori/rack", full),
+            # Sayfaya özgü başlıklı kategori sayfaları (aynı başlık + aynı içerik ana sayfa
+            # kopyası sayılır, bkz. route_serves_root_shell)
+            (
+                "https://www.metalgymturkey.com/tr/kategori/bench",
+                full.replace("<title>", "<title>Bench "),
+            ),
+            (
+                "https://www.metalgymturkey.com/tr/kategori/rack",
+                full.replace("<title>", "<title>Rack "),
+            ),
         ],
     )
     (finding,) = await run(EmptyServerHtml, ctx)

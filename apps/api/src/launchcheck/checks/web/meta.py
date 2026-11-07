@@ -8,6 +8,8 @@ from selectolax.lexbor import LexborHTMLParser
 from launchcheck.checks.base import Category, Finding, FragmentFn, Severity
 from launchcheck.checks.registry import register
 from launchcheck.checks.web._common import WebCheck, html_tree, is_html, meta_content, page_tree
+from launchcheck.checks.web._shell import covered_urls
+from launchcheck.checks.web.render import covered_note
 from launchcheck.collectors.web_collector import WebContext
 
 ICON_RELS = ("icon", "shortcut icon", "apple-touch-icon")
@@ -91,7 +93,10 @@ class OgMissing(WebCheck):
     async def check(self, ctx: WebContext) -> list[Finding]:
         entries = []
         severity = Severity.LOW
+        covered = covered_urls(ctx)  # ana sayfa kopyası dönen sayfalar ayrı raporlanır
         for index, page in enumerate(ctx.pages or []):
+            if page.url in covered:
+                continue
             missing, issues = og_problems(social_meta(page_tree(ctx, page)))
             if not missing and not issues:
                 continue
@@ -101,7 +106,8 @@ class OgMissing(WebCheck):
                 severity = Severity.MEDIUM
         if not entries:
             return []
-        return [self.finding({"home_url": ctx.final_url, "pages": entries}, severity=severity)]
+        evidence = {"home_url": ctx.final_url, "pages": entries, **covered_note(covered)}
+        return [self.finding(evidence, severity=severity)]
 
     def text_params(self, evidence: dict[str, Any], fragment: FragmentFn) -> dict[str, str]:
         pages: list[dict[str, Any]] = evidence.get("pages") or []

@@ -25,7 +25,7 @@ class Settings(BaseSettings):
 
     # Skorlama: kategori ağırlıkları (Faz 1)
     score_weights: dict[str, float] = Field(
-        default_factory=lambda: {"security": 0.7, "prod_readiness": 0.3}
+        default_factory=lambda: {"security": 0.5, "prod_readiness": 0.25, "conversion": 0.25}
     )
 
     # Worker
@@ -130,6 +130,131 @@ class Settings(BaseSettings):
 
     # Tespit anahtar kelimelerinin dilleri: launchcheck/keywords/<dil>.yaml
     keyword_languages: list[str] = Field(default_factory=lambda: ["tr", "en"])
+
+    # has_live_media: medya ve iletişim kelimesi arasında en fazla bu kadar kelime
+    web_live_media_window_words: int = 8
+
+    # web.downloads.non_release_build
+    web_download_extensions: list[str] = Field(
+        default_factory=lambda: [
+            ".exe",
+            ".msi",
+            ".msix",
+            ".appx",
+            ".dmg",
+            ".pkg",
+            ".apk",
+            ".aab",
+            ".ipa",
+            ".appimage",
+            ".deb",
+            ".rpm",
+        ]
+    )
+    # Arşivler sadece link metni indirme/kurulum dediğinde uygulama dosyası sayılır
+    web_download_archive_extensions: list[str] = Field(
+        default_factory=lambda: [".zip", ".tar.gz", ".tgz", ".7z"]
+    )
+    # Dosya adı/yol token'ı (- _ . / ile ayrılmış, tam eşleşme). "latest", "setup",
+    # "installer" bilinçli olarak yok: meşru sürüm adlarıdır.
+    web_nonrelease_tokens: list[str] = Field(
+        default_factory=lambda: [
+            "test",
+            "testing",
+            "dev",
+            "debug",
+            "beta",
+            "alpha",
+            "staging",
+            "nightly",
+            "canary",
+            "snapshot",
+            "rc",
+            "preview",
+            "internal",
+            "local",
+            "sandbox",
+        ]
+    )
+    # Ana sayfada sıradaki ilk bu kadar indirme linki birincil CTA sayılır
+    web_primary_download_links: int = 2
+
+    # web.render.route_serves_root_shell: ana içerik benzerliği (kelime 3-shingle Jaccard)
+    web_shell_similarity_threshold: float = 0.9
+    web_shell_min_signals: int = 2
+
+    # web.privacy.internal_role_exposed (dilden bağımsız: kod/veri adları)
+    web_role_enum_names: list[str] = Field(
+        default_factory=lambda: [
+            "SUPER_ADMIN",
+            "SUPERADMIN",
+            "ADMIN",
+            "ROOT",
+            "OWNER",
+            "SYSTEM",
+            "STAFF",
+            "MODERATOR",
+            "DEVELOPER",
+            "SUPERUSER",
+        ]
+    )
+    web_role_json_keys: list[str] = Field(
+        default_factory=lambda: [
+            "role",
+            "roles",
+            "permissions",
+            "is_admin",
+            "isadmin",
+            "is_superuser",
+            "issuperuser",
+            "is_staff",
+            "isstaff",
+            "superadmin",
+            "is_super_admin",
+        ]
+    )
+    web_sensitive_user_json_keys: list[str] = Field(
+        default_factory=lambda: [
+            "email",
+            "e_mail",
+            "phone",
+            "phone_number",
+            "phonenumber",
+            "mobile",
+            "password",
+            "password_hash",
+            "passwordhash",
+            "hash",
+            "salt",
+            "token",
+            "access_token",
+            "accesstoken",
+            "refresh_token",
+            "refreshtoken",
+            "api_key",
+            "apikey",
+            "secret",
+            "ip",
+            "ip_address",
+            "last_ip",
+        ]
+    )
+
+    # web.conversion.empty_public_listing
+    web_min_listing_items: int = 6
+    web_min_social_proof_count: int = 20
+
+    # web.conversion.keyword_stuffing
+    web_stuffing_ngram_min: int = 3
+    web_stuffing_ngram_max: int = 6
+    web_stuffing_min_repeats: int = 4
+    web_stuffing_min_density: float = 0.03
+    # Daha kısa sayfalarda (fiyat kartları gibi) tekrar doğaldır
+    web_stuffing_min_words: int = 100
+    # Öbekler sadece bu uzunluktaki metin bloklarında sayılır (kart açıklaması/altyazı değil)
+    web_stuffing_min_block_words: int = 12
+    web_meta_keywords_max: int = 10
+    web_meta_keywords_max_variants: int = 4
 
     # web.session.guest_account_per_request: ana sayfa bu kadar kez daha çerezsiz çekilir
     web_cookieless_extra_samples: int = 2

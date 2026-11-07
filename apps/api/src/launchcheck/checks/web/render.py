@@ -7,26 +7,26 @@ botları sayfayı boş veya eksik görür.
 import re
 import statistics
 from dataclasses import dataclass
-from urllib.parse import urlsplit
+from typing import Any
+from urllib.parse import urljoin, urlsplit
 
 from selectolax.lexbor import LexborHTMLParser
 
 from launchcheck.checks.base import Category, Finding, Severity
 from launchcheck.checks.registry import register
+from launchcheck.checks.shared import keywords
+from launchcheck.checks.shared.text import fold, squash, tokens
 from launchcheck.checks.web._common import WebCheck, is_noindex, page_tree
+from launchcheck.checks.web._shell import (
+    CHROME_SELECTORS,
+    INVISIBLE_SELECTORS,
+    SHELL_CHECK_ID,
+    covered_urls,
+    root_shell_pages,
+)
 from launchcheck.collectors.web_collector import PageSnapshot, WebContext
 from launchcheck.config import get_settings
 
-INVISIBLE_SELECTORS = ("script", "style", "noscript", "template", "svg")
-CHROME_SELECTORS = (
-    "header",
-    "nav",
-    "footer",
-    "aside",
-    '[role="navigation"]',
-    '[role="banner"]',
-    '[role="contentinfo"]',
-)
 SPA_ROOT_IDS = {"root", "app", "__next", "__nuxt", "svelte", "q-app"}
 # Boş kabuk tespitinde body'nin doğrudan çocukları arasında yok sayılan etiketler
 SHELL_IGNORED_TAGS = {
@@ -107,11 +107,13 @@ class EmptyServerHtml(WebCheck):
     async def check(self, ctx: WebContext) -> list[Finding]:
         settings = get_settings()
         threshold = settings.web_min_main_content_words
+        covered = covered_urls(ctx)  # ana sayfa kopyası dönen sayfalar ayrı raporlanır
         measured = [
             measure(page)
             for page in ctx.pages
             if not _skipped_path(page.url, settings.web_render_skip_paths)
             and not is_noindex(page, page_tree(ctx, page))
+            and page.url not in covered
         ]
         flagged = [p for p in measured if p.empty_shell or p.words_without_h1 < threshold]
         if not flagged:
@@ -127,7 +129,52 @@ class EmptyServerHtml(WebCheck):
                         for p in flagged
                     ],
                     "reference_median_words": reference,
+                    **covered_note(covered),
                 },
                 severity=severity,
             )
+        ]
+
+
+def covered_note(covered: set[str]) -> dict[str, Any]:
+    """Atlanan (kök kabuğu dönen) sayfalar varsa kanıta not."""
+    if not covered:
+        return {}
+    return {"covered_by": SHELL_CHECK_ID, "covered_pages": sorted(covered)}
+
+
+def _is_pricing(ctx: WebContext, url: str) -> bool:
+    path_words = " ".join(tokens(urlsplit(url).path))
+    if keywords.has("pricing_pages", path_words):
+        return True
+    home = page_tree(ctx, ctx.pages[0])
+    for node in home.css("a[href]"):
+        target = urljoin(ctx.pages[0].url, node.attributes.get("href") or "").split("#", 1)[0]
+        if target.rstrip("/") == url.rstrip("/"):
+            text = fold(squash(node.text(deep=True, separator=" ")))
+            if keywords.has("pricing_pages", text):
+                return True
+    return False
+
+
+@register
+class RouteServesRootShell(WebCheck):
+    """Sinyaller: canonical köke gidiyor, title+h1 ana sayfayla aynı, ana içerik >%90 benzer.
+    En az 2 sinyal gerekir; kendi canonical'ı olan benzer landing varyantı tek sinyaldir."""
+
+    id = SHELL_CHECK_ID
+    category = Category.CONVERSION
+    default_severity = Severity.MEDIUM
+
+    async def check(self, ctx: WebContext) -> list[Finding]:
+        shells = root_shell_pages(ctx)
+        if not shells:
+            return []
+        pages = [
+            {"url": s.url, "signals": s.signals, "is_pricing_or_product": _is_pricing(ctx, s.url)}
+            for s in shells
+        ]
+        pricing = any(p["is_pricing_or_product"] for p in pages)
+        return [
+            self.finding({"pages": pages}, severity=Severity.HIGH if pricing else Severity.MEDIUM)
         ]

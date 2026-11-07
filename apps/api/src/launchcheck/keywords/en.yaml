@@ -59,3 +59,36 @@ countries:
   japan: Japan
   india: India
   canada: Canada
+
+# Live media: a media token and a communication token in the same sentence or nearby.
+live_media:
+  media: [voice, video, "camera*", webcam, "screen shar*", "voice channel*", "audio room*", "voice room*", "microphone*"]
+  communication: ["chat*", "call*", "room*", "channel*", "conversation*", "talk*", "hangout*"]
+
+public_community:
+  paths: [explore, directory, servers, communities, profiles, members, groups, channels, discover]
+  phrases: ["public server*", "public communit*", "create a communit*", "create communit*", "create your server", "join a communit*", "join the communit*"]
+
+downloads:
+  link_texts: ["download*", "install*", "get the app", "get it for"]
+  beta_labels: [beta, "preview*", "test build*", "test version*", "early access", "insider*"]
+
+pricing_pages: ["pricing", "price*", plan, plans, premium, pro, "upgrade*", "subscription*", "subscribe", "product*", shop, store, checkout, "buy*"]
+
+footer_links:
+  privacy: ["privacy*", gdpr]
+  cookies: ["cookie*"]
+  terms: ["terms*", "conditions*", "user agreement"]
+  rules: ["rules", "guidelines", "community guideline*", "content removal*", "takedown*"]
+  contact: ["contact*", "get in touch"]
+  support: ["support*", "help*", faq]
+  refund: ["refund*", "returns*", "cancellation*"]
+contact_items: ["contact*", "get in touch", "support*", "help*"]
+
+auth_targets:
+  login: [login, log-in, signin, sign-in, signon]
+  register: [register, signup, sign-up, join, start, get-started, onboarding]
+
+listing_pages: ["explore*", "browse*", "directory*", "members*", "profiles*", "users*", "servers*", "communities*", "listings*", "sellers*", "products*", "reviews*", "testimonials*", "discover*"]
+counter_units: ["member*", "user*", "people", "person", "server*", "communit*", "review*", "comment*", "post*", "listing*", "seller*", "product*", "follower*", "online"]
+empty_states: ["no results*", "nothing here yet", "no members yet", "no reviews yet", "be the first", "no items*", "it's empty"]

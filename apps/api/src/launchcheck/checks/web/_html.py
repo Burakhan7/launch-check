@@ -1,6 +1,7 @@
 """HTML içerik check'leri için ortak yardımcılar (metin sadeleştirme, konum, onay tespiti)."""
 
 import asyncio
+import re
 from collections.abc import Callable, Iterator
 from typing import Any
 from urllib.parse import urljoin, urlsplit
@@ -195,3 +196,26 @@ def is_legal_page(url: str, tree: LexborHTMLParser) -> bool:
     h1 = tree.css_first("h1")
     heading = fold(squash(h1.text(deep=True, separator=" "))) if h1 is not None else ""
     return keywords.has("legal_pages", path_words) or keywords.has("legal_pages", heading)
+
+
+HERO_CLASS_RE = re.compile(r"hero|banner|jumbotron|masthead|intro|splash", re.IGNORECASE)
+HERO_LEVELS = 2
+# Bu kapsayıcılar sayfanın tamamını sarar; "ilk ekran" sayılmaz
+PAGE_WRAPPER_TAGS = {"main", "article", "body", "html"}
+
+
+def hero_section(tree: LexborHTMLParser) -> LexborNode | None:
+    """İlk h1'in "ilk ekran" kapsayıcısı: hero/banner class'lı en yakın üst öğe (en fazla 2
+    seviye), yoksa h1'in doğrudan ebeveyni (main/article gibi sayfa sarmalayıcısı değilse)."""
+    h1 = tree.css_first("h1")
+    if h1 is None:
+        return None
+    current = h1.parent
+    for _ in range(HERO_LEVELS):
+        if current is None or current.tag in PAGE_WRAPPER_TAGS:
+            break
+        if HERO_CLASS_RE.search(attr(current, "class")):
+            return current
+        current = current.parent
+    parent = h1.parent
+    return parent if parent is not None and parent.tag not in PAGE_WRAPPER_TAGS else None

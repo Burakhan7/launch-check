@@ -1,0 +1,134 @@
+# Downloads, routing, role leaks and conversion (sales/growth) checks (English).
+
+web.downloads.non_release_build:
+  title: "Your download link points to a test/development build"
+  passed_title: "Download links point to release builds"
+  description: "Some download links on your site go to files whose names contain test, dev, beta, debug or similar (addresses in the evidence). You're probably shipping a test build instead of the release build. (We didn't download the files; we only looked at their addresses.)"
+  why_it_matters: "Your users are installing a test build. Test builds are usually unsigned, contain debugging code and use a different update channel. If Windows or macOS shows a security warning, most downloads get abandoned."
+  fix_steps:
+    - "Create a separate release build for production."
+    - "Sign the release build with a code signing certificate (Windows: signtool or Azure Trusted Signing, macOS: notarization)."
+    - "Point the download link on your site to a stable \"latest\" address (e.g. /download/windows/latest)."
+    - "If you want to offer a beta, use a separate link clearly labeled \"Beta\"."
+  fix_prompt: |
+    The download buttons on my site point to a test/development build (file addresses in the evidence). Please:
+    1. Define two separate CI jobs (e.g. GitHub Actions) for release and test builds; release should only run on tagged commits.
+    2. Add a code signing step to the release build: signtool or Azure Trusted Signing for Windows, codesign + notarization for macOS. Read certificates and passwords from CI secrets.
+    3. Set up a redirect that serves the release output from a stable "latest" address (e.g. /download/windows/latest → newest release file) and point the site's download links to it.
+    4. Offer beta/test builds from a separate "Beta" page with a clear label.
+
+web.render.route_serves_root_shell:
+  title: "Some of your pages are served as a copy of the home page"
+  passed_title: "Inner pages are served with their own content"
+  description: "Some inner pages (addresses in the evidence) return the home page's HTML from the server instead of their own content: the canonical points to the home page, and the title and content are the same as the home page. This usually comes from a misconfigured fallback in single-page apps (SPAs)."
+  why_it_matters: "Google treats the page as a copy of the home page and doesn't index it; shared links show the home page preview. If it's a pricing or product page, the page that should drive purchase decisions is invisible in search and when shared."
+  fix_steps:
+    - "Render these pages on the server (SSR) or generate static HTML at build time (SSG/prerender)."
+    - "At least generate the title, description, canonical and og tags per page on the server."
+    - "Set the canonical to the page's own address."
+  fix_prompt: |
+    Some pages on my site (addresses in the evidence) are served as the home page's HTML: the canonical points to the home page and the title and content are the same. Please:
+    1. Look at the project's framework and SPA fallback configuration (e.g. vercel.json rewrites, netlify _redirects, nginx try_files).
+    2. Generate per-page title, meta description, canonical (the page's own address) and og tags on the server for these routes: generateMetadata/metadata for Next.js; a prerender plugin (e.g. vite-plugin-prerender) or per-route static HTML for a Vite/React SPA; a per-route HTML template if I run my own server.
+    3. If possible, render the main content of these pages on the server too (SSR/SSG).
+    4. Add a small test/script that checks every route's HTML has the right canonical and title.
+
+web.privacy.internal_role_exposed:
+  title: "Public pages show internal role names or admin details"
+  passed_title: "No internal role names or user fields on public pages"
+  description: "Your public pages show internal permission/role names such as SUPER_ADMIN or ADMIN, or data embedded in the page (JSON) contains users' roles, sometimes together with fields like email or phone. (We didn't store usernames or field values; we only looked at field names.)"
+  why_it_matters: "When internal role names and admin accounts are visible on a public page, attackers know whom to target, and it becomes easy to create fake \"admin\" accounts with the same name to scam users. Raw role names also leak your code's internals; fields like email/phone embedded in the page are a direct personal data leak."
+  fix_steps:
+    - "Return user objects on public pages and APIs with only the fields meant to be shown (a separate \"public\" data model/DTO)."
+    - "Replace internal role names with user-facing labels (e.g. a verified \"Team\" badge)."
+    - "Remove admin accounts from public directories."
+  fix_prompt: |
+    My site's public pages show internal role names (e.g. SUPER_ADMIN) and/or JSON embedded in the page contains user objects with fields like role and email (field names in the evidence). Please:
+    1. Define a separate public DTO for public profile/directory endpoints and pages: only display name, avatar and public profile info; fields like role, email, phone, internal ID and tokens must never be returned.
+    2. Use only this DTO in server-rendered pages too (e.g. Next.js getServerSideProps/__NEXT_DATA__).
+    3. Map internal roles to user-facing, verified badges (e.g. ADMIN → "Team" badge); never show the raw role name in the UI.
+    4. Exclude admin accounts from public directory queries.
+
+web.links.dead_or_inconsistent_nav:
+  title: "Your menu/footer has items that don't work or missing links"
+  passed_title: "Menu and footer links work and are consistent across pages"
+  description: "Your menu or footer has items that look like links but don't work (e.g. a \"Contact\" you can't click), and/or some legal/support links appear on other pages but not in the home page footer (see the evidence)."
+  why_it_matters: "Before buying or signing up, people look for contact and legal pages; a broken \"Contact\" or missing legal links lowers trust. The most visited page is usually the home page."
+  fix_steps:
+    - "Use a single shared footer component on every page."
+    - "Point the contact item to a working page or an email (mailto:) link."
+    - "Check that every menu item that looks like a link actually goes somewhere."
+  fix_prompt: |
+    My site's menu/footer has items that look like links but don't work, and the footer differs from page to page (items and missing links in the evidence). Please:
+    1. Find all footer and header variants in the project and merge them into a single shared component used by every page, including the home page.
+    2. Make the footer include privacy, cookies, terms, community guidelines, contact and support links.
+    3. Turn menu items without href, with href="#", or shown as plain text into working links (a /contact page or mailto: for contact).
+    4. Add a simple check in the build or tests that catches menu links without an href.
+
+web.conversion.cta_targets_login:
+  title: "{headline}"
+  passed_title: "The home page sends new visitors to sign-up"
+  description: "{situation}"
+  why_it_matters: "A new visitor who's convinced by your page and then lands on a login screen instead of sign-up often thinks \"I don't have an account\" and leaves. Every unnecessary step lowers your sign-up rate."
+  fix_steps:
+    - "Put a prominent \"Start free\" / \"Sign up\" button next to the login link in the header."
+    - "Point the last CTA on the page to the sign-up page."
+    - "Make switching between login and sign-up one click (\"No account? Sign up\")."
+  fix_prompt: |
+    The CTAs on my home page send new visitors to login instead of sign-up (counts and last CTA in the evidence). Please:
+    1. Add a prominent, primary-styled sign-up button next to the login link in the header ("Start free" / "Sign up").
+    2. Point the primary button in the page's last CTA section to the sign-up flow; login can stay as a secondary (plainer) link.
+    3. Add "No account? Sign up" to the login page and "Already have an account? Log in" to the sign-up page.
+    4. If sign-ups are closed (invite-only beta), say so clearly on the home page and add a waitlist form.
+  fragments:
+    headline_login: "Your home page sends new visitors to login, not sign-up"
+    headline_no_register: "There's no visible way to sign up on your home page"
+    situation_login: "The prominent buttons and menu on your home page mostly lead to the login screen: the top menu may only have login, the page's last CTA may go to login, or most CTAs point to login (details in the evidence)."
+    situation_no_register: "We found no link to a sign-up page on your home page and no sign-up form on the pages we scanned; there's only login. If it's an invite-only/closed beta, it's good to tell visitors clearly."
+
+web.conversion.empty_public_listing:
+  title: "Your public listings look almost empty"
+  passed_title: "Public listings look well populated"
+  description: "Public listing pages such as directories, members, products or reviews have very few items, or show small counters/\"nothing here yet\" messages (pages in the evidence)."
+  why_it_matters: "An empty directory or small numbers tell visitors \"nobody's here\". People join where there's a crowd; an empty shop window lowers sign-ups."
+  fix_steps:
+    - "Hide these pages or set them to noindex until they reach a certain number of items."
+    - "Show curated \"featured\" items instead of raw lists."
+    - "Remove small activity counters and bring them back once they grow."
+  fix_prompt: |
+    My site's public directory/listing pages look almost empty (pages and numbers in the evidence). Please:
+    1. Add a minimum item threshold (e.g. 6) to these pages: below it the page should be noindex and show a "coming soon" message or curated featured content instead of the list.
+    2. Hide member/review/activity counters while they're below a threshold (e.g. 20).
+    3. Replace "nothing here yet" empty states with a CTA inviting the visitor to be among the first.
+    4. Read the thresholds from a single config file.
+
+web.conversion.keyword_stuffing:
+  title: "The same phrase repeats unnaturally often on your pages"
+  passed_title: "No excessive keyword repetition in your text"
+  description: "On some pages the same phrase repeats so often that it makes up a noticeable share of the text (phrase and density in the evidence). If present, the meta keywords tag also has many repeated phrases."
+  why_it_matters: "Repeating the same phrase over and over makes the text sound robotic and lowers visitors' trust; Google may also see it as manipulation and lower your rankings. Google hasn't used the meta keywords tag for years."
+  fix_steps:
+    - "Write for people: use the key phrase once in the heading and the first paragraph."
+    - "Use synonyms and concrete benefits in the rest of the text."
+    - "Remove the meta keywords tag."
+  fix_prompt: |
+    Some pages on my site repeat the same phrase very often (phrases and pages in the evidence). Please:
+    1. Find the repeated phrases on those pages and rewrite them with natural variations that keep the meaning; keep the phrase once in the heading and the first paragraph.
+    2. In sections like the FAQ, rewrite each answer with concrete information specific to that question.
+    3. Remove the meta keywords tag.
+    4. Show the before and after texts side by side.
+
+web.conversion.value_proposition:
+  title: "Your home page's value proposition could be clearer"
+  passed_title: "Your home page's value proposition is clear"
+  description: "We evaluated your home page's first screen for what you do, who it's for, how you're different, trust signals, a single main action, pricing transparency and consistency. Details and suggestions are in the evidence."
+  why_it_matters: "If visitors can't tell within a few seconds what you offer, whether it's for them and why they should trust you, they leave."
+  fix_steps:
+    - "State what the product does and who it's for in one sentence on the first screen."
+    - "Explain how you differ from alternatives in the visible text."
+    - "Keep a single, clear primary button on the first screen."
+  fix_prompt: |
+    I want to make my home page's value proposition clearer (evaluation and suggestions in the evidence). Please:
+    1. Write 3 different headline + subheadline options for the first screen that say what the product does and who it's for.
+    2. Suggest a short section that explains the difference from alternatives with concrete benefits; if you use competitor brand names, note that I should check them from a trademark law perspective.
+    3. Simplify the existing buttons so the first screen keeps a single primary CTA.

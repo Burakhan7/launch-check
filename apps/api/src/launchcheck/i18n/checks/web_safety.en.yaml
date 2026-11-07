@@ -22,6 +22,7 @@ web.safety.age_gate_missing:
     headline_statement_only: "An age limit is mentioned but never confirmed"
     platform_live_media: "Your site offers live voice/video chat with strangers."
     platform_dating_or_matching: "Your site looks like a dating, matching or marriage platform."
+    platform_public_community_live: "Your site has public communities/servers and voice/video rooms, so users can talk live with people they don't know."
     situation_anonymous: "It can be used without signing up, and on the pages we scanned we found no 18+ requirement, age confirmation or terms acceptance."
     situation_no_age_limit: "On the pages we scanned and in the terms we found no 18+ requirement, age confirmation or terms acceptance."
     situation_statement_only: "Your pages mention an age limit, but users aren't asked to confirm their age or accept the terms (or the birth year field lets under-18s pick their year)."

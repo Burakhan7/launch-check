@@ -78,3 +78,47 @@ countries:
   hindistan: Hindistan
   kanada: Kanada
   avrupa birligi: Avrupa Birliği
+
+# Canlı medya: medya token'ı + iletişim token'ı aynı cümlede veya yakın (bkz. config
+# LC_WEB_LIVE_MEDIA_WINDOW_WORDS). "görüntülü kayıt", "sesli kitap" iletişim token'ı taşımaz.
+live_media:
+  media: [sesli, goruntulu, video, "kamera*", "ekran paylasim*", "ses oda*", "sesli oda*", "sesli kanal*", "mikrofon*"]
+  communication: ["sohbet*", "gorusme*", "konusma*", "oda", odalar, "odasi", "odalari", "kanal", kanallar, "kanali"]  # "arama" yok: "sesli arama" (voice search) iletişim değil
+
+# Herkese açık topluluk/dizin
+public_community:
+  paths: [kesfet, sunucular, topluluklar, profiller, uyeler, gruplar, kanallar, dizin, rehber]
+  phrases: ["herkese acik sunucu*", "herkese acik topluluk*", "topluluk kur*", "sunucu kur*", "sunucunu olustur*", "toplulugunu olustur*", "topluluga katil*"]
+
+# İndirme
+downloads:
+  link_texts: ["indir*", "kur", "kurulum*", "yukle*"]
+  # Kullanıcı bilerek beta/önizleme indiriyor (linkte veya yakınında)
+  beta_labels: [beta, "onizleme*", "test surum*", "deneme surum*", "erken erisim*"]
+
+# Fiyat/ürün/ödeme sayfası (URL parçası veya link metni)
+pricing_pages: ["fiyat*", "plan", planlar, "paket*", premium, pro, "abonelik*", "uyelik paket*", "urun*", magaza, "satin al*", "yukselt*"]
+
+# Footer'da beklenen yasal/destek linkleri: anahtar → eşleşen kelimeler
+footer_links:
+  privacy: ["gizlilik*", kvkk, "aydinlatma*"]
+  cookies: ["cerez*"]
+  terms: ["kullanim kosul*", "kullanim sart*", "sartlar*", "kosullar*", "uyelik sozlesme*"]
+  rules: ["kural*", "topluluk kural*", "icerik kaldirma*"]
+  contact: ["iletisim*", "bize ulas*"]
+  support: ["destek*", "yardim*", sss, "sikca sorulan*"]
+  refund: ["iade*", "iptal*", "mesafeli satis*"]
+# Ölü öğe olduğunda önemi artan (ziyaretçinin ulaşmak istediği) öğeler
+contact_items: ["iletisim*", "bize ulas*", "destek*", "yardim*"]
+
+# Giriş/kayıt hedef sınıflandırması (son yol parçası veya mode= değeri)
+auth_targets:
+  login: [giris, giris-yap, oturum-ac, oturum]
+  register: [kayit, kayit-ol, uye-ol, uyelik, basla, katil]
+
+# Herkese açık liste/dizin sayfası (URL parçası veya h1)
+listing_pages: ["kesfet*", "uyeler*", "profiller*", "kullanicilar*", "sunucular*", "topluluklar*", "ilanlar*", "saticilar*", "urunler*", "yorumlar*", "degerlendirmeler*", "dizin*", "rehber*"]
+# Sayaç birimleri: "12 üye", "0 yorum"
+counter_units: ["uye*", "kullanici*", "kisi*", "sunucu*", "topluluk*", "yorum*", "degerlendirme*", "paylasim*", "ilan*", "satici*", "urun*", "takipci*", "aktif*"]
+# Boş durum metinleri
+empty_states: ["henuz hic*", "henuz yok*", "sonuc bulunamadi*", "kayit bulunamadi*", "hic uye yok*", "burasi bos*"]
