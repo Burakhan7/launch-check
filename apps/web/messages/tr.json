@@ -93,6 +93,9 @@
     "passedCount": "{count} kontrol sorunsuz",
     "share": "Linki kopyala",
     "shareCopied": "Link kopyalandı",
+    "copyAllPrompts": "Tüm düzeltmeleri kopyala ({count})",
+    "copyAllHint": "Lovable, Bolt, Cursor veya Claude'a yapıştır. Önce kritik sorunlar.",
+    "copyAllOmitted": "+{count} sorun sonraki turda",
     "rescan": "Düzelttin mi? Tekrar tara",
     "rescanApk": "Yeni APK yükle",
     "helpTitle": "Kendin çözemedin mi?",
@@ -111,6 +114,13 @@
     "sensitiveEscalated": "Siten hassas (özel nitelikli) kişisel veri topluyor; bu yüzden bu bulgunun önemini bir seviye yükselttik.",
     "conversionTitle": "Satışı/büyümeyi etkileyenler",
     "conversionHint": "Güvenlik açığı değil ama ziyaretçinin kayıt olmasını veya satın almasını zorlaştıran şeyler."
+  },
+  "CombinedPrompt": {
+    "header": "Projemde yayın öncesi taramada aşağıdaki sorunlar bulundu (hedef: {target}{platforms}). Sırayla ilerle; her birini bitirince kısaca ne değiştirdiğini yaz. Benim panelden yapmam gereken adımları ayrıca listele.",
+    "platforms": ", platform: {list}",
+    "location": "Konum: {value}",
+    "footer": "Bitince: yaptığın değişikliklerin listesini ve benim yapmam gereken manuel adımları (anahtar yenileme, panel ayarları) ayrı bir başlık altında ver.",
+    "truncated": "Kalan {count} sorunu bunlar bitince siteyi tekrar tarayarak al."
   },
   "Severity": {
     "critical": "Kritik",

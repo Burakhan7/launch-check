@@ -93,6 +93,9 @@
     "passedCount": "{count} checks passed",
     "share": "Copy link",
     "shareCopied": "Link copied",
+    "copyAllPrompts": "Copy all fixes ({count})",
+    "copyAllHint": "Paste into Lovable, Bolt, Cursor or Claude. Critical issues first.",
+    "copyAllOmitted": "+{count} more issues in the next round",
     "rescan": "Fixed it? Scan again",
     "rescanApk": "Upload a new APK",
     "helpTitle": "Couldn't fix it yourself?",
@@ -111,6 +114,13 @@
     "sensitiveEscalated": "Your site collects sensitive (special category) personal data, so we raised this finding's severity by one level.",
     "conversionTitle": "Things affecting sales and growth",
     "conversionHint": "Not security issues, but things that make it harder for visitors to sign up or buy."
+  },
+  "CombinedPrompt": {
+    "header": "A pre-launch scan of my project found the issues below (target: {target}{platforms}). Work through them in order; after finishing each one, briefly write what you changed. List the steps I need to do in dashboards separately.",
+    "platforms": ", platform: {list}",
+    "location": "Location: {value}",
+    "footer": "When you're done: give me a list of the changes you made and, under a separate heading, the manual steps I need to do (rotating keys, dashboard settings).",
+    "truncated": "Get the remaining {count} issues by rescanning the site once these are done."
   },
   "Severity": {
     "critical": "Critical",

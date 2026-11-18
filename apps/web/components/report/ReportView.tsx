@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Link, useRouter } from "@/i18n/navigation";
 import { ApiError, getScan, startWebScan, type Category, type ScanReport } from "@/lib/api";
+import { buildCombinedPrompt } from "@/lib/combinedPrompt";
 import { CONTACT_URL, POLL_INTERVAL_MS } from "@/lib/site";
 import { CopyButton } from "./CopyButton";
 import { FindingCard } from "./FindingCard";
@@ -241,10 +242,24 @@ function TargetBadges({ report }: { report: ScanReport }) {
   );
 }
 
+function reportPlatforms(report: ScanReport): string[] {
+  const meta = report.meta;
+  if (report.target_type === "apk") return [String(meta.framework ?? "")].filter(Boolean);
+  return (meta.platform as string[] | undefined) ?? [];
+}
+
 function Actions({ report }: { report: ScanReport }) {
   const t = useTranslations("Report");
+  const tp = useTranslations("CombinedPrompt");
+  const tsev = useTranslations("Severity");
+  const combined = buildCombinedPrompt(report.findings, {
+    target: report.target_label,
+    platforms: reportPlatforms(report),
+    t: (key, values) => tp(key, values),
+    severityLabel: (severity) => tsev(severity),
+  });
   return (
-    <div className="flex flex-wrap gap-2">
+    <div className="flex flex-wrap items-start gap-2">
       <RescanButton report={report} />
       <CopyButton
         text={() => window.location.href}
@@ -252,6 +267,19 @@ function Actions({ report }: { report: ScanReport }) {
         copiedLabel={t("shareCopied")}
         variant="outline"
       />
+      {combined.included > 0 && (
+        <div className="flex flex-col gap-1">
+          <CopyButton
+            text={combined.text}
+            label={t("copyAllPrompts", { count: combined.included })}
+            copiedLabel={t("copied")}
+          />
+          <p className="max-w-xs text-xs text-muted">
+            {t("copyAllHint")}
+            {combined.omitted > 0 && <> {t("copyAllOmitted", { count: combined.omitted })}</>}
+          </p>
+        </div>
+      )}
     </div>
   );
 }

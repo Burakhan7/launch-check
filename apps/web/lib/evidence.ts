@@ -87,6 +87,47 @@ function totalFor(key: string, evidence: Record<string, unknown>, shown: number)
   return typeof total === "number" ? Math.max(0, total - shown) : 0;
 }
 
+// Konum bilgisi taşıyan kanıt alanları (öncelik sırasıyla). Maskeli değerler (`masked`) yok.
+const LOCATION_KEYS = [
+  "locations",
+  "path",
+  "paths",
+  "files",
+  "pages",
+  "items",
+  "page",
+  "url",
+  "urls",
+];
+const LOCATION_OBJECT_KEYS = ["path", "url", "page", "file"];
+
+function locationOf(v: unknown): string | null {
+  if (isLocation(v)) return `${v.file}:${v.line}`;
+  if (typeof v === "string") return v || null;
+  if (typeof v === "object" && v !== null && !Array.isArray(v)) {
+    const obj = v as Record<string, unknown>;
+    const key = LOCATION_OBJECT_KEYS.find((k) => typeof obj[k] === "string" && obj[k]);
+    return key ? String(obj[key]) : null;
+  }
+  return null;
+}
+
+/** Kanıttaki dosya/sayfa/yol bilgileri ("assets/a.js:3", "/iletisim"); en fazla `max` tane.
+ * Sadece konum yazılır: maskeli secret, örnek değer vb. dışarı kopyalanmaz. */
+export function evidenceLocations(evidence: Record<string, unknown>, max = 3): string[] {
+  const out: string[] = [];
+  for (const key of LOCATION_KEYS) {
+    const raw = evidence[key];
+    const values = Array.isArray(raw) ? raw : raw === undefined ? [] : [raw];
+    for (const value of values) {
+      const loc = locationOf(value);
+      if (loc && !out.includes(loc)) out.push(loc);
+      if (out.length >= max) return out;
+    }
+  }
+  return out;
+}
+
 export function evidenceRows(
   evidence: Record<string, unknown>,
   translateValue: (key: string, value: string) => string = (_k, v) => v,
