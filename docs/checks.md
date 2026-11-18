@@ -115,3 +115,38 @@ Faz 1'de kayıtlıdır ama çalışmaz (`phase = 2`, LLM istemcisi bağlı deği
 ```
 
 **Uydurmaya karşı kurallar:** LLM sadece verilen metne dayanır, dış bilgi kullanmaz; piyasa/rakip bağlamı gerektiren yorumlar `needs_verification: true` ("doğrulanmalı"); öneri metninde rakip marka adı varsa "(marka hukuku açısından kontrol et)" notu. Şemaya uymayan çıktı reddedilir; `evidence_text`'i girdide geçmeyen bulgular atılır.
+
+## web.content.framework_leftovers
+
+Yakalar: ana sayfa ana içeriğinde (nav/header/footer hariç) Vite/CRA/Next.js/Lovable/Bolt şablon cümleleri (sunucu HTML'i boş SPA'larda aynı cümleler JS bundle'ında), varsayılan `<title>` ("Vite + React + TS", "Create Next App", "vite_react_shadcn_ts"...) ve açıklamalar, Lovable `author`/`twitter:site` etiketleri, aracın alan adındaki og:image, `/vite.svg`·`/next.svg`·`/vercel.svg` ikonları ve hash'i bilinen varsayılan favicon'lar.
+Kaçırabilir: hash'i listede olmayan eski şablon sürümlerinin favicon'ları, metni biraz değiştirilmiş şablon sayfaları ve listede olmayan araçlar; kod bloklarında (`pre`, cümleyi tek başına taşıyan `code`) geçen şablon metni ve aracın kendi sitesi bilinçli olarak sayılmaz.
+
+## web.meta.viewport_missing
+
+Yakalar: ana sayfa ve taranan iç sayfalarda `meta[name=viewport]` yokluğu, sayısal sabit `width`, `device-width` olmayan genişlik ve yakınlaştırma engeli (`user-scalable=no/0` veya `maximum-scale` < 2); anahtar/değerler büyük-küçük harf ve boşluk duyarsız okunur.
+Kaçırabilir: viewport'u JS ile sonradan ekleyen sayfalar (yanlış pozitif) ve etiketi doğru olup CSS'i sabit genişlikli olan sayfalar (Faz 2'de tarayıcıyla ölçülür).
+
+## web.secrets.db_connection_string / apk.secrets.db_connection_string
+
+Yakalar: JS bundle/inline script (web) veya APK string kaynaklarında kullanıcı adı + şifre içeren `postgres://`, `mysql://`, `mariadb://`, `mongodb(+srv)://`, `redis(s)://`, `amqp(s)://` adresleri; yönetilen DB servisleri (Supabase, Neon, PlanetScale, MongoDB Atlas, Upstash, Railway, Render, Aiven, RDS, CockroachDB) critical, diğer herkese açık host'lar high. Kanıtta şifre, kullanıcı adı ve tam host yok; sadece tür, kayıtlı alan adı ve şifre uzunluğu.
+Kaçırabilir: parçalara bölünerek birleştirilen adresler ve şifresi ayrı değişkende duran bağlantılar (o durumda şifre `leaked_key` desenlerine de uymayabilir); yer tutucu şifreler, 6 karakterden kısa veya kullanıcı adıyla aynı şifreler ve yerel host'lar (localhost, docker servis adları, .local/.internal/.test) bilinçli olarak sayılmaz (yereller `meta.local_db_strings`).
+
+## web.secrets.leaked_key / apk.secrets.leaked_key — Ek Paket 1 desenleri
+
+Yakalar (ek): Hugging Face, Mapbox secret (`sk.`), Slack token ve webhook, Discord webhook, Telegram bot token, Mailgun, Cloudinary URL (kanıtta API secret yok), npm token; bağlamlı olarak iyzico (aynı dosyada 2000 karakter yakınında "iyzico/iyzipay" varsa; `sandbox-` → medium) ve PayTR merchant key/salt. kind=stripe_* bir Clerk anahtarı da olabilir (Clerk aynı `sk_live_`/`sk_test_` önekini kullanır).
+Kaçırabilir: bağlam kelimesi farklı dosyada olan iyzico/PayTR anahtarları ve değişken adı farklı yazılmış (`apiSecret` gibi) anahtarlar; Mapbox public token (`pk.`) bilinçli olarak sayılmaz.
+
+## web.files.api_docs_exposed
+
+Yakalar: `LC_WEB_API_DOC_PATHS` yollarında kökünde `openapi`/`swagger` + `paths` olan JSON (kesilmişse ilk 4 KB'ta imza) veya `swagger-ui`/`SwaggerUIBundle`/`redoc` içeren HTML; HTML sayfadaki aynı origin spec adresi 1 ek istekle okunur. Güvenlik şeması yok + admin/internal/debug/users/delete/export/upload yolları → high.
+Kaçırabilir: listede olmayan yollarda (ör. `/api/v2/docs`) veya giriş arkasında duran dokümanlar ve GraphQL introspection (Faz 3); pazarlama `/docs` sayfaları bilinçli olarak sayılmaz.
+
+## web.files.dev_files_exposed
+
+Yakalar: içeriği doğrulanan `.npmrc` (token varsa, critical), `phpinfo.php`/`info.php` (high), `docker-compose.yml/.yaml` (`services:` satırı, medium; sadece servis adları kaydedilir), `.DS_Store`, `.vscode/settings.json`, `.idea/workspace.xml`, `.firebaserc` (low). SPA catch-all ve rastgele yol (baseline) yanıtıyla aynı içerik elenir.
+Kaçırabilir: listede olmayan geliştirme dosyaları ve sunucunun 403 ile gizleyip başka yoldan sunduğu dosyalar; token içermeyen `.npmrc` bilinçli olarak raporlanmaz.
+
+## apk.manifest.example_package
+
+Yakalar: `com.example` ad alanındaki paketler (Play reddeder, high) ve `com.mycompany`, `com.yourcompany`, `com.company`, `com.test`, `com.demo`, `io.flutter` şablon ad alanları (low); önek tam segment olarak eşleşir (`com.examplecorp` sayılmaz).
+Kaçırabilir: listede olmayan şablon adları (ör. `com.myapp.app`); manifest okunamadıysa bulgu üretilmez.

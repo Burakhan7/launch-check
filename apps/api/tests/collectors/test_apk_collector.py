@@ -49,12 +49,12 @@ def assert_clean(dirs: tuple[Path, Path]) -> None:
 @pytest.mark.parametrize(
     ("fixture", "package", "framework", "target_sdk", "debug"),
     [
-        ("native_release", "com.example.nativeapp", "native", 36, False),
-        ("native_debug", "com.example.debugapp", "native", 30, True),
-        ("flutter_debug", "com.example.flutterdebug", "flutter", 35, True),
-        ("flutterflow_release", "com.example.ffapp", "flutterflow", 36, False),
-        ("rn_release", "com.example.rnapp", "react_native", 36, False),
-        ("expo_dev", "com.example.expodev", "expo", 35, True),
+        ("native_release", "app.lcfixture.nativeapp", "native", 36, False),
+        ("native_debug", "app.lcfixture.debugapp", "native", 30, True),
+        ("flutter_debug", "app.lcfixture.flutterdebug", "flutter", 35, True),
+        ("flutterflow_release", "app.lcfixture.ffapp", "flutterflow", 36, False),
+        ("rn_release", "app.lcfixture.rnapp", "react_native", 36, False),
+        ("expo_dev", "app.lcfixture.expodev", "expo", 35, True),
     ],
 )
 async def test_collect_fixture(
@@ -115,7 +115,7 @@ async def test_smali_const_strings_and_jadx(dirs: tuple[Path, Path]) -> None:
     )
     assert isinstance(ctx, ApkContext)
     try:
-        smali = dict(ctx.string_sources)["smali/com/example/debugapp/Api.smali"]
+        smali = dict(ctx.string_sources)["smali/app/lcfixture/debugapp/Api.smali"]
         assert "http://10.0.2.2:3000/api" in smali
         assert ctx.meta["decompiled_sources"] is True
         java = dict(ctx.jadx_sources())

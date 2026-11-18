@@ -9,6 +9,7 @@ from launchcheck.checks.apk.build import DebugCertificate, Debuggable, FlutterDe
 from launchcheck.checks.apk.log_leaks import SensitiveLog
 from launchcheck.checks.apk.manifest import (
     AllowBackup,
+    ExamplePackage,
     ExportedComponents,
     SensitivePermissions,
     TargetSdkTooLow,
@@ -285,3 +286,59 @@ async def test_sensitive_log_negative(tmp_path: Path) -> None:
     jadx = {"com/example/app/Main.java": 'Log.d("Main", "started");\nString token = load();'}
     assert await run(SensitiveLog, make_apk_ctx(tmp_path, jadx=jadx)) == []
     assert await run(SensitiveLog, make_apk_ctx(tmp_path)) == []  # jadx yok
+
+
+# --- paket adı
+
+
+@pytest.mark.parametrize(
+    ("package", "expected"),
+    [
+        ("com.example.app", (Severity.HIGH, "play_rejects")),
+        ("com.example", (Severity.HIGH, "play_rejects")),
+        ("com.mycompany.app", (Severity.LOW, "placeholder_namespace")),
+        ("io.flutter.demo", (Severity.LOW, "placeholder_namespace")),
+        ("com.examplecorp.app", None),  # önek tam segment olmalı
+        ("com.bglabs.app", None),
+        ("com.testflight.app", None),
+    ],
+)
+async def test_example_package(
+    tmp_path: Path, package: str, expected: tuple[Severity, str] | None
+) -> None:
+    ctx = make_apk_ctx(tmp_path, manifest_xml=manifest(package=package))
+    findings = await run(ExamplePackage, ctx)
+    if expected is None:
+        assert findings == []
+        return
+    (finding,) = findings
+    assert (finding.severity, finding.evidence["reason"]) == expected
+    assert finding.evidence["package"] == package
+
+
+async def test_example_package_empty_manifest_package(tmp_path: Path) -> None:
+    ctx = make_apk_ctx(tmp_path, manifest_xml=manifest(package=""))
+    assert await run(ExamplePackage, ctx) == []
+
+
+def test_example_package_texts_by_reason() -> None:
+    from launchcheck.i18n import finding_text, fragment_fn
+
+    check = ExamplePackage()
+    for lang in ("tr", "en"):
+        fragment = fragment_fn(check.id, lang)
+        high = finding_text(
+            check.id,
+            lang,
+            check.text_params({"package": "com.example.app", "reason": "play_rejects"}, fragment),
+        )
+        low = finding_text(
+            check.id,
+            lang,
+            check.text_params(
+                {"package": "com.mycompany.app", "reason": "placeholder_namespace"}, fragment
+            ),
+        )
+        assert "com.example.app" in high.description and "com.example" in high.why_it_matters
+        assert "{" not in high.description + high.why_it_matters + high.fix_prompt
+        assert low.why_it_matters != high.why_it_matters

@@ -135,14 +135,14 @@ def printable_blob(strings: list[str], size: int = 4096) -> bytes:
 
 FIXTURES: dict[str, dict[str, object]] = {
     "native_release": {
-        "package": "com.example.nativeapp",
+        "package": "app.lcfixture.nativeapp",
         "target": 36,
         "app_attrs": 'android:allowBackup="false"',
         "cert": "CN=Launch Check Release, O=Example",
-        "smali": {"com/example/nativeapp/MainActivity": ["https://api.example.com/v1"]},
+        "smali": {"app/lcfixture/nativeapp/MainActivity": ["https://api.example.com/v1"]},
     },
     "native_debug": {
-        "package": "com.example.debugapp",
+        "package": "app.lcfixture.debugapp",
         "target": 30,
         "app_attrs": 'android:debuggable="true" android:usesCleartextTraffic="true"',
         "extra": "\n".join(
@@ -158,17 +158,17 @@ FIXTURES: dict[str, dict[str, object]] = {
         '        <receiver android:name=".BootReceiver" android:exported="false"/>',
         "cert": "CN=Android Debug, O=Android, C=US",
         "smali": {
-            "com/example/debugapp/Api": [
+            "app/lcfixture/debugapp/Api": [
                 "http://10.0.2.2:3000/api",
                 "https://staging.api.example.com/v1",
                 OPENAI,
                 SERVICE_ROLE,
             ]
         },
-        "log_method_class": "com/example/debugapp/Api",
+        "log_method_class": "app/lcfixture/debugapp/Api",
     },
     "flutter_debug": {
-        "package": "com.example.flutterdebug",
+        "package": "app.lcfixture.flutterdebug",
         "target": 35,
         "app_attrs": 'android:allowBackup="false"',
         "cert": "CN=Android Debug, O=Android, C=US",
@@ -180,7 +180,7 @@ FIXTURES: dict[str, dict[str, object]] = {
         },
     },
     "flutterflow_release": {
-        "package": "com.example.ffapp",
+        "package": "app.lcfixture.ffapp",
         "target": 36,
         "app_attrs": 'android:allowBackup="false"',
         "cert": "CN=FF Release, O=Example",
@@ -200,7 +200,7 @@ FIXTURES: dict[str, dict[str, object]] = {
         },
     },
     "rn_release": {
-        "package": "com.example.rnapp",
+        "package": "app.lcfixture.rnapp",
         "target": 36,
         "app_attrs": 'android:allowBackup="false"',
         "cert": "CN=RN Release, O=Example",
@@ -216,7 +216,7 @@ FIXTURES: dict[str, dict[str, object]] = {
         },
     },
     "expo_dev": {
-        "package": "com.example.expodev",
+        "package": "app.lcfixture.expodev",
         "target": 35,
         "app_attrs": 'android:allowBackup="false"',
         "cert": "CN=Android Debug, O=Android, C=US",

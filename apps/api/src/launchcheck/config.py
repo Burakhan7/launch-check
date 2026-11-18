@@ -122,6 +122,22 @@ class Settings(BaseSettings):
             "fillout.com",
         ]
     )
+    # web.files.api_docs_exposed: herkese açık API dokümantasyonu (Swagger/OpenAPI/ReDoc) yolları
+    web_api_doc_paths: list[str] = Field(
+        default_factory=lambda: [
+            "/openapi.json",
+            "/swagger.json",
+            "/api/openapi.json",
+            "/api/swagger.json",
+            "/v3/api-docs",
+            "/api-docs",
+            "/docs",
+            "/api/docs",
+            "/swagger-ui.html",
+            "/swagger",
+            "/redoc",
+        ]
+    )
     # web.links.malformed_youtube: bu sayıdan itibaren önem medium
     web_youtube_medium_threshold: int = 4
     # web.a11y.img_missing_alt: alt'sız görsel sayısı >= bu VEYA oranı > aşağıdaki → bulgu

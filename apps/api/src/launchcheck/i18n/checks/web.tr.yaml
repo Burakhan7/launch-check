@@ -2,9 +2,10 @@
 
 web.secrets.leaked_key:
   title: "Sitenin kodunda gizli bir API anahtarı var"
-  description: "Tarayıcıya gönderilen JavaScript dosyalarında, sadece sunucuda durması gereken bir anahtar bulundu (ör. OpenAI, Stripe, AWS). Siteni ziyaret eden herkes bu dosyaları görebilir."
+  description: "Tarayıcıya gönderilen JavaScript dosyalarında, sadece sunucuda durması gereken bir anahtar bulundu (ör. OpenAI, Stripe, Clerk, AWS). Siteni ziyaret eden herkes bu dosyaları görebilir."
   why_it_matters: "Bu anahtarı bulan biri senin adına işlem yapabilir: yapay zekâ kullanımıyla faturanı şişirebilir, ödeme sistemine erişebilir veya verilerini okuyabilir. Botlar sitelerdeki bu tür anahtarları otomatik olarak tarar."
   fix_steps:
+    - "{payment_step}"
     - "Bu anahtarı ilgili servisin panelinden hemen iptal et ve yenisini oluştur (eski anahtar artık güvenli değil)."
     - "Yeni anahtarı frontend koduna değil, sunucu tarafına koy (ör. Supabase Edge Function, Vercel/Netlify serverless function veya kendi backend'in)."
     - "Frontend'den bu servisi doğrudan değil, kendi sunucu fonksiyonun üzerinden çağır."
@@ -16,6 +17,8 @@ web.secrets.leaked_key:
     3. Frontend sadece bu sunucu fonksiyonunu çağırsın; anahtar frontend'de hiçbir yerde kalmasın.
     4. VITE_ / NEXT_PUBLIC_ / EXPO_PUBLIC_ önekli değişkenlerde gizli anahtar kalmadığından emin ol.
     Not: Anahtarı ayrıca servisin panelinden iptal edip yenileyeceğim.
+  fragments:
+    payment_step: "Ödeme sağlayıcının panelinden anahtarı yenile; frontend/uygulama sadece senin sunucundan aldığı ödeme token'ını kullansın."
 
 web.secrets.google_api_key:
   title: "Google API anahtarı bulundu, kısıtlamalarını kontrol et"

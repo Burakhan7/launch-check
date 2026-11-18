@@ -1,0 +1,99 @@
+# Faz 1 extra pack 1 check texts (English). Tone: plain, non-blaming, outcome-focused.
+
+web.meta.viewport_missing:
+  title: "Your site may not display properly on phones"
+  passed_title: "Mobile display setting (viewport) is correct"
+  description: "The setting that makes your page fit phone screens (the viewport tag) is missing or wrong: {issues}."
+  why_it_matters: "Without this setting, phones draw the site at desktop width and shrink it; text becomes unreadable and buttons are hard to tap. Most visitors come from phones and leave a site like this within seconds. Google also uses mobile-friendliness in rankings. Disabling zoom makes things hard for people with low vision."
+  fix_steps:
+    - "Add this line to the <head> of every page: <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">"
+    - "Remove user-scalable=no and maximum-scale=1."
+    - "If a fixed width is set (like width=1024), replace it with device-width and check the page on a phone."
+  fix_prompt: |
+    My site's viewport setting is missing or wrong. Please:
+    1. Make sure the root HTML/layout file has <meta name="viewport" content="width=device-width, initial-scale=1"> (with the viewport export in the Next.js App Router).
+    2. Remove user-scalable=no and maximum-scale.
+    3. Find fixed-width layouts (like min-width: 1024px) and make them responsive so nothing overflows on mobile.
+    4. List and fix the components that cause horizontal scrolling at 375px width.
+  fragments:
+    missing: "the tag is missing"
+    fixed_width: "a fixed width is set"
+    no_device_width: "device width isn't used"
+    zoom_blocked: "zoom is disabled"
+
+web.files.api_docs_exposed:
+  title: "Your API documentation is public"
+  description: "Documentation listing all of your API's endpoints ({path}) is open to everyone on your site.{endpoints}"
+  why_it_matters: "This page gives attackers a map of your API: which addresses exist, which parameters they take and which ones perform admin actions. Frameworks like FastAPI and Express leave this open by default."
+  fix_steps:
+    - "Turn the documentation off in production (FastAPI: FastAPI(docs_url=None, redoc_url=None, openapi_url=None))."
+    - "If you need the documentation, open it only to signed-in admins or behind an IP restriction."
+    - "If the list contains endpoints that perform admin/internal actions, check that every one of them requires authentication."
+  fix_prompt: |
+    My API documentation (Swagger/OpenAPI) is public in production. Please:
+    1. Find where the documentation and openapi.json are enabled in my framework (FastAPI, Express + swagger-ui, NestJS etc.).
+    2. Tie this to an environment variable so it is only enabled in development and fully disabled in production.
+    3. Check that every endpoint containing admin, internal, users, delete, export or upload performs authentication and authorization, and list the ones that don't.
+  fragments:
+    endpoints: " {count} endpoints are visible."
+
+web.files.dev_files_exposed:
+  title: "Your development files can be read from the internet"
+  description: "Files that should stay on a development machine are public on your site: {files}."
+  why_it_matters: "These files reveal how your server is set up, which services you use and sometimes access keys. With a token from .npmrc someone can publish packages in your name; a phpinfo page exposes all server settings and a docker-compose file reveals your infrastructure."
+  fix_steps:
+    - "{npm_token_step}"
+    - "Remove these files from the server/publish folder; make sure they don't end up in the build output (dist, public, build)."
+    - "If the files contain tokens or passwords, rotate all of them at the provider; once a file has been public, its contents aren't safe anymore."
+    - "On your server (Nginx, Apache, hosting panel), block access to files starting with a dot and to .php info pages."
+  fix_prompt: |
+    Development files are public on my site (e.g. .npmrc, phpinfo.php, docker-compose.yml, .DS_Store, .vscode, .idea, .firebaserc). Please:
+    1. Find out why these files ended up in the publish folder (copied to public/, a build setting, a deploy script).
+    2. Fix the build and deploy setup so these files are never published; update .gitignore and .dockerignore.
+    3. Add a rule to the server/hosting config that blocks access to dotfiles and phpinfo pages.
+    4. List the tokens and passwords that appear in these files (without writing their values); tell me which ones I need to rotate.
+    Note: I will rotate the exposed tokens and passwords at the respective services myself.
+  fragments:
+    npm_token_step: "Revoke your npm token right away at npmjs.com → Access Tokens and create a new one."
+
+web.secrets.db_connection_string:
+  title: "Your database password is exposed in your site's code"
+  description: "The JavaScript sent to browsers contains a database connection address with a username and password ({kind}, {provider_domain})."
+  why_it_matters: "With this address anyone can connect to your database directly: read, change or delete all user data. None of your app's security rules (including RLS) can stop this connection."
+  fix_steps:
+    - "Change the database password in your provider's dashboard right away (Supabase: Project Settings → Database → Reset password)."
+    - "Remove the connection address from the frontend completely; read it only on the server side (Edge Function, serverless function, backend) from an environment variable."
+    - "Make sure DATABASE_URL isn't in any VITE_, NEXT_PUBLIC_ or EXPO_PUBLIC_ variable."
+    - "Check your database logs for suspicious access; inform affected users if needed."
+  fix_prompt: |
+    A database connection address (with username and password) has leaked into my frontend code. Please:
+    1. Find every use of DATABASE_URL or anything starting with postgres:// / mongodb://.
+    2. Remove frontend code that connects directly to the database; move these operations into a server function.
+    3. Read the connection address only from a server environment variable; it must not remain in any VITE_/NEXT_PUBLIC_/EXPO_PUBLIC_ variable.
+    4. If I use Supabase, keep only supabase-js + the anon key in the frontend and make sure RLS is on for the related tables.
+    Note: I will also change the database password in my provider's dashboard myself.
+
+web.content.framework_leftovers:
+  title: "Your site still has leftovers from a template"
+  passed_title: "No leftover template title, image or content"
+  description: "Default content from the tool or framework you used is still on your site: {kinds}. Visitors and search engines see this."
+  why_it_matters: "A browser tab that says 'Vite + React', or a link that's shared with the tool's logo, makes the site look unfinished. It lowers trust, your brand doesn't show up in shares and Google lists you with the wrong title."
+  fix_steps:
+    - "Replace the <title> and meta description in index.html (or your layout file) with text that describes your product."
+    - "Replace default icons like vite.svg/next.svg in the public folder with your own logo and update the favicon link."
+    - "Add your own 1200x630 image for og:image; remove the tool's default image."
+    - "If the template page (counter, 'Edit src/App' text) is still your home page, replace it with your real home page."
+  fix_prompt: |
+    My site still has content left over from a framework/tool template. Please:
+    1. Find the <title>, meta description, meta author, og:title, og:description, og:image and twitter:* tags in index.html or the root layout.
+    2. Fill them in for my product: title 50-60 characters, description 140-160 characters, saying what the product does and who it's for. First suggest 3 title + description options.
+    3. Remove the default favicon (vite.svg, next.svg etc.); prepare the public/ folder for my own favicon.ico, icon.svg and apple-touch-icon.png and update the links.
+    4. If template content (counter, "Edit src/App.tsx" text, logos) is still on the home page, remove it.
+    5. Set the og:image path to a 1200x630 image (absolute https URL).
+  fragments:
+    template_page: "template home page"
+    default_title: "default page title"
+    default_description: "default description"
+    tool_branding_meta: "tool name in meta tags"
+    tool_og_image: "the tool's share image"
+    default_favicon: "default site icon"

@@ -2,9 +2,10 @@
 
 apk.secrets.leaked_key:
   title: "A secret API key is inside your app"
-  description: "The app file (APK) contains a key that should only live on a server (e.g. OpenAI, Stripe, AWS). Anyone who downloads the APK can unpack it in minutes and read this key."
+  description: "The app file (APK) contains a key that should only live on a server (e.g. OpenAI, Stripe, Clerk, AWS). Anyone who downloads the APK can unpack it in minutes and read this key."
   why_it_matters: "With this key someone can act on your behalf: run up your AI bill, or reach your payment system or data. As long as the app can be downloaded, the key is public; obfuscating the code doesn't prevent this."
   fix_steps:
+    - "{payment_step}"
     - "Revoke this key in the provider's dashboard right away and create a new one."
     - "Put the new key on the server side, not in the app (e.g. a Supabase Edge Function, a Firebase Cloud Function or your own backend)."
     - "Have the app call the service through your own server function instead of directly."
@@ -15,6 +16,8 @@ apk.secrets.leaked_key:
     2. Move the calls to this service into a server function (Supabase Edge Function or Firebase Cloud Function); the key should only be read on the server, from an environment variable.
     3. Make the app call only that server function; the key must not remain in the app code or in any bundled file.
     Note: I will also revoke and rotate the key in the provider's dashboard.
+  fragments:
+    payment_step: "Rotate the key in your payment provider's dashboard; the frontend/app should only use the payment token it gets from your own server."
 
 apk.secrets.google_api_key:
   title: "Google API key found, check its restrictions"
@@ -208,3 +211,42 @@ apk.logging.sensitive_log:
     1. Find log calls like Log.d, Log.v and System.out.println that print values such as token, password, secret or authorization.
     2. Remove those values from the logs.
     3. Add configuration that strips debug logs entirely from release builds (an R8/ProGuard -assumenosideeffects rule, or Timber).
+
+apk.manifest.example_package:
+  title: "Your package name isn't suitable for Google Play"
+  passed_title: "Package name is fine for the store"
+  description: "Your app's package name ({package}) is a default name from a template: {reason_text}."
+  why_it_matters: "{impact} Once a package name is uploaded to the store it can never be changed, so it's worth choosing the right one now."
+  fix_steps:
+    - "Pick a package name in reverse domain format that belongs to you (e.g. com.yourbrand.appname)."
+    - "Flutter: change applicationId and namespace in android/app/build.gradle(.kts); update MainActivity's folder path and package line."
+    - "Expo: change android.package in app.json and make a new build."
+    - "If you use Firebase, add an Android app with the new package name and download the new google-services.json."
+  fix_prompt: |
+    My Android app's package name is {package}, left over from a template. The new package name is com.BRAND.APP (I'll replace this with my own). Please:
+    1. Move applicationId, namespace, the AndroidManifest package, the package lines of Kotlin/Java files and the folder paths to the new name.
+    2. If this is Expo/React Native, update android.package in app.json/app.config.
+    3. List settings tied to the package name, such as google-services.json, deep link intent-filters and OAuth (Google Sign-In SHA-1); tell me which ones I need to update in dashboards.
+    4. Make a clean release build and confirm it works.
+  fragments:
+    play_rejects: "Google Play rejects this name"
+    placeholder_namespace: "an example/template namespace"
+    impact_play_rejects: "Google Play doesn't accept package names starting with com.example; the upload is rejected at the very first step."
+    impact_placeholder_namespace: "Google Play accepts this name, but it's permanent: your app will show this template name in the store forever (in its Play link and settings)."
+
+apk.secrets.db_connection_string:
+  title: "Your database password is inside the app file"
+  description: "The app file (APK) contains a database connection address with a username and password ({kind}, {provider_domain}). Anyone who downloads the APK can unpack it and read this address."
+  why_it_matters: "With this address anyone can connect to your database directly: read, change or delete all user data. None of your app's security rules (including RLS) can stop this connection, and obfuscating the code doesn't hide the address."
+  fix_steps:
+    - "Change the database password in your provider's dashboard right away (Supabase: Project Settings → Database → Reset password)."
+    - "Remove the connection address from the app completely; move database operations into a server function (Edge Function, Cloud Function, backend) and read the address there from an environment variable."
+    - "Don't bundle the address in a .env or assets file; EXPO_PUBLIC_ variables also end up inside the app."
+    - "Publish a new version of the app and check your database logs for suspicious access."
+  fix_prompt: |
+    My mobile app (APK) contains a database connection address (with username and password). Please:
+    1. Find every use of DATABASE_URL or anything starting with postgres:// / mongodb:// in the code, .env files and the assets folder.
+    2. Remove code that connects from the app directly to the database; move these operations into a server function and have the app call only that.
+    3. Read the connection address only from a server environment variable; it must not remain in EXPO_PUBLIC_ variables or bundled files.
+    4. If I use Supabase, keep only the Supabase client + anon key in the app and make sure RLS is on for the related tables.
+    Note: I will also change the database password in my provider's dashboard myself.

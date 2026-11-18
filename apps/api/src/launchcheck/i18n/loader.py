@@ -106,11 +106,14 @@ def finding_text(check_id: str, lang: str, params: dict[str, str] | None = None)
             title=check_id, description="", why_it_matters="", fix_steps=[], fix_prompt=""
         )
     values = params or {}
+    # Dinamik adımlar: tamamı tek bir yer tutucu olan adım ("{npm_token_step}") parametre boş
+    # gelirse listeden düşer; böylece adım sadece ilgili durumda görünür.
+    steps = [_render(str(s), values) for s in entry.get("fix_steps") or []]
     return FindingText(
         title=_render(str(entry.get("title", check_id)), values),
         description=_render(str(entry.get("description", "")), values),
         why_it_matters=_render(str(entry.get("why_it_matters", "")), values),
-        fix_steps=[_render(str(s), values) for s in entry.get("fix_steps") or []],
+        fix_steps=[s for s in steps if s.strip()],
         fix_prompt=_render(str(entry.get("fix_prompt", "")).strip(), values),
     )
 

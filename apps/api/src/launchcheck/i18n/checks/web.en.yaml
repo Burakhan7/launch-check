@@ -2,9 +2,10 @@
 
 web.secrets.leaked_key:
   title: "A secret API key is visible in your site's code"
-  description: "The JavaScript files your site sends to browsers contain a key that should only live on a server (e.g. OpenAI, Stripe, AWS). Anyone who visits your site can see these files."
+  description: "The JavaScript files your site sends to browsers contain a key that should only live on a server (e.g. OpenAI, Stripe, Clerk, AWS). Anyone who visits your site can see these files."
   why_it_matters: "Whoever finds this key can act on your behalf: run up your AI bill, reach your payment system or read your data. Bots scan websites for keys like this automatically."
   fix_steps:
+    - "{payment_step}"
     - "Revoke this key in the provider's dashboard right away and create a new one (the old key is no longer safe)."
     - "Put the new key on the server side, not in frontend code (e.g. a Supabase Edge Function, a Vercel/Netlify serverless function or your own backend)."
     - "Call the service through your own server function instead of directly from the frontend."
@@ -16,6 +17,8 @@ web.secrets.leaked_key:
     3. Make the frontend call only that server function; the key must not remain anywhere in the frontend.
     4. Make sure no secret key is left in VITE_ / NEXT_PUBLIC_ / EXPO_PUBLIC_ variables.
     Note: I will also revoke and rotate the key in the provider's dashboard.
+  fragments:
+    payment_step: "Rotate the key in your payment provider's dashboard; the frontend/app should only use the payment token it gets from your own server."
 
 web.secrets.google_api_key:
   title: "Google API key found, check its restrictions"

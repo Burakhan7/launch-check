@@ -13,10 +13,13 @@ NS = 'xmlns:android="http://schemas.android.com/apk/res/android"'
 
 
 def manifest(
-    app_attrs: str = 'android:allowBackup="false"', body: str = "", extra: str = ""
+    app_attrs: str = 'android:allowBackup="false"',
+    body: str = "",
+    extra: str = "",
+    package: str = PACKAGE,
 ) -> str:
     return (
-        f'<manifest {NS} package="{PACKAGE}">{extra}'
+        f'<manifest {NS} package="{package}">{extra}'
         f"<application {app_attrs}>"
         '<activity android:name=".Main" android:exported="true"><intent-filter>'
         '<action android:name="android.intent.action.MAIN"/></intent-filter></activity>'

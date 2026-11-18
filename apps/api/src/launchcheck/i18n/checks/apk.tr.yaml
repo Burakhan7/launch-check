@@ -2,9 +2,10 @@
 
 apk.secrets.leaked_key:
   title: "Uygulamanın içinde gizli bir API anahtarı var"
-  description: "Uygulama dosyasının (APK) içinde, sadece sunucuda durması gereken bir anahtar bulundu (ör. OpenAI, Stripe, AWS). APK'yı indiren herkes onu birkaç dakikada açıp bu anahtarı okuyabilir."
+  description: "Uygulama dosyasının (APK) içinde, sadece sunucuda durması gereken bir anahtar bulundu (ör. OpenAI, Stripe, Clerk, AWS). APK'yı indiren herkes onu birkaç dakikada açıp bu anahtarı okuyabilir."
   why_it_matters: "Bu anahtarla biri senin adına işlem yapabilir: yapay zekâ kullanımıyla faturanı şişirebilir, ödeme sistemine veya verilerine erişebilir. Uygulama mağazadan indirilebildiği sürece anahtar herkese açıktır; kodu karıştırmak (obfuscation) bunu engellemez."
   fix_steps:
+    - "{payment_step}"
     - "Bu anahtarı ilgili servisin panelinden hemen iptal et ve yenisini oluştur."
     - "Yeni anahtarı uygulamaya değil, sunucu tarafına koy (ör. Supabase Edge Function, Firebase Cloud Function veya kendi backend'in)."
     - "Uygulama bu servisi doğrudan değil, kendi sunucu fonksiyonun üzerinden çağırsın."
@@ -15,6 +16,8 @@ apk.secrets.leaked_key:
     2. Bu servise yapılan çağrıları bir sunucu fonksiyonuna taşı (Supabase Edge Function veya Firebase Cloud Function); anahtar sadece sunucuda, ortam değişkeninden okunsun.
     3. Uygulama sadece bu sunucu fonksiyonunu çağırsın; anahtar uygulama kodunda ve paketlenen dosyalarda hiç kalmasın.
     Not: Anahtarı ayrıca servisin panelinden iptal edip yenileyeceğim.
+  fragments:
+    payment_step: "Ödeme sağlayıcının panelinden anahtarı yenile; frontend/uygulama sadece senin sunucundan aldığı ödeme token'ını kullansın."
 
 apk.secrets.google_api_key:
   title: "Google API anahtarı bulundu, kısıtlamalarını kontrol et"
@@ -208,3 +211,42 @@ apk.logging.sensitive_log:
     1. Kodda Log.d, Log.v, System.out.println gibi log çağrılarında token, password, secret, authorization gibi değerlerin yazdırıldığı yerleri bul.
     2. Bu değerleri log'dan çıkar.
     3. Release build'de debug log'larını tamamen kaldıran bir yapılandırma ekle (R8/ProGuard -assumenosideeffects kuralı veya Timber).
+
+apk.manifest.example_package:
+  title: "Paket adın Google Play'e uygun değil"
+  passed_title: "Paket adı mağazaya uygun"
+  description: "Uygulamanın paket adı ({package}) şablondan gelen varsayılan bir ad: {reason_text}."
+  why_it_matters: "{impact} Paket adı mağazaya bir kez yüklendikten sonra asla değiştirilemez, bu yüzden şimdi doğru seçmek önemli."
+  fix_steps:
+    - "Sana ait ters alan adı biçiminde bir paket adı seç (ör. com.markaadin.uygulamaadi)."
+    - "Flutter: android/app/build.gradle(.kts) içindeki applicationId ve namespace'i değiştir; MainActivity'nin klasör yolunu ve package satırını güncelle."
+    - "Expo: app.json içindeki android.package değerini değiştir ve yeni bir build al."
+    - "Firebase kullanıyorsan yeni paket adıyla Android uygulaması ekleyip yeni google-services.json dosyasını indir."
+  fix_prompt: |
+    Android uygulamamın paket adı şablondan kalan {package}. Yeni paket adı: com.MARKA.UYGULAMA (bunu kendi adımla değiştireceğim). Lütfen:
+    1. applicationId, namespace, AndroidManifest package, Kotlin/Java dosyalarının package satırları ve klasör yollarını yeni ada taşı.
+    2. Expo/React Native ise app.json/app.config içindeki android.package'ı güncelle.
+    3. google-services.json, deep link intent-filter'ları ve OAuth (Google Sign-In SHA-1) gibi paket adına bağlı ayarları listele; hangilerini panelden güncellemem gerektiğini söyle.
+    4. Temiz bir release build alıp çalıştığını doğrula.
+  fragments:
+    play_rejects: "Google Play bu adı reddeder"
+    placeholder_namespace: "örnek/şablon ad alanı"
+    impact_play_rejects: "Google Play com.example ile başlayan paket adlarını kabul etmez; yükleme daha ilk adımda reddedilir."
+    impact_placeholder_namespace: "Google Play bu adı kabul eder, ama ad kalıcıdır: uygulaman mağazada sonsuza dek şablondan kalan bu adla görünür (Play linkinde ve ayarlarda)."
+
+apk.secrets.db_connection_string:
+  title: "Veritabanı şifren uygulama dosyasının içinde"
+  description: "Uygulama dosyasının (APK) içinde kullanıcı adı ve şifre içeren bir veritabanı bağlantı adresi ({kind}, {provider_domain}) bulundu. APK'yı indiren herkes onu açıp bu adresi okuyabilir."
+  why_it_matters: "Bu adresle herkes veritabanına doğrudan bağlanabilir: tüm kullanıcı verilerini okuyabilir, değiştirebilir veya silebilir. Uygulamandaki hiçbir güvenlik kuralı (RLS dahil) bu bağlantıyı durdurmaz; kodu karıştırmak (obfuscation) da adresi gizlemez."
+  fix_steps:
+    - "Veritabanı şifresini sağlayıcının panelinden hemen değiştir (Supabase: Project Settings → Database → Reset password)."
+    - "Bağlantı adresini uygulamadan tamamen kaldır; veritabanı işlemlerini bir sunucu fonksiyonuna (Edge Function, Cloud Function, backend) taşı ve adresi orada ortam değişkeninden oku."
+    - "Adresi .env veya assets dosyasında uygulamaya paketleme; EXPO_PUBLIC_ önekli değişkenler de uygulamaya girer."
+    - "Uygulamanın yeni bir sürümünü yayınla ve şüpheli erişim için veritabanı loglarına bak."
+  fix_prompt: |
+    Mobil uygulamamın içinde (APK) veritabanı bağlantı adresi (kullanıcı adı ve şifresiyle) var. Lütfen:
+    1. Kodda, .env dosyalarında ve assets klasöründe DATABASE_URL veya postgres:// / mongodb:// ile başlayan tüm kullanımları bul.
+    2. Uygulamadan doğrudan veritabanına bağlanan kodu kaldır; bu işlemleri bir sunucu fonksiyonuna taşı ve uygulama sadece onu çağırsın.
+    3. Bağlantı adresi sadece sunucu ortam değişkeninden okunsun; EXPO_PUBLIC_ önekli değişkenlerde ve paketlenen dosyalarda kalmasın.
+    4. Supabase kullanıyorsam uygulamada sadece supabase client + anon key kalsın ve ilgili tablolarda RLS açık olsun.
+    Not: Veritabanı şifresini sağlayıcının panelinden ayrıca değiştireceğim.

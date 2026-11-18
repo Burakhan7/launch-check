@@ -1,0 +1,99 @@
+# Faz 1 Ek Paket 1 check metinleri (Türkçe). Ton: sade, suçlamayan, sonuç odaklı.
+
+web.meta.viewport_missing:
+  title: "Siten telefonda düzgün görünmeyebilir"
+  passed_title: "Mobil görünüm ayarı (viewport) doğru"
+  description: "Sayfanda telefon ekranına uyum sağlayan ayar (viewport etiketi) eksik veya hatalı: {issues}."
+  why_it_matters: "Bu ayar yoksa telefonlar siteyi masaüstü genişliğinde çizip küçültür; yazılar okunmaz, butonlara basılmaz. Ziyaretçilerin çoğu telefondan gelir ve böyle bir siteden saniyeler içinde çıkar. Google da mobil uyumu sıralamada kullanır. Yakınlaştırmayı kapatmak ise görme güçlüğü olan kullanıcıları zorlar."
+  fix_steps:
+    - "Her sayfanın <head> bölümüne şu satırı ekle: <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">"
+    - "user-scalable=no ve maximum-scale=1 değerlerini kaldır."
+    - "Sabit genişlik (width=1024 gibi) yazıyorsa device-width ile değiştir ve sayfayı telefonda kontrol et."
+  fix_prompt: |
+    Sitemin viewport ayarı eksik veya hatalı. Lütfen:
+    1. Kök HTML/layout dosyasında <meta name="viewport" content="width=device-width, initial-scale=1"> olduğundan emin ol (Next.js App Router'da viewport export'u ile).
+    2. user-scalable=no ve maximum-scale değerlerini kaldır.
+    3. Sabit genişlikli düzenleri (min-width: 1024px gibi) bul ve mobilde taşma yapmayacak şekilde responsive hâle getir.
+    4. 375px genişlikte yatay kaydırma çıkan bileşenleri listele ve düzelt.
+  fragments:
+    missing: "etiket yok"
+    fixed_width: "sabit genişlik verilmiş"
+    no_device_width: "cihaz genişliği kullanılmıyor"
+    zoom_blocked: "yakınlaştırma kapatılmış"
+
+web.files.api_docs_exposed:
+  title: "API dokümantasyonun herkese açık"
+  description: "Sitende API'nin tüm uç noktalarını listeleyen bir dokümantasyon ({path}) herkese açık.{endpoints}"
+  why_it_matters: "Bu sayfa saldırgana API'nin haritasını verir: hangi adreslerin olduğunu, hangi parametreleri aldığını ve hangilerinin yönetici işlemi yaptığını gösterir. FastAPI ve Express gibi framework'ler bunu varsayılan olarak açık bırakır."
+  fix_steps:
+    - "Prod ortamında dokümantasyonu kapat (FastAPI: FastAPI(docs_url=None, redoc_url=None, openapi_url=None))."
+    - "Dokümantasyona ihtiyacın varsa sadece giriş yapmış yöneticilere veya IP kısıtıyla aç."
+    - "Listede yönetici/iç işlem yapan uç noktalar varsa hepsinin kimlik doğrulaması istediğini kontrol et."
+  fix_prompt: |
+    API dokümantasyonum (Swagger/OpenAPI) prod'da herkese açık. Lütfen:
+    1. Kullandığım framework'te (FastAPI, Express + swagger-ui, NestJS vb.) dokümantasyon ve openapi.json'un nerede açıldığını bul.
+    2. Bunu sadece geliştirme ortamında açık olacak şekilde ortam değişkenine bağla; prod'da tamamen kapansın.
+    3. admin, internal, users, delete, export, upload içeren tüm uç noktaların kimlik doğrulaması ve yetki kontrolü yaptığını kontrol et ve yapmayanları listele.
+  fragments:
+    endpoints: " {count} uç nokta görünüyor."
+
+web.files.dev_files_exposed:
+  title: "Geliştirme dosyaların internetten okunabiliyor"
+  description: "Sitende sadece geliştirme bilgisayarında kalması gereken dosyalar herkese açık: {files}."
+  why_it_matters: "Bu dosyalar sunucunun yapısını, kullandığın servisleri ve bazen erişim anahtarlarını gösterir. .npmrc'deki bir token ile biri senin adına paket yayınlayabilir; phpinfo sayfası sunucunun tüm ayarlarını, docker-compose dosyası altyapını ortaya koyar."
+  fix_steps:
+    - "{npm_token_step}"
+    - "Bu dosyaları sunucudan/yayın klasöründen kaldır; build çıktısına (dist, public, build) girmediğinden emin ol."
+    - "Dosyalarda token veya şifre varsa hepsini ilgili servisten yenile; dosya bir kez açıkta kaldıysa içindekiler güvenli sayılmaz."
+    - "Sunucunda (Nginx, Apache, hosting paneli) nokta ile başlayan dosyalara ve .php bilgi sayfalarına erişimi engelle."
+  fix_prompt: |
+    Sitemde geliştirme dosyaları herkese açık (ör. .npmrc, phpinfo.php, docker-compose.yml, .DS_Store, .vscode, .idea, .firebaserc). Lütfen:
+    1. Bu dosyaların neden yayın klasörüne girdiğini bul (public/ klasörüne kopyalama, build ayarı, deploy betiği).
+    2. Build ve deploy ayarlarını bu dosyalar yayına çıkmayacak şekilde düzelt; .gitignore ve .dockerignore'u güncelle.
+    3. Sunucu/hosting ayarında nokta ile başlayan dosyalara ve phpinfo sayfalarına erişimi engelleyen bir kural ekle.
+    4. Bu dosyalarda geçen token ve şifreleri listele (değerlerini yazmadan); hangilerini yenilemem gerektiğini söyle.
+    Not: Açıkta kalan token ve şifreleri ilgili servislerden ayrıca yenileyeceğim.
+  fragments:
+    npm_token_step: "npm token'ını npmjs.com → Access Tokens'tan hemen iptal et ve yenisini oluştur."
+
+web.secrets.db_connection_string:
+  title: "Veritabanı şifren sitenin kodunda açıkta"
+  description: "Tarayıcıya gönderilen JavaScript'te kullanıcı adı ve şifre içeren bir veritabanı bağlantı adresi ({kind}, {provider_domain}) bulundu."
+  why_it_matters: "Bu adresle herkes veritabanına doğrudan bağlanabilir: tüm kullanıcı verilerini okuyabilir, değiştirebilir veya silebilir. Uygulamandaki hiçbir güvenlik kuralı (RLS dahil) bu bağlantıyı durdurmaz."
+  fix_steps:
+    - "Veritabanı şifresini sağlayıcının panelinden hemen değiştir (Supabase: Project Settings → Database → Reset password)."
+    - "Bağlantı adresini frontend'den tamamen kaldır; sadece sunucu tarafında (Edge Function, serverless function, backend) ortam değişkeninden oku."
+    - "VITE_, NEXT_PUBLIC_, EXPO_PUBLIC_ önekli değişkenlerde DATABASE_URL olmadığından emin ol."
+    - "Şüpheli erişim için veritabanı loglarına bak; gerekirse etkilenen kullanıcıları bilgilendir."
+  fix_prompt: |
+    Projemde veritabanı bağlantı adresi (kullanıcı adı ve şifresiyle) frontend koduna sızmış. Lütfen:
+    1. DATABASE_URL veya postgres:// / mongodb:// ile başlayan tüm kullanımları bul.
+    2. Frontend'den doğrudan veritabanına bağlanan kodu kaldır; bu işlemleri bir sunucu fonksiyonuna taşı.
+    3. Bağlantı adresi sadece sunucu ortam değişkeninden okunsun; VITE_/NEXT_PUBLIC_/EXPO_PUBLIC_ önekli hiçbir değişkende kalmasın.
+    4. Supabase kullanıyorsam frontend'de sadece supabase-js + anon key kalsın ve ilgili tablolarda RLS açık olsun.
+    Not: Veritabanı şifresini sağlayıcının panelinden ayrıca değiştireceğim.
+
+web.content.framework_leftovers:
+  title: "Sitende hazır şablondan kalanlar var"
+  passed_title: "Şablondan kalan başlık, görsel veya içerik yok"
+  description: "Sitende kullandığın aracın veya framework'ün varsayılan içerikleri duruyor: {kinds}. Ziyaretçi ve arama motorları bunları görür."
+  why_it_matters: "Tarayıcı sekmesinde 'Vite + React' yazması ya da linkin aracın logosuyla paylaşılması siteyi bitmemiş gösterir. Güveni düşürür, paylaşımlarda markan görünmez ve Google'da yanlış başlıkla listelenirsin."
+  fix_steps:
+    - "index.html (veya layout dosyası) içindeki <title> ve meta description'ı ürününü anlatan metinle değiştir."
+    - "public klasöründeki vite.svg/next.svg gibi varsayılan ikonları kendi logonla değiştir ve favicon linkini güncelle."
+    - "og:image için kendi 1200x630 görselini ekle; aracın varsayılan görselini kaldır."
+    - "Şablon sayfası (sayaç, 'Edit src/App' yazısı) hâlâ ana sayfadaysa gerçek ana sayfanla değiştir."
+  fix_prompt: |
+    Sitemde framework/araç şablonundan kalan içerikler var. Lütfen:
+    1. index.html veya kök layout'taki <title>, meta description, meta author, og:title, og:description, og:image ve twitter:* etiketlerini bul.
+    2. Bunları ürünüme göre doldur: başlık 50-60 karakter, açıklama 140-160 karakter, ürünün ne yaptığını ve kimin için olduğunu söylesin. Bana önce 3 başlık + açıklama önerisi sun.
+    3. Varsayılan favicon'u (vite.svg, next.svg vb.) kaldır; public/ klasörüne kendi favicon.ico, icon.svg ve apple-touch-icon.png dosyalarımı koyacağım yeri hazırla ve linkleri güncelle.
+    4. Ana sayfada şablon içeriği (sayaç, "Edit src/App.tsx" yazısı, logolar) kaldıysa kaldır.
+    5. og:image için 1200x630 boyutunda bir görselin yolunu ayarla (mutlak https URL).
+  fragments:
+    template_page: "şablon ana sayfası"
+    default_title: "varsayılan sayfa başlığı"
+    default_description: "varsayılan açıklama"
+    tool_branding_meta: "araç adı meta etiketlerinde"
+    tool_og_image: "aracın paylaşım görseli"
+    default_favicon: "varsayılan site ikonu"

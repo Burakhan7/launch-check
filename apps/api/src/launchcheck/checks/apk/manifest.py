@@ -1,4 +1,6 @@
-"""Manifest ayarları: target SDK, yedekleme, dışa açık bileşenler, izinler."""
+"""Manifest ayarları: target SDK, yedekleme, dışa açık bileşenler, izinler, paket adı."""
+
+from typing import Any
 
 from launchcheck.checks.apk._common import (
     ApkCheck,
@@ -6,7 +8,7 @@ from launchcheck.checks.apk._common import (
     is_true,
     uses_permissions,
 )
-from launchcheck.checks.base import Category, Finding, Severity
+from launchcheck.checks.base import Category, Finding, FragmentFn, Severity
 from launchcheck.checks.registry import register
 from launchcheck.checks.shared.dev_urls import MAX_EVIDENCE_ITEMS
 from launchcheck.collectors.apk_collector import ApkContext, android_attr
@@ -89,6 +91,50 @@ class ExportedComponents(ApkCheck):
         if not exposed:
             return []
         return [self.finding({"components": exposed[:MAX_EVIDENCE_ITEMS], "count": len(exposed)})]
+
+
+# Google Play bu ad alanını reddeder (Flutter/Android Studio şablon varsayılanı)
+PLAY_REJECTED_NAMESPACE = "com.example"
+# Play kabul eder ama şablondan kaldığı belli olan ad alanları (paket adı sonradan değişmez)
+PLACEHOLDER_NAMESPACES = (
+    "com.mycompany",
+    "com.yourcompany",
+    "com.company",
+    "com.test",
+    "com.demo",
+    "io.flutter",
+)
+
+
+def _in_namespace(package: str, namespace: str) -> bool:
+    """Önek tam segment olmalı: com.examplecorp.app `com.example` ad alanında değildir."""
+    return package == namespace or package.startswith(namespace + ".")
+
+
+@register
+class ExamplePackage(ApkCheck):
+    id = "apk.manifest.example_package"
+    category = Category.PROD_READINESS
+    default_severity = Severity.HIGH
+
+    async def check(self, ctx: ApkContext) -> list[Finding]:
+        package = ctx.package.strip()
+        if not package:  # manifest okunamadı; başka check'ler yakalar
+            return []
+        if _in_namespace(package, PLAY_REJECTED_NAMESPACE):
+            return [self.finding({"package": package, "reason": "play_rejects"})]
+        if any(_in_namespace(package, ns) for ns in PLACEHOLDER_NAMESPACES):
+            evidence = {"package": package, "reason": "placeholder_namespace"}
+            return [self.finding(evidence, severity=Severity.LOW)]
+        return []
+
+    def text_params(self, evidence: dict[str, Any], fragment: FragmentFn) -> dict[str, str]:
+        reason = str(evidence.get("reason") or "play_rejects")
+        return {
+            "package": str(evidence.get("package") or ""),
+            "reason_text": fragment(reason),
+            "impact": fragment(f"impact_{reason}"),
+        }
 
 
 @register

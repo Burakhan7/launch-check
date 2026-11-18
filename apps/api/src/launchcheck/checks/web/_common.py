@@ -6,7 +6,13 @@ from typing import Any
 from selectolax.lexbor import LexborHTMLParser
 
 from launchcheck.checks.base import Check, Finding, ScanContext, TargetType
-from launchcheck.checks.shared.secret_patterns import SecretHit, find_secrets, find_supabase_jwts
+from launchcheck.checks.shared.secret_patterns import (
+    ConnectionScan,
+    SecretHit,
+    find_connection_strings,
+    find_secrets,
+    find_supabase_jwts,
+)
 from launchcheck.collectors.fetcher import FetchResult
 from launchcheck.collectors.web_collector import PageSnapshot, WebContext
 
@@ -46,6 +52,14 @@ def cached_secrets(ctx: WebContext) -> list[SecretHit]:
         ctx.cache["secrets"] = find_secrets(js_sources(ctx))
     hits: list[SecretHit] = ctx.cache["secrets"]
     return hits
+
+
+def cached_connections(ctx: WebContext) -> ConnectionScan:
+    """DB bağlantı adresleri: secret taramasıyla aynı kaynaklar (JS bundle + inline script)."""
+    if "connections" not in ctx.cache:
+        ctx.cache["connections"] = find_connection_strings(js_sources(ctx))
+    scan: ConnectionScan = ctx.cache["connections"]
+    return scan
 
 
 def cached_jwts(ctx: WebContext) -> list[SecretHit]:

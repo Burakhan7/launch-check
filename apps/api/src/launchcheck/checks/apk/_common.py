@@ -4,7 +4,13 @@ from abc import abstractmethod
 from xml.etree.ElementTree import Element
 
 from launchcheck.checks.base import Check, Finding, ScanContext, TargetType
-from launchcheck.checks.shared.secret_patterns import SecretHit, find_secrets, find_supabase_jwts
+from launchcheck.checks.shared.secret_patterns import (
+    ConnectionScan,
+    SecretHit,
+    find_connection_strings,
+    find_secrets,
+    find_supabase_jwts,
+)
 from launchcheck.collectors.apk_collector import ApkContext, android_attr
 
 COMPONENT_TAGS = ("activity", "activity-alias", "service", "receiver", "provider")
@@ -27,6 +33,14 @@ def cached_secrets(ctx: ApkContext) -> list[SecretHit]:
         ctx.cache["secrets"] = find_secrets(ctx.string_sources)
     hits: list[SecretHit] = ctx.cache["secrets"]
     return hits
+
+
+def cached_connections(ctx: ApkContext) -> ConnectionScan:
+    """DB bağlantı adresleri: secret taramasıyla aynı string kaynakları."""
+    if "connections" not in ctx.cache:
+        ctx.cache["connections"] = find_connection_strings(ctx.string_sources)
+    scan: ConnectionScan = ctx.cache["connections"]
+    return scan
 
 
 def cached_jwts(ctx: ApkContext) -> list[SecretHit]:
