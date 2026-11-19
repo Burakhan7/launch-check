@@ -8,6 +8,7 @@ from launchcheck.checks.base import Category, ScanContext, Severity
 from launchcheck.collectors.web_collector import WebContext
 from launchcheck.deep.assets import AssetStore
 from launchcheck.deep.events import EventSink, MemoryEventSink
+from launchcheck.deep.render_data import RenderData
 
 
 @dataclass(frozen=True)
@@ -31,8 +32,10 @@ class DeepContext(ScanContext):
     options: dict[str, Any] = field(default_factory=dict)
     events: EventSink = field(default_factory=MemoryEventSink)
     assets: AssetStore | None = None
-    # Faz 1 WebContext'i (render modülü P3'te doldurur); Faz 2 check'leri `ctx.base` ile okur
+    # Faz 1 WebContext'i (render modülü doldurur); Faz 2 check'leri `ctx.base` ile okur
     base: WebContext | None = None
+    # Render modülünün topladığı veri (tarayıcıdan bağımsız; check'ler bunu okur)
+    render: RenderData | None = None
 
     async def aclose(self) -> None:
         if self.base is not None:

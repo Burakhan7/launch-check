@@ -8,7 +8,7 @@ from typing import ClassVar
 
 from launchcheck.checks.base import Finding
 from launchcheck.config import Settings
-from launchcheck.db.models import Verification
+from launchcheck.db.models import ScanAsset, Verification
 from launchcheck.deep.context import DeepContext, ParentFinding
 
 
@@ -35,6 +35,8 @@ class ModuleOutput:
     ("aşınca elindekiyle biter")."""
 
     findings: list[Finding] = field(default_factory=list)
+    # Diske yazılmış asset'lerin DB satırları (modül bitince bulgularla birlikte kaydedilir)
+    assets: list[ScanAsset] = field(default_factory=list)
 
 
 class DeepModule(ABC):

@@ -31,6 +31,13 @@ logger = logging.getLogger(__name__)
 
 MOBILE_VIEWPORT = {"width": 375, "height": 812}
 DESKTOP_VIEWPORT = {"width": 1440, "height": 900}
+DESKTOP_UA_BASE = (
+    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome Safari/537.36"
+)
+MOBILE_UA_BASE = (
+    "Mozilla/5.0 (Linux; Android 14; Mobile) AppleWebKit/537.36 (KHTML, like Gecko) "
+    "Chrome Mobile Safari/537.36"
+)
 
 
 def chromium_args(proxy_port: int) -> list[str]:
@@ -66,22 +73,27 @@ class BrowserLimits:
 
 
 class BrowserSession:
-    """`async with BrowserSession.open(...) as session:` — proxy + Chromium + tek context."""
+    """`async with BrowserSession.open(...) as session:` — proxy + Chromium. Varsayılan bir
+    context (`session.context`) açılır; `new_context()` ile aynı tarayıcı ve proxy üzerinde
+    ek context'ler (mobil, JS kapalı) açılabilir. Hepsi `finally` ile kapanır."""
 
     def __init__(
         self,
         proxy: EgressProxy,
         playwright: "Playwright",
         browser: "Browser",
-        context: "BrowserContext",
         limits: BrowserLimits,
+        user_agent: str,
     ) -> None:
         self.proxy = proxy
         self._playwright = playwright
         self._browser = browser
-        self.context = context
         self.limits = limits
-        self._main: Page | None = None
+        self.user_agent = user_agent
+        self.context: BrowserContext
+        self._contexts: list[BrowserContext] = []
+        self._ours: set[Page] = set()
+        self._creating = 0
 
     @classmethod
     @contextlib.asynccontextmanager
@@ -100,40 +112,71 @@ class BrowserSession:
         proxy = EgressProxy(guard, limits.max_total_bytes, allow=allow)
         await proxy.start()
         playwright = await async_playwright().start()
-        browser = context = None
+        session: BrowserSession | None = None
+        browser = None
         try:
             browser = await playwright.chromium.launch(
                 headless=True, args=chromium_args(proxy.port), downloads_path=None
             )
-            context = await browser.new_context(**context_options(user_agent, viewport, is_mobile))
-            session = cls(proxy, playwright, browser, context, limits)
-            context.on("page", session._on_page)
-            context.set_default_timeout(limits.page_timeout_s * 1000)
-            context.set_default_navigation_timeout(limits.page_timeout_s * 1000)
+            session = cls(proxy, playwright, browser, limits, user_agent)
+            session.context = await session.new_context(
+                mobile=is_mobile, viewport=viewport, user_agent=user_agent
+            )
             yield session
         finally:
-            for closer in (
-                context.close if context else None,
-                browser.close if browser else None,
-                playwright.stop,
-                proxy.close,
-            ):
-                if closer is not None:
-                    with contextlib.suppress(Exception):
-                        await closer()
+            closers = [c.close for c in (session._contexts if session else [])]
+            closers += [browser.close] if browser else []
+            for closer in [*closers, playwright.stop, proxy.close]:
+                with contextlib.suppress(Exception):
+                    await closer()
 
-    async def new_page(self) -> "Page":
-        """Taramanın ana sekmesi. Sayfanın açtığı pop-up'lar ve yeni sekmeler kapatılır."""
-        page = await self.context.new_page()
-        self._main = page
+    async def new_context(
+        self,
+        *,
+        mobile: bool = False,
+        javascript: bool = True,
+        viewport: dict[str, int] | None = None,
+        user_agent: str | None = None,
+    ) -> "BrowserContext":
+        options = context_options(
+            user_agent or browser_user_agent(self.user_agent, mobile),
+            viewport or (MOBILE_VIEWPORT if mobile else DESKTOP_VIEWPORT),
+            mobile,
+        )
+        options["java_script_enabled"] = javascript
+        context = await self._browser.new_context(**options)
+        context.on("page", self._on_page)
+        context.set_default_timeout(self.limits.page_timeout_s * 1000)
+        context.set_default_navigation_timeout(self.limits.page_timeout_s * 1000)
+        self._contexts.append(context)
+        return context
+
+    async def new_page(self, context: "BrowserContext | None" = None) -> "Page":
+        """Taramanın açtığı sekme. Sayfanın kendisinin açtığı pop-up/yeni sekmeler kapatılır."""
+        self._creating += 1
+        try:
+            page = await (context or self.context).new_page()
+        finally:
+            self._creating -= 1
+        self._ours.add(page)
         page.on("dialog", _dismiss)
+        page.on("close", self._forget)
         return page
 
+    def _forget(self, page: "Page") -> None:
+        self._ours.discard(page)
+
     def _on_page(self, page: "Page") -> None:
-        if self._main is not None and page is not self._main:
-            _spawn(_close_quietly(page))
-        else:
-            page.on("dialog", _dismiss)
+        if self._creating > 0 or page in self._ours:
+            return  # new_page() ile açılıyor; dialog dinleyicisini new_page ekler
+        _spawn(_close_quietly(page))
+
+
+def browser_user_agent(bot_user_agent: str, mobile: bool) -> str:
+    """Gerçek tarayıcı UA'sı + bot kimliği: siteler mobil/masaüstü içeriği doğru sunar,
+    biz yine de kendimizi tanıtırız (PHASE2 §12.4)."""
+    base = MOBILE_UA_BASE if mobile else DESKTOP_UA_BASE
+    return f"{base} {bot_user_agent}"
 
 
 def context_options(
@@ -141,7 +184,7 @@ def context_options(
 ) -> dict[str, Any]:
     return {
         "user_agent": user_agent,
-        "viewport": viewport or DESKTOP_VIEWPORT,
+        "viewport": viewport or (MOBILE_VIEWPORT if is_mobile else DESKTOP_VIEWPORT),
         "is_mobile": is_mobile,
         "has_touch": is_mobile,
         "accept_downloads": False,

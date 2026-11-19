@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from launchcheck.db.models import Scan, ScanStatus, utcnow
 
 ETA_SAMPLE = 20  # son bu kadar tamamlanan Faz 2 taramasının ortalaması
+MIN_ETA_SAMPLES = 3
 
 
 @dataclass(frozen=True)
@@ -42,7 +43,10 @@ async def average_duration_s(session: AsyncSession, default_s: int) -> int:
         )
     ).all()
     durations = [(f - s).total_seconds() for s, f in rows if s and f and f >= s]
-    return round(sum(durations) / len(durations)) if durations else default_s
+    # Az örnekle (ör. ilk birkaç tarama, yarıda kalanlar) ortalama yanıltıcı olur
+    if len(durations) < MIN_ETA_SAMPLES:
+        return default_s
+    return round(sum(durations) / len(durations))
 
 
 def _aware(value: datetime) -> datetime:

@@ -31,6 +31,8 @@ HEAD_TIMEOUT_S = 15.0
 CONNECT_TIMEOUT_S = 10.0
 IDLE_TIMEOUT_S = 30.0
 CHUNK = 64 * 1024
+# Proxy'nin kendi reddettiği yanıtlar bu başlığı taşır: render bunları site hatası saymaz
+BLOCKED_HEADER = "X-LaunchCheck-Blocked"
 HOP_BY_HOP = frozenset(
     {"proxy-connection", "proxy-authorization", "proxy-authenticate", "keep-alive", "te"}
 )
@@ -295,7 +297,7 @@ class EgressProxy:
         status = {400: "Bad Request", 403: "Forbidden", 502: "Bad Gateway"}[rejected.status]
         writer.write(
             f"HTTP/1.1 {rejected.status} {status}\r\nContent-Length: 0\r\n"
-            "Connection: close\r\n\r\n".encode()
+            f"{BLOCKED_HEADER}: {rejected.reason}\r\nConnection: close\r\n\r\n".encode()
         )
         with contextlib.suppress(Exception):
             await writer.drain()

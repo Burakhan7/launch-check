@@ -455,6 +455,31 @@ class Settings(BaseSettings):
     # Tarayıcı: sayfa başına zaman sınırı ve egress proxy'den geçen toplam yanıt baytı
     deep_page_timeout_s: float = 20
     deep_proxy_max_total_bytes: int = 200 * 1024 * 1024
+    # Render: "load + bu kadar sessizlik veya en fazla deep_render_max_wait_s" (networkidle değil)
+    deep_render_quiet_s: float = 2
+    deep_render_max_wait_s: float = 10
+    deep_render_concurrency: int = 3
+    # Ana sayfa + en fazla bu kadar kilit sayfa (fiyat > kayıt > ürün > ilk menü linki):
+    # 5 genişlikte ölçülür, ekran görüntüsü ve JS kapalı görüntü alınır
+    deep_key_pages: int = 2
+    deep_measure_widths: list[int] = Field(default_factory=lambda: [320, 375, 768, 1024, 1440])
+    deep_admin_route_probes: int = 5
+    # Başarısız istek sayılmayan üçüncü taraf ölçüm/reklam host'ları (kayıtlı alan adı)
+    deep_failed_request_ignore_domains: list[str] = Field(
+        default_factory=lambda: [
+            "google-analytics.com",
+            "googletagmanager.com",
+            "doubleclick.net",
+            "facebook.com",
+            "facebook.net",
+            "hotjar.com",
+            "clarity.ms",
+            "yandex.ru",
+            "tiktok.com",
+            "linkedin.com",
+            "sentry.io",
+        ]
+    )
 
 
 @lru_cache

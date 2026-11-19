@@ -150,3 +150,76 @@ Kaçırabilir: listede olmayan geliştirme dosyaları ve sunucunun 403 ile gizle
 
 Yakalar: `com.example` ad alanındaki paketler (Play reddeder, high) ve `com.mycompany`, `com.yourcompany`, `com.company`, `com.test`, `com.demo`, `io.flutter` şablon ad alanları (low); önek tam segment olarak eşleşir (`com.examplecorp` sayılmaz).
 Kaçırabilir: listede olmayan şablon adları (ör. `com.myapp.app`); manifest okunamadıysa bulgu üretilmez.
+
+## Faz 2 — render modülü (gerçek tarayıcı)
+
+Ana sayfa + Faz 1 sayfaları + render sonrası menü/iç linkler (en fazla 25), her biri mobil (375×812) ve masaüstünde (1440×900); ana sayfa ve en fazla 2 kilit sayfa (fiyat > kayıt > ürün > ilk menü linki) ayrıca 320/768/1024 genişliklerinde ölçülür. Ölçümler sayfa içinde yapılır; storage ve çerez değerleri sayfadan hiç çıkmaz. Bot doğrulama sayfası gelirse modül çalışmaz (`meta.deep_blocked`).
+
+### web.render.js_runtime_errors
+Yakalar: yakalanmamış istisnalar ve `console.error` mesajları (kaynak yükleme ve CORS mesajları hariç; onlar failed_requests'te), sayılar/URL'ler normalize edilerek tekilleştirilir; ana sayfa veya fiyat/kayıt sayfasındaysa high.
+Kaçırabilir: sadece kullanıcı etkileşiminden (tıklama, form) sonra oluşan hatalar; sadece belirli tarayıcı/cihazlarda oluşan hatalar.
+
+### web.render.failed_requests
+Yakalar: sitenin kendi alan adına giden 4xx/5xx ve ağ hataları, herhangi bir host'a giden fetch/xhr (API) hataları, CORS hataları (console mesajıyla eşleştirilir); API isteği başarısızsa high.
+Kaçırabilir: oturum gerektiren API'ler (giriş yapılmadığı için 401 normaldir ve 4xx olarak görünür; yanlış pozitif olabilir), ölçüm/reklam servisleri (bilinçli olarak hariç), görseller (broken_images'ın işi), bizim proxy'mizin engellediği iç adresler.
+
+### web.render.spa_deep_link_404
+Yakalar: ana sayfada linki olan bir iç sayfa doğrudan açılınca 404 dönüyor ama ana sayfadan tıklanınca adres değişip içerik (≥10 kelime) çiziliyorsa.
+Kaçırabilir: ana sayfada linki olmayan sayfalar; tıklamayla açılması bir kullanıcı etkileşimi (menü açma vb.) gerektirenler.
+
+### web.render.visible_junk_text
+Yakalar: görünür, 60 karakterden kısa metin düğümlerinde `undefined`, `NaN`, `null`, `[object Object]`, `{{ }}`, `Invalid Date` (kod/pre/textarea hariç; büyük-küçük harf duyarlı, kelime sınırlı).
+Kaçırabilir: uzun cümlelerin içine düşmüş değerler (yanlış pozitifi önlemek için bilinçli) ve sadece etkileşimden sonra görünen alanlar.
+
+### web.render.broken_images
+Yakalar: yüklenmesi biten ama `naturalWidth = 0` olan görseller (data: URI ve gizli görseller hariç); ilk ekranda ve geniş ise (hero) medium.
+Kaçırabilir: lazy-load ile hiç yüklenmemiş görseller (henüz tamamlanmadığı için) ve CSS arka plan görselleri.
+
+### web.mobile.horizontal_overflow
+Yakalar: 320/375 px'te layout viewport genişliği (`clientWidth`) 4 px'ten fazla aşılıyorsa; sorumlu en dış öğeler (overflow-x hidden/auto kapsayıcı içindekiler hariç).
+Kaçırabilir: sadece etkileşimle açılan öğelerin taşması; viewport etiketi olmayan sayfalar (sayfa 980 px'te çizilir, viewport_missing'in konusu).
+
+### web.mobile.overlapping_elements
+Yakalar: kendi metni olan veya etkileşimli görünür öğelerden ikisinin kesişimi küçük olanın alanının yarısından fazlaysa (iç içe öğeler, fixed/sticky katmanlar ve aria-hidden hariç); aynı öğe çifti tüm sayfalarda bir kez sayılır.
+Kaçırabilir: metni görsel olarak üst üste binen ama kutuları kesişmeyen durumlar (ör. negatif harf aralığı); bilinçli tasarlanmış üst üste rozetler yanlış pozitif olabilir.
+
+### web.mobile.cta_below_fold
+Yakalar: mobil ana sayfada menü dışındaki ilk "btn/cta/primary" sınıflı veya hero içindeki eylem öğesinin üst kenarı ilk ekranın altındaysa.
+Kaçırabilir: CTA'sı bu sınıf adlarını kullanmayan ve hero dışında duran sayfalar (CTA bulunamazsa bulgu üretilmez).
+
+### web.mobile.tap_targets_small
+Yakalar: mobilde 24×24 px'ten küçük en az 3 tıklanabilir öğe olan sayfalar (cümle içindeki satır içi linkler WCAG istisnası gereği hariç).
+Kaçırabilir: yeterince büyük ama birbirine çok yakın hedefler (aralık ölçülmez).
+
+### web.ux.custom_404_missing
+Yakalar: Faz 1'in rastgele yolu render edildiğinde nginx/Apache/Express/Vercel/Netlify/IIS varsayılan sayfası veya 15 kelimeden kısa ve ana sayfa linki olmayan sayfa.
+Kaçırabilir: 200 ile ana sayfayı gösteren SPA'lar (soft 404; bu check'in konusu değil) ve varsayılan sayfası listede olmayan sunucular.
+
+### web.ux.offline_breaks_page
+Yakalar: ana sayfa yüklendikten sonra bağlantı kesilip en fazla 2 menü linkine tıklanınca boş ekran veya sonsuz yükleme göstergesi kalıyorsa (hata/çevrimdışı mesajı varsa sorun yok).
+Kaçırabilir: verisini önbellekten gösteren sayfalar; klasik (her tıklamada sayfa yüklenen) sitelerde tarayıcının kendi çevrimdışı sayfası çıktığı için bilinçli olarak raporlanmaz.
+
+### web.security.token_in_web_storage
+Yakalar: localStorage/sessionStorage'da JWT içeren (JSON içinde gömülü olanlar dahil) veya adı token/auth/session/jwt/access/refresh geçen, 16 karakterden uzun değerler; JWT 30 günden uzun geçerliyse high. Sadece anahtar adı, uzunluk ve kalan gün kaydedilir.
+Kaçırabilir: giriş yapılmadan oluşmayan oturumlar (Faz 1-2 giriş yapmaz; Faz 4'te test hesabıyla) ve IndexedDB'de tutulan token'lar.
+
+### web.security.insecure_cookie_flags
+Yakalar: sitenin kendi alan adındaki, adı oturum benzeri (sess/sid/auth/token/jwt/login/remember/_session) çerezlerde HttpOnly eksikliği, HTTPS sitede Secure eksikliği, Secure'suz SameSite=None (ölçüm çerezleri hariç).
+Kaçırabilir: giriş yapınca oluşan çerezler ve adı oturum belli etmeyen çerezler.
+
+### web.security.client_only_admin_route
+Yakalar: Faz 1 bundle'larında ve tarayıcının yüklediği aynı origin JS'lerde geçen `/admin`, `/yonetim`, `/panel`, `/backoffice`, `/dashboard/admin`, `/cms` rotaları açılınca (tıklama yok) giriş formu ve login yönlendirmesi olmadan "admin/yönetim/dashboard" başlığı + tablo veya sil/düzenle düğmeleri görünüyorsa high; sadece başlık varsa info ("Faz 3'te doğrulanacak").
+Kaçırabilir: farklı adlandırılmış yönetim rotaları; veriyi sadece giriş sonrası API'den yükleyen paneller (boş iskelet görünür, info'ya düşer).
+
+### web.security.sourcemap_tree_exposed
+Yakalar: Faz 1'in açık bulduğu map dosyalarının `sources` dizisinden kaynak dosya yolları (node_modules hariç, en fazla 50 örnek + toplam); Faz 1 bulgusunu `escalated` yapar.
+Kaçırabilir: map'te `sources` alanı 1 MB'tan sonra başlıyorsa (alan genelde başta olduğu için nadir).
+
+### Faz 1 doğrulama kuralları (render)
+
+- `web.render.empty_server_html` → render sonrası ana içerik kelime sayısı sunucu HTML'inin 3 katından fazlaysa `confirmed`.
+- `web.render.route_serves_root_shell` → render sonrası title, h1 veya canonical sayfaya özgü hâle geliyorsa `confirmed`.
+- `web.meta.og_missing` → ana sayfa render edildiyse `confirmed` (paylaşım botları JS çalıştırmaz; JS ile eklenen etiket sorunu çözmez).
+- `web.files.sourcemap_exposed` → map'lerden kaynak ağacı okunabildiyse `escalated`.
+- `web.meta.viewport_missing` (eksik / sabit / cihaz genişliği yok) → mobilde layout genişliği cihaz genişliğine eşitse (etiket JS ile ekleniyor) `refuted`, değilse `confirmed`; sadece zoom engeli varsa karar verilmez.
+- `web.bundle.localhost_urls` → sayfa render sırasında localhost/LAN adresine gerçekten istek attıysa (proxy engelledi) `escalated`, atmadıysa `confirmed`.

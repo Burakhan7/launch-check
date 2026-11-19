@@ -1,0 +1,231 @@
+# Faz 2 (derin tarama) check metinleri — render modülü (Türkçe). Ton: sade, suçlamayan, net.
+
+web.render.js_runtime_errors:
+  title: "Sitende ziyaretçinin tarayıcısında JavaScript hataları oluşuyor"
+  passed_title: "Sayfalarda JavaScript hatası görülmedi"
+  description: "Sayfaları gerçek bir tarayıcıda açtığımızda {count} farklı JavaScript hatası oluştu. Hatalar ve hangi sayfalarda görüldükleri kanıtta."
+  why_it_matters: "JavaScript hatası bir butonun çalışmamasına, formun gönderilmemesine veya sayfanın bir kısmının hiç görünmemesine yol açabilir. Ziyaretçi bunu hata olarak değil, 'site çalışmıyor' olarak algılar ve çıkar."
+  fix_steps:
+    - "Siteni Chrome'da aç, F12 → Console sekmesindeki kırmızı hatalara bak."
+    - "Kanıttaki hata mesajlarını AI aracına yapıştırıp nedenini sor; çoğu zaman boş gelen bir veri veya eksik bir ortam değişkenidir."
+    - "Hatalar düzeldikten sonra siteyi tekrar tara."
+  fix_prompt: |
+    Sitemin bazı sayfalarında tarayıcıda JavaScript hataları oluşuyor (hata mesajları ve sayfalar aşağıda / kanıtta). Lütfen:
+    1. Her hata mesajının kodda nereden kaynaklandığını bul.
+    2. Boş/undefined gelebilecek verilere koruma ekle (optional chaining, varsayılan değer, yükleniyor durumu).
+    3. Eksik ortam değişkeni veya yanlış API adresi gibi yapılandırma sorunlarını listele.
+    4. Hataların kullanıcıya boş ekran yerine anlaşılır bir mesajla gösterilmesi için bir error boundary ekle.
+
+web.render.failed_requests:
+  title: "Sitenin bazı istekleri başarısız oluyor"
+  passed_title: "Sitenin kendi istekleri başarılı"
+  description: "Sayfalar açılırken sitenin kendi sunucusuna veya API'sine giden {count} istek hata verdi (4xx/5xx, CORS veya bağlantı hatası).{api_note}"
+  why_it_matters: "Başarısız istekler genelde eksik bir dosya, yanlış yapılandırılmış bir API adresi veya izin hatasıdır. Kullanıcı bunu boş bir liste, yüklenmeyen bir bölüm veya çalışmayan bir buton olarak görür."
+  fix_steps:
+    - "Kanıttaki adresleri tarayıcıda F12 → Network sekmesinde kontrol et."
+    - "404 alan dosyaların yolunu düzelt veya dosyayı yayına ekle."
+    - "CORS hatası varsa API sunucusunda sitenin alan adına izin ver."
+    - "5xx hatalarında sunucu/fonksiyon loglarına bak."
+  fix_prompt: |
+    Sitemde bazı istekler başarısız oluyor (adresler, durum kodları ve hata türleri kanıtta). Lütfen:
+    1. Her başarısız isteğin kodda nereden yapıldığını bul.
+    2. 404 olanlarda yanlış yol veya eksik dosya sorununu düzelt.
+    3. CORS hatası olanlarda API tarafında sitemin alan adına izin veren ayarı ekle (her yere * açmadan).
+    4. 5xx olanlarda sunucu tarafındaki hatanın nedenini bulmama yardım et ve kullanıcıya anlaşılır bir hata mesajı göster.
+  fragments:
+    api_note: " Bunlar arasında sitenin veri çektiği API istekleri de var; ilgili bölümler kullanıcıya boş görünebilir."
+
+web.render.spa_deep_link_404:
+  title: "Bazı sayfalar doğrudan açılınca 404 veriyor"
+  passed_title: "İç sayfalar doğrudan açıldığında da çalışıyor"
+  description: "Bu sayfalar siten içinden tıklanınca açılıyor ama adresi doğrudan açınca (veya sayfayı yenileyince) sunucu 404 döndürüyor."
+  why_it_matters: "Paylaşılan linkler, Google'dan gelen ziyaretçiler ve sayfayı yenileyen herkes hata sayfası görür. Google bu sayfaları dizine eklemez."
+  fix_steps:
+    - "Hosting ayarlarında tüm yolların index.html'e yönlendirilmesini (SPA fallback) etkinleştir."
+    - "Vercel: vercel.json'a rewrites ekle; Netlify: public/_redirects dosyasına '/* /index.html 200' satırını ekle."
+    - "Düzelttikten sonra kanıttaki adresleri doğrudan açarak kontrol et."
+  fix_prompt: |
+    Sitem tek sayfalı bir uygulama (SPA) ve iç sayfaları doğrudan açınca 404 alıyorum (adresler kanıtta). Lütfen:
+    1. Kullandığım hosting için (Vercel, Netlify, Cloudflare Pages, Firebase Hosting, nginx) tüm yolları index.html'e yönlendiren ayarı ekle.
+    2. Gerçekten olmayan sayfalar için uygulama içinde bir 404 sayfası göster.
+    3. Mümkünse sayfaların sunucuda önceden oluşturulmasını (SSR/SSG) değerlendir.
+
+web.render.visible_junk_text:
+  title: "Sayfada 'undefined', 'NaN' gibi teknik değerler görünüyor"
+  passed_title: "Sayfalarda ekrana düşmüş teknik değer yok"
+  description: "Sayfa tarayıcıda açıldığında bazı alanlarda 'undefined', 'NaN', 'null', '[object Object]' veya işlenmemiş '{{ }}' gibi değerler görünüyor. Örnekler kanıtta."
+  why_it_matters: "Bu değerler ziyaretçiye sitenin bozuk olduğunu söyler; özellikle fiyat, tarih veya isim alanlarında güveni ciddi şekilde düşürür."
+  fix_steps:
+    - "Kanıttaki metinlerin hangi bileşenden geldiğini bul."
+    - "Veri gelene kadar boş yer tutucu veya 'yükleniyor' göster; eksik veride anlamlı bir varsayılan kullan."
+    - "Tarih ve sayıları biçimlendirmeden önce geçerli olduklarını kontrol et."
+  fix_prompt: |
+    Sitemde bazı alanlarda 'undefined', 'NaN', 'null', '[object Object]' veya 'Invalid Date' yazıyor (örnekler kanıtta). Lütfen:
+    1. Bu metinleri üreten bileşenleri bul.
+    2. Veri yokken veya yüklenirken bunların yerine anlamlı bir gösterim (boş, '—', yükleniyor) kullan.
+    3. Nesnelerin doğrudan metne çevrildiği yerleri düzelt; tarih/sayı biçimlendirmeden önce geçerlilik kontrolü ekle.
+
+web.render.broken_images:
+  title: "Bazı görseller yüklenmiyor"
+  passed_title: "Görseller düzgün yükleniyor"
+  description: "Tarayıcıda açtığımız sayfalarda bazı görseller yüklenemedi veya bozuk geldi. Liste kanıtta."
+  why_it_matters: "Kırık görsel ikonları siteyi bakımsız gösterir. İlk ekrandaki büyük görsel bozuksa ziyaretçinin gördüğü ilk şey bir hata olur."
+  fix_steps:
+    - "Kanıttaki görsel adreslerini kontrol et; dosya silinmiş veya yol yanlış olabilir."
+    - "Görselleri projenin public klasörüne veya kalıcı bir depolamaya koy, geçici linkler kullanma."
+    - "Görsel yüklenemezse gösterilecek bir yedek (placeholder) ekle."
+  fix_prompt: |
+    Sitemde bazı görseller yüklenmiyor (adresler kanıtta). Lütfen:
+    1. Bu görsellerin kodda nerede kullanıldığını ve yollarının doğru olup olmadığını kontrol et.
+    2. Eksik dosyaları tespit et; geçici/imzalı depolama linkleri kullanılıyorsa kalıcı adreslere geçir.
+    3. Görsel yüklenemezse yedek bir görsel veya arka plan gösteren bir çözüm ekle.
+
+web.mobile.horizontal_overflow:
+  title: "Telefonda sayfa yana kayıyor"
+  passed_title: "Sayfalar telefon genişliğine sığıyor"
+  description: "Bazı sayfalar telefon genişliğinde (320-375 px) ekrandan taşıyor ve yatay kaydırma oluşuyor. Taşan öğeler kanıtta."
+  why_it_matters: "Yana kayan sayfa telefonda bozuk görünür; ziyaretçi metni okumak için sağa sola kaydırmak zorunda kalır ve genelde siteden çıkar."
+  fix_steps:
+    - "Kanıttaki öğelere sabit genişlik (width: 600px gibi) verilmiş mi bak; max-width: 100% kullan."
+    - "Uzun kelimeler/linkler için overflow-wrap: anywhere ekle."
+    - "Tablolar ve geniş bileşenler için yatay kaydırmayı sadece o bileşenin içinde aç."
+  fix_prompt: |
+    Sitem telefonda (320-375 px genişlikte) yana taşıyor (taşan öğeler kanıtta). Lütfen:
+    1. Bu öğelerde sabit genişlik, negatif margin veya 100vw kullanımı gibi taşmaya yol açan stilleri bul.
+    2. Responsive hale getir (max-width: 100%, esnek kutular, mobilde tek sütun).
+    3. Geniş tablo/kod bloklarını kendi kapsayıcısında yatay kaydırılabilir yap; sayfanın tamamı kaymasın.
+    4. 320 px genişlikte yatay kaydırma kalmadığını doğrula.
+
+web.mobile.overlapping_elements:
+  title: "Bazı yazılar ve butonlar üst üste biniyor"
+  passed_title: "Yazılar ve butonlar üst üste binmiyor"
+  description: "Bazı genişliklerde metin veya buton kutuları birbirinin üstüne çıkıyor. Hangi öğeler olduğu ve hangi genişlikte görüldüğü kanıtta."
+  why_it_matters: "Üst üste binen metin okunmaz, buton tıklanamaz hale gelebilir. Bu, özellikle telefonda ziyaretçinin işlem yapmasını engeller."
+  fix_steps:
+    - "Kanıttaki genişlikte sayfayı tarayıcının cihaz modunda aç."
+    - "position: absolute ve sabit yükseklik (height) kullanılan yerleri kontrol et."
+    - "Uzun başlıklar için satır kaydırmaya izin ver ve elemanlar arasında boşluk bırak."
+  fix_prompt: |
+    Sitemde bazı ekran genişliklerinde yazılar/butonlar üst üste biniyor (öğeler ve genişlikler kanıtta). Lütfen:
+    1. Bu öğelerin stillerinde sabit yükseklik, absolute konumlandırma veya negatif margin gibi nedenleri bul.
+    2. Düzeni esnek hale getir (flex/grid, gap, otomatik yükseklik).
+    3. 320, 375, 768 ve 1024 px genişliklerde çakışma kalmadığını kontrol et.
+
+web.mobile.cta_below_fold:
+  title: "Telefonda ana buton ilk ekranda görünmüyor"
+  passed_title: "Telefonda ana buton ilk ekranda görünüyor"
+  description: "Ana sayfadaki birincil buton ('{cta_text}') telefonda ilk ekranın altında kalıyor; ziyaretçi onu görmek için kaydırmak zorunda."
+  why_it_matters: "Ziyaretçilerin önemli bir kısmı hiç kaydırmadan karar verir. Ana eylem ilk ekranda değilse kayıt veya satın alma oranı düşer."
+  fix_steps:
+    - "Mobilde hero bölümünü kısalt: başlığı kısalt, büyük görseli küçült veya butonun altına taşı."
+    - "Ana butonu başlık ve kısa açıklamanın hemen altına koy."
+  fix_prompt: |
+    Telefonda ana sayfamdaki birincil buton ilk ekranın altında kalıyor. Lütfen:
+    1. Mobil görünümde hero bölümünü yeniden düzenle: başlık, tek cümlelik açıklama ve ana buton ilk ekranda olsun.
+    2. Büyük görselleri mobilde butonun altına al veya küçült.
+    3. 375x812 ekranda butonun kaydırmadan göründüğünü doğrula.
+
+web.mobile.tap_targets_small:
+  title: "Telefonda bazı butonlar ve linkler çok küçük"
+  passed_title: "Dokunma hedefleri yeterince büyük"
+  description: "Telefonda bazı tıklanabilir öğeler 24x24 pikselden küçük. Örnekler ve sayıları kanıtta."
+  why_it_matters: "Küçük hedeflere parmakla basmak zordur; yanlış yere tıklanır, kullanıcı sinirlenir. Erişilebilirlik kuralları (WCAG) en az 24x24 piksel önerir."
+  fix_steps:
+    - "Butonlara ve ikon linklere en az 44x44 piksellik tıklama alanı ver (padding ile)."
+    - "Yan yana duran küçük linkler arasında boşluk bırak."
+  fix_prompt: |
+    Sitemde telefonda bazı butonlar/linkler çok küçük (örnekler kanıtta). Lütfen:
+    1. İkon butonlarına ve küçük linklere padding ekleyerek tıklama alanını en az 44x44 px yap (görünüm küçük kalabilir).
+    2. Yan yana duran tıklanabilir öğeler arasında en az 8 px boşluk bırak.
+
+web.ux.custom_404_missing:
+  title: "Olmayan bir sayfaya gidildiğinde boş veya varsayılan bir sayfa çıkıyor"
+  passed_title: "Kendi 404 sayfan var"
+  description: "Var olmayan bir adrese gidildiğinde sunucunun varsayılan hata sayfası veya ana sayfaya dönüş linki olmayan boş bir sayfa görünüyor."
+  why_it_matters: "Kırık linklerden gelen ziyaretçi nereye gideceğini bilemez ve siteyi terk eder. İyi bir 404 sayfası onu ana sayfaya veya aramaya geri döndürür."
+  fix_steps:
+    - "Kendi 404 sayfanı oluştur: kısa bir mesaj, ana sayfa linki ve önemli sayfalara linkler."
+    - "Next.js: app/not-found.tsx; Vite/React: router'a '*' rotası; Netlify/Vercel: 404.html."
+  fix_prompt: |
+    Sitemde olmayan bir adrese gidildiğinde boş veya varsayılan bir hata sayfası çıkıyor. Lütfen:
+    1. Kullandığım framework'e uygun bir 404 sayfası ekle (sade mesaj, ana sayfa linki, öne çıkan sayfa linkleri).
+    2. Sunucunun bu sayfa için 404 durum kodu döndürdüğünden emin ol.
+
+web.ux.offline_breaks_page:
+  title: "Bağlantı koptuğunda sayfa boş kalıyor"
+  passed_title: "Bağlantı koptuğunda sayfa çökmüyor"
+  description: "Sayfa yüklendikten sonra internet bağlantısı kesildiğinde ve site içinde başka bir sayfaya geçildiğinde ekran boş kaldı veya sonsuz yükleme göründü; kullanıcıya bir mesaj gösterilmedi."
+  why_it_matters: "Mobil kullanıcıların bağlantısı sık kopar. Mesaj yerine boş ekran görmek, sitenin bozuk olduğunu düşündürür."
+  fix_steps:
+    - "Veri çeken yerlerde ağ hatasını yakala ve 'Bağlantı yok, tekrar dene' gibi bir mesaj göster."
+    - "Yükleniyor durumuna bir zaman sınırı koy."
+  fix_prompt: |
+    Sitemde bağlantı koptuğunda sayfa boş kalıyor veya sonsuza dek yükleniyor. Lütfen:
+    1. Veri çeken tüm yerlerde (fetch, React Query, Supabase istemcisi vb.) ağ hatalarını yakala.
+    2. Kullanıcıya 'Bağlantı yok' mesajı ve 'Tekrar dene' butonu göster.
+    3. Yükleniyor göstergesine bir zaman sınırı ekle; süre dolunca hata mesajına geçsin.
+
+web.security.token_in_web_storage:
+  title: "Oturum anahtarları tarayıcı depolamasında tutuluyor"
+  passed_title: "Tarayıcı depolamasında oturum anahtarı görülmedi"
+  description: "Sitenin localStorage/sessionStorage alanında oturum anahtarı (token/JWT) gibi görünen değerler var. Sadece anahtar adlarını kaydettik, değerleri değil.{long_lived_note}"
+  why_it_matters: "localStorage'daki değerleri sayfada çalışan her JavaScript okuyabilir. Sitede bir XSS açığı veya ele geçirilmiş bir üçüncü taraf script olursa oturum çalınabilir."
+  fix_steps:
+    - "Mümkünse oturumu HttpOnly ve Secure bayraklı çerezde tut."
+    - "Token'ların geçerlilik süresini kısa tut (saatler), yenileme mekanizması kullan."
+    - "Supabase/Firebase kullanıyorsan bu genelde varsayılandır; o durumda XSS'e karşı CSP ekle ve üçüncü taraf script'leri azalt."
+  fix_prompt: |
+    Sitem oturum token'larını localStorage/sessionStorage'da tutuyor (anahtar adları kanıtta). Lütfen:
+    1. Kullandığım kimlik doğrulama yöntemini (Supabase, Firebase, kendi JWT'm) incele ve token'ı HttpOnly çerezde tutmak mümkün mü söyle.
+    2. Mümkünse oturumu sunucu tarafında yönetilen çerezlere taşı (ör. @supabase/ssr).
+    3. Değilse token süresini kısalt ve XSS riskini azaltmak için bir Content-Security-Policy öner.
+  fragments:
+    long_lived: " Bazı token'ların geçerlilik süresi 30 günden uzun; çalınırsa uzun süre kullanılabilir."
+
+web.security.insecure_cookie_flags:
+  title: "Oturum çerezlerinde güvenlik ayarları eksik"
+  passed_title: "Oturum çerezlerinin güvenlik ayarları tamam"
+  description: "Oturumla ilgili görünen çerezlerde eksik ayarlar var: {issues}. Sadece çerez adlarını kaydettik, değerleri değil."
+  why_it_matters: "HttpOnly yoksa çereze JavaScript ile erişilebilir (XSS ile çalınabilir); Secure yoksa şifresiz bağlantıda gönderilebilir; SameSite yoksa başka sitelerden gelen isteklerle kötüye kullanılabilir."
+  fix_steps:
+    - "Oturum çerezlerini HttpOnly, Secure ve SameSite=Lax (veya Strict) ile ayarla."
+    - "Çerezi JavaScript'ten (document.cookie) değil sunucudan oluştur."
+  fix_prompt: |
+    Sitemin oturum çerezlerinde güvenlik bayrakları eksik (çerez adları ve eksikler kanıtta). Lütfen:
+    1. Bu çerezlerin kodda nerede oluşturulduğunu bul.
+    2. HttpOnly, Secure ve SameSite=Lax bayraklarını ekle; çerez JavaScript'ten oluşturuluyorsa sunucu tarafına taşı.
+    3. Değişiklikten sonra girişin ve oturumun hâlâ çalıştığını kontrol et.
+  fragments:
+    missing_secure: "Secure eksik"
+    missing_httponly: "HttpOnly eksik"
+    samesite_none_insecure: "SameSite=None ama Secure yok"
+
+web.security.client_only_admin_route:
+  title: "Yönetim sayfası giriş yapmadan açılıyor olabilir"
+  passed_title: "Yönetim sayfaları giriş yapmadan açılmıyor"
+  description: "Sitenin kodunda tanımlı yönetim sayfalarından bazıları giriş yapmadan açıldığında yönetim arayüzüne benzeyen içerik gösteriyor. Sadece sayfayı açtık, hiçbir şeye tıklamadık. Sayfalar ve görülen işaretler kanıtta."
+  why_it_matters: "Yetki kontrolü sadece tarayıcıdaysa, sayfanın kodunu okuyan biri yönetim işlemlerine ulaşabilir. Asıl koruma veriyi döndüren sunucuda (API, veritabanı kuralları) olmalıdır."
+  fix_steps:
+    - "Yönetim sayfalarını sunucu tarafında (middleware, route guard) giriş ve rol kontrolüyle koru."
+    - "Yönetim verisi dönen API'lerin ve veritabanı kurallarının (RLS) rol kontrolü yaptığından emin ol."
+    - "Kesin sonuç için Faz 3'te içeriden test edebiliriz."
+  fix_prompt: |
+    Sitemde yönetim sayfaları giriş yapmadan açılıyor gibi görünüyor (yollar kanıtta). Lütfen:
+    1. Bu sayfaların korumasının sadece istemcide mi yapıldığını kontrol et.
+    2. Sunucu tarafında (Next.js middleware, backend route guard) giriş ve admin rolü kontrolü ekle.
+    3. Bu sayfaların kullandığı API'lerin ve veritabanı kurallarının (Supabase RLS, Firebase rules) rol kontrolü yaptığını doğrula ve yapmayanları listele.
+
+web.security.sourcemap_tree_exposed:
+  title: "Sitenin kaynak kodu dosya yapısıyla birlikte görülebiliyor"
+  passed_title: "Kaynak dosya yapısı dışarıdan görünmüyor"
+  description: "Açık bulunan source map dosyalarından sitenin {count} kaynak dosyasının yolu okunabiliyor. Örnek yollar kanıtta."
+  why_it_matters: "Source map ile kodun okunabilir hali, dosya adları, iç API yolları ve bazen yorum satırları ortaya çıkar. Bu, saldırganın açık aramasını çok kolaylaştırır."
+  fix_steps:
+    - "Prod build'de source map üretimini kapat veya map dosyalarını yayına çıkarma."
+    - "Vite: build.sourcemap false; Next.js: productionBrowserSourceMaps false."
+    - "Hata takibi için map'leri sadece Sentry gibi bir servise yükle."
+  fix_prompt: |
+    Sitemin source map dosyaları herkese açık ve kaynak kod yapısı görünüyor. Lütfen:
+    1. Build ayarlarında prod için source map üretimini kapat (Vite: build.sourcemap = false, Next.js: productionBrowserSourceMaps = false).
+    2. Hata takibi için gerekiyorsa map'leri sadece hata takip servisine yükleyip yayından sil.
+    3. Kodda yorum satırlarında veya dosya adlarında hassas bilgi kalmadığını kontrol et.

@@ -44,6 +44,8 @@ deep_events:
   deep.event.started: "Deep scan started."
   deep.event.phase1_copied: "{count} findings from the quick scan were picked up for verification."
   deep.event.module_started: "{module} started."
+  deep.event.page_rendered: "Opening on phone and desktop… {done}/{total} pages"
+  deep.event.site_blocked: "The site blocked automated visitors with a verification page; we couldn't open the pages in a browser."
   deep.event.module_done: "{module} finished: {found} findings."
   deep.event.module_partial: "{module} hit its time limit; continuing with what it found ({found} findings)."
   deep.event.module_failed: "{module} couldn't be completed; the scan continues with the other parts."

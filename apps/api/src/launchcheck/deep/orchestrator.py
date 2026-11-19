@@ -209,7 +209,7 @@ class DeepOrchestrator:
             status = ModuleStatus.PARTIAL
         except asyncio.CancelledError:
             # Sert sınır: eldekiler yazılır, iptal yukarı iletilir
-            await self._store_findings(ctx, module.name, out.findings)
+            await self._store_output(ctx, module.name, out)
             state.partial.append(module.name)
             await self._set_module(ctx, state, module.name, ModuleStatus.PARTIAL, len(out.findings))
             raise
@@ -217,7 +217,7 @@ class DeepOrchestrator:
             # İstisna mesajı sayfa içeriği taşıyabilir: sadece tipi logla
             logger.warning("modül başarısız: %s (%s)", module.name, type(exc).__name__)
             status = ModuleStatus.FAILED
-        found = await self._store_findings(ctx, module.name, out.findings)
+        found = await self._store_output(ctx, module.name, out)
         if status == ModuleStatus.PARTIAL:
             state.partial.append(module.name)
         elif status == ModuleStatus.FAILED:
@@ -230,13 +230,13 @@ class DeepOrchestrator:
         }[status]
         await ctx.events.emit(module.name, key, module=module.name, found=found)
 
-    async def _store_findings(self, ctx: DeepContext, module: str, findings: list[Finding]) -> int:
+    async def _store_output(self, ctx: DeepContext, module: str, out: ModuleOutput) -> int:
         """Modül bittiği anda yazılır: rapor sayfası bulguları erken gösterir."""
-        if not findings:
-            return 0
         escalated = escalate_for_sensitive_data(
-            findings, ctx.parent_meta, skip=list(self._cfg.special_data_aware)
+            out.findings, ctx.parent_meta, skip=list(self._cfg.special_data_aware)
         )
+        if not escalated and not out.assets:
+            return 0
         async with self._sm() as session:
             session.add_all(
                 FindingRow(
@@ -250,6 +250,7 @@ class DeepOrchestrator:
                 )
                 for f in escalated
             )
+            session.add_all(out.assets)
             await session.commit()
         return len(escalated)
 

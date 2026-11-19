@@ -1,0 +1,231 @@
+# Phase 2 (deep scan) check texts — render module (English). Tone: plain, non-blaming, clear.
+
+web.render.js_runtime_errors:
+  title: "JavaScript errors happen in your visitors' browsers"
+  passed_title: "No JavaScript errors seen on the pages"
+  description: "When we opened your pages in a real browser, {count} different JavaScript errors occurred. The errors and the pages they appeared on are in the evidence."
+  why_it_matters: "A JavaScript error can stop a button from working, keep a form from sending or hide part of the page. Visitors don't see it as an error, they see 'the site is broken' and leave."
+  fix_steps:
+    - "Open your site in Chrome and look at the red errors in F12 → Console."
+    - "Paste the error messages from the evidence into your AI tool and ask for the cause; it's often missing data or a missing environment variable."
+    - "Scan the site again after the errors are fixed."
+  fix_prompt: |
+    Some pages on my site throw JavaScript errors in the browser (error messages and pages below / in the evidence). Please:
+    1. Find where in the code each error message comes from.
+    2. Add guards for data that can be empty/undefined (optional chaining, default values, a loading state).
+    3. List configuration problems such as a missing environment variable or a wrong API address.
+    4. Add an error boundary so errors are shown to users as a clear message instead of a blank screen.
+
+web.render.failed_requests:
+  title: "Some of your site's requests fail"
+  passed_title: "Your site's own requests succeed"
+  description: "While the pages loaded, {count} requests to your site's own server or API failed (4xx/5xx, CORS or connection error).{api_note}"
+  why_it_matters: "Failed requests are usually a missing file, a misconfigured API address or a permission error. Users see it as an empty list, a section that never loads or a button that doesn't work."
+  fix_steps:
+    - "Check the addresses in the evidence in your browser under F12 → Network."
+    - "Fix the path of files that return 404 or add the file to your deployment."
+    - "If there's a CORS error, allow your site's domain on the API server."
+    - "For 5xx errors, look at your server/function logs."
+  fix_prompt: |
+    Some requests on my site fail (addresses, status codes and error types are in the evidence). Please:
+    1. Find where in the code each failing request is made.
+    2. For the 404s, fix the wrong path or missing file.
+    3. For the CORS errors, add a setting on the API side that allows my site's domain (without opening it to * everywhere).
+    4. For the 5xx errors, help me find the server-side cause and show users a clear error message.
+  fragments:
+    api_note: " These include API requests your site loads data from; the related sections may look empty to users."
+
+web.render.spa_deep_link_404:
+  title: "Some pages return 404 when opened directly"
+  passed_title: "Inner pages also work when opened directly"
+  description: "These pages open when clicked inside your site, but the server returns 404 when the address is opened directly (or the page is refreshed)."
+  why_it_matters: "Shared links, visitors from Google and anyone who refreshes the page see an error page. Google won't index these pages."
+  fix_steps:
+    - "Enable redirecting all paths to index.html (SPA fallback) in your hosting settings."
+    - "Vercel: add rewrites to vercel.json; Netlify: add the line '/* /index.html 200' to public/_redirects."
+    - "After the fix, open the addresses in the evidence directly to check."
+  fix_prompt: |
+    My site is a single-page app (SPA) and I get 404 when opening inner pages directly (addresses in the evidence). Please:
+    1. Add the setting that redirects all paths to index.html for my hosting (Vercel, Netlify, Cloudflare Pages, Firebase Hosting, nginx).
+    2. Show an in-app 404 page for pages that really don't exist.
+    3. If possible, consider rendering the pages on the server ahead of time (SSR/SSG).
+
+web.render.visible_junk_text:
+  title: "Technical values like 'undefined' or 'NaN' show up on the page"
+  passed_title: "No leaked technical values on the pages"
+  description: "When the page is opened in a browser, some fields show values like 'undefined', 'NaN', 'null', '[object Object]' or unprocessed '{{ }}'. Examples are in the evidence."
+  why_it_matters: "These values tell visitors the site is broken; in price, date or name fields especially, they seriously damage trust."
+  fix_steps:
+    - "Find which component produces the text in the evidence."
+    - "Show an empty placeholder or 'loading' until data arrives; use a sensible default for missing data."
+    - "Check that dates and numbers are valid before formatting them."
+  fix_prompt: |
+    Some fields on my site show 'undefined', 'NaN', 'null', '[object Object]' or 'Invalid Date' (examples in the evidence). Please:
+    1. Find the components that produce this text.
+    2. Show something meaningful instead when there's no data or it's loading (empty, '—', loading).
+    3. Fix places where objects are turned directly into text; add validity checks before formatting dates/numbers.
+
+web.render.broken_images:
+  title: "Some images don't load"
+  passed_title: "Images load correctly"
+  description: "On the pages we opened in a browser, some images failed to load or came back broken. The list is in the evidence."
+  why_it_matters: "Broken image icons make a site look neglected. If the big image on the first screen is broken, an error is the first thing visitors see."
+  fix_steps:
+    - "Check the image addresses in the evidence; the file may have been deleted or the path may be wrong."
+    - "Put images in your project's public folder or in permanent storage; don't use temporary links."
+    - "Add a fallback (placeholder) to show when an image can't load."
+  fix_prompt: |
+    Some images on my site don't load (addresses in the evidence). Please:
+    1. Check where these images are used in the code and whether their paths are correct.
+    2. Find missing files; if temporary/signed storage links are used, switch to permanent addresses.
+    3. Add a solution that shows a fallback image or background when an image fails to load.
+
+web.mobile.horizontal_overflow:
+  title: "Pages scroll sideways on phones"
+  passed_title: "Pages fit the phone's width"
+  description: "Some pages overflow the screen at phone widths (320-375 px) and create horizontal scrolling. The overflowing elements are in the evidence."
+  why_it_matters: "A page that scrolls sideways looks broken on a phone; visitors have to scroll left and right to read and usually leave."
+  fix_steps:
+    - "Check whether the elements in the evidence have a fixed width (like width: 600px); use max-width: 100%."
+    - "Add overflow-wrap: anywhere for long words/links."
+    - "For tables and wide components, allow horizontal scrolling only inside that component."
+  fix_prompt: |
+    My site overflows sideways on phones (at 320-375 px width; overflowing elements in the evidence). Please:
+    1. Find styles on these elements that cause overflow, such as fixed widths, negative margins or 100vw.
+    2. Make them responsive (max-width: 100%, flexible boxes, single column on mobile).
+    3. Make wide tables/code blocks scroll horizontally inside their own container so the whole page doesn't scroll.
+    4. Confirm there's no horizontal scrolling left at 320 px width.
+
+web.mobile.overlapping_elements:
+  title: "Some text and buttons overlap"
+  passed_title: "Text and buttons don't overlap"
+  description: "At some widths, text or button boxes end up on top of each other. Which elements and at which width are in the evidence."
+  why_it_matters: "Overlapping text can't be read and buttons may become impossible to tap. This stops visitors from acting, especially on phones."
+  fix_steps:
+    - "Open the page at the width in the evidence using your browser's device mode."
+    - "Check places that use position: absolute and fixed heights."
+    - "Let long headings wrap and leave space between elements."
+  fix_prompt: |
+    At some screen widths, text/buttons on my site overlap (elements and widths in the evidence). Please:
+    1. Find causes in these elements' styles such as fixed heights, absolute positioning or negative margins.
+    2. Make the layout flexible (flex/grid, gap, automatic height).
+    3. Check that nothing overlaps at 320, 375, 768 and 1024 px widths.
+
+web.mobile.cta_below_fold:
+  title: "On phones, the main button isn't on the first screen"
+  passed_title: "On phones, the main button is on the first screen"
+  description: "The primary button on your home page ('{cta_text}') sits below the first screen on phones; visitors have to scroll to see it."
+  why_it_matters: "Many visitors decide without scrolling at all. If the main action isn't on the first screen, sign-up or purchase rates drop."
+  fix_steps:
+    - "Shorten the hero section on mobile: shorten the heading, shrink the large image or move it below the button."
+    - "Put the main button right below the heading and a short description."
+  fix_prompt: |
+    On phones, the primary button on my home page is below the first screen. Please:
+    1. Rearrange the hero section on mobile: heading, a one-sentence description and the main button should be on the first screen.
+    2. Move large images below the button on mobile or make them smaller.
+    3. Confirm the button is visible without scrolling on a 375x812 screen.
+
+web.mobile.tap_targets_small:
+  title: "Some buttons and links are too small on phones"
+  passed_title: "Tap targets are big enough"
+  description: "On phones, some clickable elements are smaller than 24x24 pixels. Examples and counts are in the evidence."
+  why_it_matters: "Small targets are hard to hit with a finger; people tap the wrong thing and get frustrated. Accessibility guidelines (WCAG) recommend at least 24x24 pixels."
+  fix_steps:
+    - "Give buttons and icon links a tap area of at least 44x44 pixels (with padding)."
+    - "Leave space between small links that sit next to each other."
+  fix_prompt: |
+    Some buttons/links on my site are too small on phones (examples in the evidence). Please:
+    1. Add padding to icon buttons and small links so the tap area is at least 44x44 px (the visual can stay small).
+    2. Leave at least 8 px between clickable elements that sit next to each other.
+
+web.ux.custom_404_missing:
+  title: "Missing pages show a blank or default page"
+  passed_title: "You have your own 404 page"
+  description: "When someone goes to an address that doesn't exist, they see the server's default error page or a blank page without a link back to the home page."
+  why_it_matters: "Visitors coming from broken links don't know where to go and leave. A good 404 page brings them back to the home page or search."
+  fix_steps:
+    - "Create your own 404 page: a short message, a home page link and links to important pages."
+    - "Next.js: app/not-found.tsx; Vite/React: a '*' route in the router; Netlify/Vercel: 404.html."
+  fix_prompt: |
+    When someone visits an address that doesn't exist on my site, they get a blank or default error page. Please:
+    1. Add a 404 page that fits my framework (a simple message, a home page link, links to key pages).
+    2. Make sure the server returns a 404 status code for this page.
+
+web.ux.offline_breaks_page:
+  title: "The page stays blank when the connection drops"
+  passed_title: "The page doesn't break when the connection drops"
+  description: "After the page loaded, we cut the internet connection and moved to another page inside the site: the screen stayed blank or kept loading forever, with no message for the user."
+  why_it_matters: "Mobile users lose their connection often. A blank screen instead of a message makes them think the site is broken."
+  fix_steps:
+    - "Catch network errors where you load data and show a message like 'No connection, try again'."
+    - "Put a time limit on loading states."
+  fix_prompt: |
+    My site stays blank or loads forever when the connection drops. Please:
+    1. Catch network errors everywhere data is loaded (fetch, React Query, the Supabase client etc.).
+    2. Show users a 'No connection' message and a 'Try again' button.
+    3. Add a time limit to the loading indicator; when it runs out, switch to an error message.
+
+web.security.token_in_web_storage:
+  title: "Session tokens are kept in browser storage"
+  passed_title: "No session tokens seen in browser storage"
+  description: "Your site's localStorage/sessionStorage holds values that look like session tokens (token/JWT). We only recorded the key names, not the values.{long_lived_note}"
+  why_it_matters: "Any JavaScript running on the page can read localStorage. If the site has an XSS hole or a compromised third-party script, sessions can be stolen."
+  fix_steps:
+    - "If possible, keep the session in an HttpOnly, Secure cookie."
+    - "Keep token lifetimes short (hours) and use a refresh mechanism."
+    - "If you use Supabase/Firebase this is usually the default; in that case add a CSP against XSS and reduce third-party scripts."
+  fix_prompt: |
+    My site keeps session tokens in localStorage/sessionStorage (key names in the evidence). Please:
+    1. Look at the authentication method I use (Supabase, Firebase, my own JWT) and tell me whether the token can be kept in an HttpOnly cookie.
+    2. If possible, move the session to server-managed cookies (e.g. @supabase/ssr).
+    3. If not, shorten the token lifetime and suggest a Content-Security-Policy to reduce XSS risk.
+  fragments:
+    long_lived: " Some tokens are valid for more than 30 days; if stolen they can be used for a long time."
+
+web.security.insecure_cookie_flags:
+  title: "Session cookies are missing security settings"
+  passed_title: "Session cookie security settings are fine"
+  description: "Cookies that look session-related are missing settings: {issues}. We only recorded cookie names, not values."
+  why_it_matters: "Without HttpOnly, JavaScript can read the cookie (it can be stolen via XSS); without Secure it can be sent over an unencrypted connection; without SameSite it can be abused by requests coming from other sites."
+  fix_steps:
+    - "Set session cookies with HttpOnly, Secure and SameSite=Lax (or Strict)."
+    - "Create the cookie on the server, not from JavaScript (document.cookie)."
+  fix_prompt: |
+    My site's session cookies are missing security flags (cookie names and missing flags in the evidence). Please:
+    1. Find where these cookies are created in the code.
+    2. Add the HttpOnly, Secure and SameSite=Lax flags; if the cookie is created from JavaScript, move it to the server side.
+    3. After the change, check that sign-in and the session still work.
+  fragments:
+    missing_secure: "Secure missing"
+    missing_httponly: "HttpOnly missing"
+    samesite_none_insecure: "SameSite=None without Secure"
+
+web.security.client_only_admin_route:
+  title: "An admin page may open without signing in"
+  passed_title: "Admin pages don't open without signing in"
+  description: "Some admin pages defined in your site's code show content that looks like an admin interface when opened without signing in. We only opened the pages and didn't click anything. Pages and the signals we saw are in the evidence."
+  why_it_matters: "If permission checks only happen in the browser, someone who reads the page's code can reach admin actions. The real protection must be on the server that returns the data (API, database rules)."
+  fix_steps:
+    - "Protect admin pages on the server side (middleware, route guard) with sign-in and role checks."
+    - "Make sure the APIs and database rules (RLS) that return admin data check roles."
+    - "For a definitive answer, we can test from the inside in Phase 3."
+  fix_prompt: |
+    Admin pages on my site seem to open without signing in (paths in the evidence). Please:
+    1. Check whether these pages are protected only on the client.
+    2. Add sign-in and admin role checks on the server side (Next.js middleware, backend route guard).
+    3. Verify that the APIs and database rules these pages use (Supabase RLS, Firebase rules) check roles, and list the ones that don't.
+
+web.security.sourcemap_tree_exposed:
+  title: "Your site's source code can be seen with its file structure"
+  passed_title: "Source file structure isn't visible from outside"
+  description: "From the public source map files, the paths of {count} source files of your site can be read. Example paths are in the evidence."
+  why_it_matters: "Source maps reveal the readable code, file names, internal API paths and sometimes comments. This makes it much easier for an attacker to look for holes."
+  fix_steps:
+    - "Turn off source map generation in production builds or don't publish the map files."
+    - "Vite: build.sourcemap false; Next.js: productionBrowserSourceMaps false."
+    - "For error tracking, upload maps only to a service like Sentry."
+  fix_prompt: |
+    My site's source map files are public and the source code structure is visible. Please:
+    1. Turn off source map generation for production in the build settings (Vite: build.sourcemap = false, Next.js: productionBrowserSourceMaps = false).
+    2. If needed for error tracking, upload the maps only to the error tracking service and remove them from the deployment.
+    3. Check that no sensitive information is left in comments or file names in the code.

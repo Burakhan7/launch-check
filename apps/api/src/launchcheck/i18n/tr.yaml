@@ -44,6 +44,8 @@ deep_events:
   deep.event.started: "Derin tarama başladı."
   deep.event.phase1_copied: "Hızlı taramadaki {count} bulgu doğrulama için alındı."
   deep.event.module_started: "{module} başladı."
+  deep.event.page_rendered: "Telefonda ve bilgisayarda açılıyor… {done}/{total} sayfa"
+  deep.event.site_blocked: "Site otomatik ziyaretçileri bir doğrulama sayfasıyla engelledi; sayfaları tarayıcıda açamadık."
   deep.event.module_done: "{module} bitti: {found} bulgu."
   deep.event.module_partial: "{module} süre sınırına ulaştı; bulunanlarla devam ediliyor ({found} bulgu)."
   deep.event.module_failed: "{module} tamamlanamadı; tarama diğer bölümlerle devam ediyor."

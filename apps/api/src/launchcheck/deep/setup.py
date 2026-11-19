@@ -15,11 +15,15 @@ from launchcheck.deep.orchestrator import OrchestratorConfig
 
 
 def default_modules() -> list[DeepModule]:
-    return []
+    from launchcheck.deep.render_module import RenderModule
+
+    return [RenderModule()]
 
 
 def default_verification_rules() -> Mapping[str, VerificationRule]:
-    return {}
+    from launchcheck.deep.verification import RENDER_RULES
+
+    return {**RENDER_RULES}
 
 
 def asset_store(settings: Settings) -> AssetStore:

@@ -18,8 +18,11 @@ class Route:
 
 
 class LocalHttpServer:
-    def __init__(self, routes: dict[str, Route] | None = None) -> None:
+    def __init__(
+        self, routes: dict[str, Route] | None = None, fallback: Route | None = None
+    ) -> None:
         self.routes = routes or {}
+        self.fallback = fallback or Route(b"not found", "text/plain", 404)
         self.requests: list[bytes] = []  # ham istek başlıkları
         self._server: asyncio.Server | None = None
 
@@ -42,7 +45,7 @@ class LocalHttpServer:
             head = await reader.readuntil(b"\r\n\r\n")
             self.requests.append(head)
             path = head.split(b" ", 2)[1].decode()
-            route = self.routes.get(path.split("?", 1)[0], Route(b"not found", "text/plain", 404))
+            route = self.routes.get(path.split("?", 1)[0], self.fallback)
             extra = "".join(f"{k}: {v}\r\n" for k, v in route.headers.items())
             writer.write(
                 f"HTTP/1.1 {route.status} X\r\nContent-Type: {route.content_type}\r\n"
