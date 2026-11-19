@@ -195,3 +195,27 @@ AGENTS.md'nin açık bıraktığı noktalarda verilen kararlar. En basit güvenl
 - **Frontend testleri yerelde (Windows) çalışmıyor:** `vitest@5.1.0` yerel `node_modules` ile, mevcut testler dahil, "Cannot read properties of undefined (reading 'config')" veriyor (değişikliklerden önce de). CI ile aynı şekilde `node:22` container'ında `npm ci` sonrası lint, format, test ve build temiz geçti.
 - **Gerçek doğrulama (Vercel'e Vite + React deploy):** Bu oturumda yapılamadı: deploy dış servise yayın ve hesap gerektiriyor, şablonun yerelde derlenmesi için npm kurulumuna da izin verilmedi. Yerine güncel `create-vite@9.3.4` react-ts şablonunun `index.html`'i ve derlenmiş JSX biçimi testte simüle edildi (`test_vite9_template_simulation`: framework_leftovers high, viewport_missing bulgusuz). Canlı deploy sonucu buraya eklenecek.
 
+## 2026-11-19 — Faz 2 / P0: bağlam
+
+- **Sıra:** Prod'a çıkış (M7) Faz 2 tamamlandıktan sonra yapılır (kullanıcı kararı). Faz 2 tanımı `docs/PHASE2.md`; AGENTS.md yol haritası, pasiflik ilkesi, skor ağırlıkları ve genelleme kuralları (§17a) güncellendi. AGENTS.md'deki eski "Faz 1: security 0.7, prod_readiness 0.3" ağırlıkları koddaki gerçek değerle (0.5 / 0.25 / 0.25) eşitlendi.
+- **APK Faz 2:** Ayrı task, web Faz 2 sonrası. Bu fazda APK tarafında kod değişikliği yok.
+- **Ortam:** LLM eval'i (P8), süre ölçümleri (P11) ve worker-deep kaynak testleri Hetzner sunucusunda yapılır (8 vCPU / 16 GB hedefi); yerel geliştirme makinesinde sadece birim/tarayıcı testleri.
+- **Google API:** PageSpeed Insights ve CrUX API'leri ücretsizdir; faturalandırma hesabı olmayan bir Google Cloud projesinde oluşturulan API anahtarı yeterli. Kota aşılırsa istek reddedilir, ücret oluşmaz. Anahtar P4'te `LC_GOOGLE_API_KEY` olarak eklenecek; boşken modül saha verisiz çalışır.
+- **Lisans kararları (2026-11-19'da kaynaklardan doğrulandı).** Faz 3 ücretli olacağı için "ticari olmayan" (NC) lisanslı veri kullanılmaz:
+
+  | İhtiyaç | Spec'in önerisi | Lisans | Karar |
+  |---|---|---|---|
+  | Takipçi listesi | DuckDuckGo Tracker Radar | CC BY-NC-SA 4.0 | **Kullanılmaz** |
+  | Takipçi listesi | disconnect.me | CC BY-NC-SA 4.0 | **Kullanılmaz** |
+  | Takipçi listesi | (alternatif) Ghostery TrackerDB | CC BY-NC-SA 4.0 | **Kullanılmaz** |
+  | Takipçi listesi | (alternatif) **EasyPrivacy** | GPLv3+ veya CC BY-SA 3.0 (çift lisans) | **Kullanılır**, CC BY-SA 3.0 seçilir. Liste sadece eşleştirme verisi olarak okunur, değiştirilmiş hâli dağıtılmaz; atıf gizlilik ve `/bot` sayfasında. Ağ kuralı (`||alanadi^`) olan satırlardan sadece alan adları çıkarılır. Yaygın takipçiler (GA/GTM, Meta Pixel, TikTok, Hotjar, Clarity, Yandex Metrica, LinkedIn Insight) ayrıca elle, kategori adıyla tutulur. |
+  | Ele geçirme parmak izleri | can-i-take-over-xyz | CC BY 4.0 | **Kullanılır**, atıfla. Çapraz kontrol için nuclei-templates `takeovers/` (MIT). |
+  | Açıklı JS kütüphaneleri | retire.js `jsrepository.json` | Apache-2.0 | **Kullanılır**, imaja gömülür. |
+  | Popülerlik | Tranco | Varsayılan liste Cloudflare Radar (CC BY-NC 4.0) verisini de içeriyor | **Kullanılmaz** (NC bileşen). Yerine CrUX'ta yer alma (API, ücretsiz) + **Majestic Million** (CC BY 3.0, atıfla) sıralaması. |
+  | Tarayıcı / ölçüm | Playwright, Lighthouse | Apache-2.0 | Kullanılır |
+  | Erişilebilirlik | axe-core | MPL-2.0 | Kullanılır (değiştirilmeden; değiştirilirse değişen dosyalar açık kaynak kalır) |
+  | LLM çalıştırıcı | Ollama | MIT | Kullanılır |
+  | LLM modeli | Qwen / Gemma / Llama ailesi | Qwen 2.5 7B: Apache-2.0; Gemma: özel kullanım şartları; Llama: özel topluluk lisansı | P8 eval adayları öncelikle Apache-2.0 modeller (Qwen 2.5 7B Instruct, Mistral 7B Instruct v0.3, IBM Granite 8B). Gemma/Llama sadece belirgin kalite farkı varsa ve şartları ayrıca incelenip onaylanırsa. |
+
+  Atıflar (EasyPrivacy, can-i-take-over-xyz, Majestic, retire.js) P10'da gizlilik ve `/bot` sayfalarına eklenecek.
+

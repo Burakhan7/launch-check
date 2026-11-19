@@ -23,7 +23,8 @@ Teknik bilgisi sınırlı, ürünü "çalışıyor" ama yayına çıkarken veya 
 1. **Yardım odaklı:** Kayıt yok, e-posta kapısı yok. Rapor tamamen ve direkt gösterilir.
 2. **Minimum veri:** Yüklenen APK tarama biter bitmez diskten silinir. Raporlar 7 gün sonra otomatik silinir. Kullanıcı kişisel verisi toplanmaz.
 3. **Bulunan secret'lar asla tam hâliyle saklanmaz veya gösterilmez.** Sadece maskeli hâli (ilk 6 + son 4 karakter) tutulur.
-4. **Faz 1 tamamen pasiftir:** Sadece herkese açık dosyalar okunur. Hedefin backend'ine (Supabase, Firebase, API) yazma/okuma denemesi yapılmaz. Aktif testler Faz 3'tedir ve sahiplik doğrulaması gerektirir.
+4. **Faz 1 ve Faz 2 pasiftir:** Faz 1'de sadece herkese açık dosyalar okunur. Hedefin backend'ine (Supabase, Firebase, API) yazma/okuma denemesi yapılmaz. Aktif testler Faz 3'tedir ve sahiplik doğrulaması gerektirir.
+   Faz 2'de hedefe ve rakip sitelere sadece **normal bir ziyaretçinin yapacağı istekler** gider: sayfaları açmak, gezinmek, linkleri takip etmek, görselleri/script'leri yüklemek; çerez banner'ında "Reddet/Sadece gerekli" butonuna tıklamak; sayfa içi menü/akordeon açmak (form göndermeden). Yasak: form göndermek, alanlara yazmak, giriş/kayıt denemek; hedefin API'lerine kendi isteğimizi atmak (sayfanın kendi attığı istekler hariç); bulunan anahtar/token'ları kullanmak; alt alan adı ele geçirme riskinde servisi "claim" etmek; rakip sitelerde güvenlik check'i çalıştırmak.
 5. **Her bulgu düzeltilebilir olmalı:** Her bulgu için sade açıklama + neden önemli + düzeltme adımı + AI aracına yapıştırılabilir düzeltme prompt'u.
 
 ---
@@ -32,12 +33,12 @@ Teknik bilgisi sınırlı, ürünü "çalışıyor" ama yayına çıkarken veya 
 
 | Faz | Erişim | Kapsam |
 |---|---|---|
-| **1 (şimdi)** | Sadece dosyalar | Statik analiz: sızan key'ler, açık dosyalar, header'lar, debug build, manifest |
-| 2 | Tarayıcı + LLM | Playwright ile davranış, console hataları, PageSpeed, landing/store analizi (Gemini) |
-| 3 | Sahiplik onayı | Supabase RLS, Firebase kuralları, korumasız API testleri |
-| 4 | Test hesapları | IDOR, yetki yükseltme, paywall bypass, mobil dinamik analiz |
+| 1 (tamamlandı) | Sadece dosyalar | Statik analiz: sızan key'ler, açık dosyalar, header'lar, debug build, manifest |
+| **2 (şimdi)** | Tarayıcı + yerel LLM | Derin tarama (sadece web): render, hız, dış görünürlük, gizlilik, huni, kıyas |
+| 3 (ücretli, sahiplik doğrulamalı) | Sahiplik onayı | Supabase RLS, Firebase kuralları, korumasız API testleri |
+| 4 (test hesaplı) | Test hesapları | IDOR, yetki yükseltme, paywall bypass, mobil dinamik analiz |
 
-**Sadece Faz 1'i yaz.** Ama mimari Faz 2-4'ü kaldırabilecek şekilde genişletilebilir olmalı (check registry, faz alanı, kategori sistemi).
+**Faz 2'yi yaz; tanımı `docs/PHASE2.md`.** Faz 1 davranışı bozulmaz. Prod'a çıkış (M7) Faz 2 tamamlandıktan sonra yapılır.
 
 ---
 
@@ -358,7 +359,9 @@ Dosya erişim kontrollerinde **SPA catch-all false positive'ine dikkat:** Birço
 - Ceza: critical −30, high −12, medium −5, low −2, info 0
 - Aynı check'ten gelen birden fazla bulgu: ilki tam ceza, sonrakiler yarım, bir check'in toplam cezası en fazla 2× tam ceza
 - Kategori skoru en az 0
-- Genel skor: kategori skorlarının ağırlıklı ortalaması (Faz 1: security 0.7, prod_readiness 0.3)
+- Genel skor: kategori skorlarının ağırlıklı ortalaması
+  - Faz 1 (`LC_SCORE_WEIGHTS`): security 0.5, prod_readiness 0.25, conversion 0.25
+  - Faz 2 (`LC_SCORE_WEIGHTS_DEEP`): security 0.40, prod_readiness 0.20, performance 0.15, conversion 0.25. `verification = refuted` bulgular skora girmez; benchmark ve persona bulguları conversion'da toplam en fazla −20 ceza (bkz. `docs/PHASE2.md` §9)
 - **En az bir critical varsa genel skor en fazla 49** ("yayına hazır değil" eşiği)
 - Etiketler: 0-49 "Yayına hazır değil", 50-79 "Düzeltilmesi gerekenler var", 80-100 "İyi durumda"
 
@@ -446,6 +449,25 @@ Her milestone sonunda testler geçmeli, `docker compose up` çalışmalı.
 - Dış ağa çıkan testler yok; tüm testler fixture veya mock (respx) ile
 - Commit'ler küçük ve açıklayıcı
 - Emin olmadığın bir tasarım kararında varsayım yapma, `docs/decisions.md`'ye not düş ve en basit güvenli seçeneği uygula
+
+---
+
+## 17a. Genelleme kuralları (zorunlu)
+
+Bu dosyadaki veya gelecekteki prompt'lardaki "Gerçek örnek" kısımları sadece sorunu anlatmak içindir. Check'leri bu sitelere göre değil, aynı sorun sınıfının tamamını yakalayacak şekilde yaz:
+
+1. Tespit, belirli site yapılarına/yol adlarına değil, sorunun genel sinyallerine dayansın. Yol, parametre ve kelime listeleri başlangıç noktasıdır; hepsini config'e taşı ve tek başına tespit için yeterli sayma.
+2. Kelime listeleri TR ve EN için dengeli olsun; dile özgü listeleri ayrı dosyalarda tut.
+3. İstisna listeleri yerine bağlam kuralları tercih et (element türü, konum, kelime sayısı, yakındaki elementler). İstisna listesi gerekiyorsa kısa tut ve gerekçesini yorum olarak yaz.
+4. Her check için en az 3 farklı yapıda fixture yaz: örnek siteye benzeyen 1 + farklı framework/yapıda (Next.js, WordPress, düz HTML, SPA) en az 2.
+5. Her check için en az 2 false positive testi yaz: sorun yokken benzer görünen meşru senaryolar.
+6. Bir kural sadece örnek sitede çalışacak kadar dar kalıyorsa genel hâlini yaz; dar kuralı sadece ek sinyal olarak kullan.
+7. Her check için "neyi yakalar / neyi kaçırabilir" diye 2 satırlık notu `docs/checks.md`'ye ekle.
+
+**Faz 2'ye özel ek kurallar:**
+8. Tarayıcı gerektiren testler gerçek ağa çıkmaz: yerel bir test sunucusu (pytest fixture'ı, `127.0.0.1` sadece testlerde SSRF allowlist'iyle) fixture HTML/JS dosyalarını sunar. `pytest -m browser` ile ayrı çalışır; CI'da worker-deep imajında çalıştırılır.
+9. Dış servis (crt.sh, Wayback, RDAP, CrUX, Ollama) çağıran her modülün testi kayıtlı yanıtlarla (respx) yapılır; servis hatası/zaman aşımı senaryosu her modül için zorunlu.
+10. Her check `phase = 2` taşır; Faz 1 taramasında asla çalışmadığı testle doğrulanır.
 
 ---
 
