@@ -452,6 +452,9 @@ class Settings(BaseSettings):
     )
     benchmark_cache_ttl_h: int = 24
     assets_dir: str = "/var/lib/launchcheck/assets"
+    # Tarayıcı: sayfa başına zaman sınırı ve egress proxy'den geçen toplam yanıt baytı
+    deep_page_timeout_s: float = 20
+    deep_proxy_max_total_bytes: int = 200 * 1024 * 1024
 
 
 @lru_cache

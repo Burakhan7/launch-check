@@ -134,20 +134,25 @@ class UrlGuard:
         self._resolver = resolver
         self._timeout_s = timeout_s
 
-    async def resolve_public(self, host: str, port: int) -> list[IPAddress]:
-        """Host'u çözer; tek bir IP bile herkese açık değilse reddeder."""
+    async def resolve(self, host: str, port: int) -> list[IPAddress]:
+        """Host'u IP'lere çözer (literal ve eski IPv4 yazımları dahil). IP kontrolü YAPMAZ;
+        çağıran `is_public_ip` ile tüm IP'leri kontrol etmelidir."""
         literal = parse_ip(host.strip("[]"))
         if literal is not None:
-            ips = [literal]
-        else:
-            try:
-                async with asyncio.timeout(self._timeout_s):
-                    raw = await self._resolver(host, port)
-            except (OSError, TimeoutError, UnicodeError) as exc:
-                raise UnresolvableHostError() from exc
-            ips = [ip for ip in (parse_ip(r) for r in raw) if ip is not None]
-            if not ips:
-                raise UnresolvableHostError()
+            return [literal]
+        try:
+            async with asyncio.timeout(self._timeout_s):
+                raw = await self._resolver(host, port)
+        except (OSError, TimeoutError, UnicodeError) as exc:
+            raise UnresolvableHostError() from exc
+        ips = [ip for ip in (parse_ip(r) for r in raw) if ip is not None]
+        if not ips:
+            raise UnresolvableHostError()
+        return ips
+
+    async def resolve_public(self, host: str, port: int) -> list[IPAddress]:
+        """Host'u çözer; tek bir IP bile herkese açık değilse reddeder."""
+        ips = await self.resolve(host, port)
         if not all(is_public_ip(ip) for ip in ips):
             raise BlockedAddressError()
         return ips

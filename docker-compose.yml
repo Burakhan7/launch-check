@@ -57,12 +57,12 @@ services:
         limits: { cpus: "2.0", memory: 3g }
 
   # Faz 2 (derin tarama) worker'ı: sadece `arq:deep` kuyruğunu dinler, Faz 1'i bekletmez.
-  # P1: orkestratör + boş modüller (Faz 1 imajı). P2'de Chromium/Lighthouse'lu ayrı imaja geçer.
+  # Chromium + Lighthouse; tarayıcı trafiği container içindeki SSRF korumalı egress proxy'den
+  # geçer. Chromium --no-sandbox çalışır, izolasyon bu container'ın kısıtlarıdır (decisions.md).
   worker-deep:
     build:
       context: ./apps/api
-      dockerfile: Dockerfile.worker
-    command: ["arq", "launchcheck.worker.deep_settings.DeepWorkerSettings"]
+      dockerfile: Dockerfile.worker-deep
     restart: unless-stopped
     <<: *backend-env
     depends_on:
@@ -72,7 +72,8 @@ services:
     volumes:
       - assets:/var/lib/launchcheck/assets
     tmpfs:
-      - /tmp:size=1g,mode=1777
+      # Chromium profili, önbelleği ve paylaşılan bellek (--disable-dev-shm-usage) burada
+      - /tmp:size=2g,mode=1777
     security_opt: ["no-new-privileges:true"]
     cap_drop: [ALL]
     deploy:

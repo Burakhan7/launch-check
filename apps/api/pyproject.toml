@@ -22,6 +22,12 @@ dependencies = [
     "pillow>=11.0",
 ]
 
+[project.optional-dependencies]
+# Faz 2 (derin tarama) worker'ı: sadece Dockerfile.worker-deep kurar (Faz 1 imajları değil)
+deep = [
+    "playwright>=1.50",
+]
+
 [dependency-groups]
 dev = [
     "pytest>=8.3",
@@ -58,4 +64,5 @@ asyncio_default_fixture_loop_scope = "function"
 testpaths = ["tests"]
 markers = [
     "tools: apktool/jadx gerektirir (worker imajında çalışır; araçlar yoksa atlanır)",
+    "browser: Playwright Chromium gerektirir (worker-deep imajında çalışır; yoksa atlanır)",
 ]

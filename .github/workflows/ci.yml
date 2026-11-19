@@ -52,3 +52,18 @@ jobs:
           --read-only --tmpfs /tmp:size=2g,mode=1777,exec lc-worker
           sh -c 'cp -r /src /tmp/src && cd /tmp/src && rm -rf .venv
           && uv sync --frozen -q && uv run --no-sync pytest -q -m tools -p no:cacheprovider'
+
+  browser:
+    # Gerçek Chromium ile tarayıcı SSRF/sandbox testleri: worker-deep imajında, prod kısıtlarıyla
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - run: docker build -t lc-worker-deep -f apps/api/Dockerfile.worker-deep apps/api
+      - name: pytest -m browser
+        run: >-
+          docker run --rm -v "$PWD/apps/api:/src:ro"
+          -e UV_PROJECT_ENVIRONMENT=/tmp/venv -e UV_CACHE_DIR=/tmp/uvcache
+          --read-only --tmpfs /tmp:size=2g,mode=1777,exec
+          --cap-drop ALL --security-opt no-new-privileges:true lc-worker-deep
+          sh -c 'cp -r /src /tmp/src && cd /tmp/src && rm -rf .venv
+          && uv sync --frozen --extra deep -q && uv run --no-sync pytest -q -m browser -p no:cacheprovider'
