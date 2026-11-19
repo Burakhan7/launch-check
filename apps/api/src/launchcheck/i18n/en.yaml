@@ -30,3 +30,32 @@ errors:
   upload_missing: "We couldn't find the uploaded file. Please upload it again."
   apk_decode_failed: "We couldn't open the app. The file may be corrupt or in a format we don't support."
   apk_timeout: "Opening the app took too long and was stopped. It may be a very large app."
+  parent_not_found: "We couldn't find the report this deep scan should be based on. Reports are deleted automatically after 7 days."
+  parent_not_ready: "A deep scan can only be started from a completed website scan."
+  parent_too_old: "This report is too old for a deep scan. Scan the site again first, then start the deep scan."
+  invalid_competitor_url: "One of the competitor addresses you entered isn't a valid, public website."
+  competitor_same_origin: "You can't enter your own site or one of its subdomains as a competitor."
+  invalid_compare_to: "The previous deep scan you want to compare with wasn't found or belongs to another site."
+  deep_rate_limited: "You've reached today's limit of deep scans. You can try again tomorrow."
+  queue_full: "The deep scan queue is full right now. Please try again in a little while."
+
+# Phase 2 live progress events (scan_events.key → text). Parameters are filled in with {name}.
+deep_events:
+  deep.event.started: "Deep scan started."
+  deep.event.phase1_copied: "{count} findings from the quick scan were picked up for verification."
+  deep.event.module_started: "{module} started."
+  deep.event.module_done: "{module} finished: {found} findings."
+  deep.event.module_partial: "{module} hit its time limit; continuing with what it found ({found} findings)."
+  deep.event.module_failed: "{module} couldn't be completed; the scan continues with the other parts."
+  deep.event.done: "Deep scan finished."
+
+# Display names of phase 2 modules
+deep_modules:
+  render: "Real visitor view"
+  perf: "Speed measurement"
+  external: "External visibility"
+  links: "Link and meta verification"
+  privacy: "Privacy and third-party code"
+  funnel: "Sign-up/purchase path"
+  llm: "Content review"
+  benchmark: "Benchmark"

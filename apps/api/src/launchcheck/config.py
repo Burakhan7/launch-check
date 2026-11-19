@@ -409,6 +409,50 @@ class Settings(BaseSettings):
     # Google Play minimum targetSdkVersion — değeri .env'den gelir, bkz. .env.example
     play_min_target_sdk: int = 36
 
+    # --- Faz 2: derin tarama (docs/PHASE2.md §13) ---
+    deep_max_concurrent: int = 1
+    # Bekleyen (queued) Faz 2 sayısı bunu aşarsa yeni istek `queue_full`
+    deep_queue_max: int = 10
+    deep_scan_timeout_s: float = 1200  # sert sınır 20 dk
+    deep_max_pages: int = 25
+    deep_max_subdomains: int = 8
+    deep_max_competitors: int = 3
+    deep_competitor_max_pages: int = 6
+    # Şerit bütçeleri: aşınca modül elindekiyle biter (meta.deep.partial_modules)
+    deep_budget_browser_s: float = 420
+    deep_budget_lighthouse_s: float = 240
+    deep_budget_network_s: float = 180
+    deep_budget_llm_s: float = 360
+    # Tek bir modülün bütçesi (şerit bütçesinden de sınırlıdır)
+    deep_budget_module_s: float = 420
+    # Faz 1 raporu bundan eskiyse derin tarama başlatılamaz
+    deep_parent_max_age_h: int = 24
+    rate_limit_deep_per_day: int = 3
+    # Geçmiş veri yokken ETA için varsayılan tarama süresi
+    deep_default_duration_s: int = 840
+    # Kuyrukta bundan uzun bekleyen Faz 2 taraması "yarıda kaldı" sayılır
+    deep_queued_stale_after_s: int = 6 * 3600
+    deep_events_page_size: int = 200
+    deep_max_asset_bytes: int = 3 * 1024 * 1024
+    # Asset klasöründe DB karşılığı olmayan dosyalar bu süreden sonra silinir
+    deep_asset_orphan_after_s: int = 3600
+    # PageSpeed Insights / CrUX (ücretsiz kota); boşsa saha verisi atlanır
+    google_api_key: str = ""
+    llm_base_url: str = "http://ollama:11434"
+    llm_model: str = ""  # P8'de eval ile seçilir
+    llm_timeout_s: float = 150
+    llm_max_output_tokens: int = 900
+    score_weights_deep: dict[str, float] = Field(
+        default_factory=lambda: {
+            "security": 0.4,
+            "prod_readiness": 0.2,
+            "performance": 0.15,
+            "conversion": 0.25,
+        }
+    )
+    benchmark_cache_ttl_h: int = 24
+    assets_dir: str = "/var/lib/launchcheck/assets"
+
 
 @lru_cache
 def get_settings() -> Settings:

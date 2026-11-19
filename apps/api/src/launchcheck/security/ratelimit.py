@@ -33,12 +33,14 @@ class RateLimiter:
         self._salt = salt
         self._window_s = window_s
 
-    async def hit(self, kind: str, ip: str, limit: int) -> RateLimitResult:
+    async def hit(
+        self, kind: str, ip: str, limit: int, window_s: int | None = None
+    ) -> RateLimitResult:
         key = f"{KEY_PREFIX}:{kind}:{hash_ip(ip, self._salt)}"
         try:
             async with self._redis.pipeline(transaction=True) as pipe:
                 pipe.incr(key)
-                pipe.expire(key, self._window_s, nx=True)
+                pipe.expire(key, window_s or self._window_s, nx=True)
                 pipe.ttl(key)
                 count, _, ttl = await pipe.execute()
         except Exception as exc:

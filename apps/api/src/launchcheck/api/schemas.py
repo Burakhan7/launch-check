@@ -5,7 +5,7 @@ from typing import Any
 from pydantic import BaseModel, Field
 
 from launchcheck.checks.base import Category, Severity, TargetType
-from launchcheck.db.models import ScanStatus
+from launchcheck.db.models import ScanStatus, Verification
 from launchcheck.scoring import ScoreLabel
 from launchcheck.security.url import MAX_URL_LENGTH
 
@@ -23,6 +23,30 @@ class ErrorInfo(BaseModel):
     message: str
 
 
+class DeepScanRequest(BaseModel):
+    competitors: list[str] = Field(default_factory=list, max_length=3)
+    use_reference: bool = True
+    compare_to: uuid.UUID | None = None
+
+
+class DeepScanCreated(BaseModel):
+    scan_id: uuid.UUID
+    queue_position: int
+    eta_s: int
+
+
+class EventOut(BaseModel):
+    id: int
+    module: str
+    text: str
+    created_at: datetime
+
+
+class EventsResponse(BaseModel):
+    events: list[EventOut]
+    status: ScanStatus
+
+
 class FindingOut(BaseModel):
     check_id: str
     severity: Severity
@@ -33,6 +57,10 @@ class FindingOut(BaseModel):
     fix_steps: list[str]
     fix_prompt: str
     evidence: dict[str, Any]
+    # Faz 2
+    source_phase: int = 1
+    verification: Verification | None = None
+    module: str | None = None
 
 
 class PassedCheckOut(BaseModel):
@@ -57,3 +85,8 @@ class ScanReport(BaseModel):
     created_at: datetime
     finished_at: datetime | None
     expires_at: datetime
+    # Faz 2
+    parent_scan_id: uuid.UUID | None = None
+    progress: dict[str, Any] | None = None
+    queue_position: int | None = None
+    eta_s: int | None = None

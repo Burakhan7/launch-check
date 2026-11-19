@@ -10,6 +10,9 @@ from fastapi import Request
 from launchcheck.config import get_settings
 
 RUN_SCAN_JOB = "run_scan"
+# Faz 2 ayrı kuyrukta: Faz 1 taramaları derin taramaların arkasında beklemez
+DEEP_QUEUE = "arq:deep"
+RUN_DEEP_SCAN_JOB = "run_deep_scan"
 
 
 class JobQueue(Protocol):

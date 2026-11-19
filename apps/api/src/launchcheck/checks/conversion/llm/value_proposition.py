@@ -133,6 +133,7 @@ class ValueProposition(WebCheck):
     id = "web.conversion.value_proposition"
     target = TargetType.WEB
     phase = 2
+    module = "llm"
     category = Category.CONVERSION
     default_severity = Severity.LOW
     llm_client: ClassVar[LlmClient | None] = None  # Faz 2'de bağlanacak

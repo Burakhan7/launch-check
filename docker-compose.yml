@@ -27,6 +27,7 @@ services:
       redis: { condition: service_healthy }
     volumes:
       - uploads:/var/lib/launchcheck/uploads
+      - assets:/var/lib/launchcheck/assets:ro # Faz 2 ekran görüntüleri (sadece okur)
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request;urllib.request.urlopen('http://localhost:8000/api/health')"]
       interval: 10s
@@ -45,6 +46,7 @@ services:
     read_only: true
     volumes:
       - uploads:/var/lib/launchcheck/uploads
+      - assets:/var/lib/launchcheck/assets # saklama süresi dolan Faz 2 asset'lerini siler
     tmpfs:
       # APK açma alanı. Boyut sınırı, zip bomb'a karşı son savunma hattıdır.
       - /tmp:size=2g,mode=1777
@@ -53,6 +55,29 @@ services:
     deploy:
       resources:
         limits: { cpus: "2.0", memory: 3g }
+
+  # Faz 2 (derin tarama) worker'ı: sadece `arq:deep` kuyruğunu dinler, Faz 1'i bekletmez.
+  # P1: orkestratör + boş modüller (Faz 1 imajı). P2'de Chromium/Lighthouse'lu ayrı imaja geçer.
+  worker-deep:
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile.worker
+    command: ["arq", "launchcheck.worker.deep_settings.DeepWorkerSettings"]
+    restart: unless-stopped
+    <<: *backend-env
+    depends_on:
+      api: { condition: service_healthy }
+      redis: { condition: service_healthy }
+    read_only: true
+    volumes:
+      - assets:/var/lib/launchcheck/assets
+    tmpfs:
+      - /tmp:size=1g,mode=1777
+    security_opt: ["no-new-privileges:true"]
+    cap_drop: [ALL]
+    deploy:
+      resources:
+        limits: { cpus: "4.0", memory: 6g }
 
   postgres:
     image: postgres:16-alpine
@@ -93,5 +118,6 @@ services:
 volumes:
   pgdata:
   uploads: # API yükler, worker okur ve tarama biter bitmez siler
+  assets: # Faz 2 ekran görüntüleri; 7 gün sonra cron ile silinir
   caddy_data:
   caddy_config:

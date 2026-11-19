@@ -8,6 +8,7 @@ from fastapi import APIRouter, Depends, File, Form, Query, UploadFile
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from launchcheck.api.deep_queue import queue_info
 from launchcheck.api.deps import get_url_guard, rate_limit
 from launchcheck.api.errors import ApiError
 from launchcheck.api.queue import RUN_SCAN_JOB, JobQueue, get_queue
@@ -139,10 +140,14 @@ async def get_scan(
     rows = list(
         (await session.scalars(select(FindingRow).where(FindingRow.scan_id == scan.id))).all()
     )
+    settings = get_settings()
+    parent = await session.get(Scan, scan.parent_scan_id) if scan.parent_scan_id else None
     return build_report(
         scan,
         rows,
         registry=load_builtin_checks(),
         lang=normalize_lang(lang),
-        retention_days=get_settings().report_retention_days,
+        retention_days=settings.report_retention_days,
+        parent=parent,
+        queue=await queue_info(session, scan, settings.deep_default_duration_s),
     )

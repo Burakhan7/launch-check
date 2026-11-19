@@ -1,7 +1,8 @@
 """DB kayıtlarından dil bazlı rapor üretimi."""
 
-from datetime import timedelta
+from datetime import datetime, timedelta
 
+from launchcheck.api.deep_queue import QueueInfo
 from launchcheck.api.schemas import ErrorInfo, FindingOut, PassedCheckOut, ScanReport
 from launchcheck.checks.registry import Registry
 from launchcheck.db.models import FindingRow, Scan, ScanStatus
@@ -43,26 +44,52 @@ def _finding_out(row: FindingRow, registry: Registry, lang: str) -> FindingOut:
         fix_steps=text.fix_steps,
         fix_prompt=text.fix_prompt,
         evidence=row.evidence or {},
+        source_phase=row.source_phase or 1,
+        verification=row.verification,
+        module=row.module,
     )
+
+
+def _completed_modules(scan: Scan) -> set[str]:
+    modules = ((scan.progress or {}).get("modules") or {}).items()
+    return {name for name, info in modules if (info or {}).get("status") == "done"}
 
 
 def _passed(
     scan: Scan, rows: list[FindingRow], registry: Registry, lang: str
 ) -> list[PassedCheckOut]:
-    """Bulgu üretmeyen ve hata vermeyen check'ler: kullanıcıya neyi kontrol ettiğimizi gösterir."""
+    """Bulgu üretmeyen ve hata vermeyen check'ler: kullanıcıya neyi kontrol ettiğimizi gösterir.
+    Faz 2 check'leri sadece modülleri tamamen çalıştıysa "geçti" sayılır."""
     if scan.status != ScanStatus.DONE:
         return []
     flagged = {canonical_check_id(r.check_id) for r in rows}
     failed = set((scan.meta or {}).get("checks_failed", []))
+    completed = _completed_modules(scan)
     return [
         PassedCheckOut(check_id=c.id, category=c.category, title=passed_title(c.id, lang))
         for c in registry.for_target(scan.target_type, scan.phase)
-        if c.id not in flagged and c.id not in failed
+        if c.id not in flagged
+        and c.id not in failed
+        and (c.phase == 1 or (c.module is not None and c.module in completed))
     ]
 
 
+def _expires_at(scan: Scan, parent: Scan | None, retention_days: int) -> datetime:
+    """Faz 2 raporu, dayandığı Faz 1 raporu silinince onunla birlikte silinir."""
+    own = scan.created_at + timedelta(days=retention_days)
+    if parent is None:
+        return own
+    return min(own, parent.created_at + timedelta(days=retention_days))
+
+
 def build_report(
-    scan: Scan, rows: list[FindingRow], registry: Registry, lang: str, retention_days: int
+    scan: Scan,
+    rows: list[FindingRow],
+    registry: Registry,
+    lang: str,
+    retention_days: int,
+    parent: Scan | None = None,
+    queue: QueueInfo | None = None,
 ) -> ScanReport:
     ordered = sorted(rows, key=lambda r: (r.severity.rank, r.check_id))
     meta = {k: v for k, v in (scan.meta or {}).items() if k not in INTERNAL_META_KEYS}
@@ -86,5 +113,9 @@ def build_report(
         passed=_passed(scan, rows, registry, lang),
         created_at=scan.created_at,
         finished_at=scan.finished_at,
-        expires_at=scan.created_at + timedelta(days=retention_days),
+        expires_at=_expires_at(scan, parent, retention_days),
+        parent_scan_id=scan.parent_scan_id,
+        progress=scan.progress,
+        queue_position=queue.position if queue else None,
+        eta_s=queue.eta_s if queue else None,
     )

@@ -4,9 +4,11 @@ from launchcheck.i18n.loader import (
     SUPPORTED_LANGS,
     FindingText,
     error_message,
+    event_text,
     finding_text,
     fragment_fn,
     load_catalog,
+    module_name,
     normalize_lang,
     passed_title,
 )
@@ -17,9 +19,11 @@ __all__ = [
     "SUPPORTED_LANGS",
     "FindingText",
     "error_message",
+    "event_text",
     "finding_text",
     "fragment_fn",
     "load_catalog",
+    "module_name",
     "normalize_lang",
     "passed_title",
 ]

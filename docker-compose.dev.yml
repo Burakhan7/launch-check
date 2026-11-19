@@ -28,6 +28,13 @@ services:
     volumes:
       - ./apps/api/src:/app/src
 
+  worker-deep:
+    command: ["arq", "--watch", "/app/src", "launchcheck.worker.deep_settings.DeepWorkerSettings"]
+    read_only: false
+    volumes:
+      - ./apps/api/src:/app/src
+      - assets:/var/lib/launchcheck/assets
+
   postgres:
     ports: ["5432:5432"]
 

@@ -9,8 +9,10 @@ from launchcheck.checks.base import TargetType
 from launchcheck.checks.registry import load_builtin_checks
 from launchcheck.collectors.base import get_collector
 from launchcheck.config import get_settings
+from launchcheck.deep.setup import asset_store
 from launchcheck.security.upload import delete_upload
 from launchcheck.worker.cron import (
+    StaleLimits,
     delete_expired_scans,
     delete_orphan_uploads,
     fail_stale_scans,
@@ -18,6 +20,8 @@ from launchcheck.worker.cron import (
 from launchcheck.worker.pipeline import PipelineConfig, execute_scan
 
 logger = logging.getLogger(__name__)
+# Derin tarama sert sınırını bu kadar aşan "running" Faz 2 taraması takılmış sayılır
+DEEP_STALE_MARGIN_S = 300
 
 
 def pipeline_config() -> PipelineConfig:
@@ -46,7 +50,10 @@ async def run_scan(ctx: dict[str, Any], scan_id: str, args: dict[str, Any]) -> s
 
 
 async def cleanup_expired(ctx: dict[str, Any]) -> int:
-    deleted = await delete_expired_scans(ctx["sessionmaker"], get_settings().report_retention_days)
+    settings = get_settings()
+    deleted = await delete_expired_scans(
+        ctx["sessionmaker"], settings.report_retention_days, asset_store(settings)
+    )
     logger.info("süresi dolan %d tarama silindi", deleted)
     return deleted
 
@@ -58,7 +65,12 @@ async def cleanup_stale(ctx: dict[str, Any]) -> int:
     )
     if orphans:
         logger.warning("%d yetim yükleme/geçici klasör silindi", orphans)
-    return await fail_stale_scans(ctx["sessionmaker"], settings.stale_scan_after_s)
+    limits = StaleLimits(
+        quick_s=settings.stale_scan_after_s,
+        deep_queued_s=settings.deep_queued_stale_after_s,
+        deep_running_s=int(settings.deep_scan_timeout_s) + DEEP_STALE_MARGIN_S,
+    )
+    return await fail_stale_scans(ctx["sessionmaker"], limits)
 
 
 async def hello(ctx: dict[str, Any], name: str = "world") -> str:

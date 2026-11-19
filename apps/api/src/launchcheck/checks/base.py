@@ -77,6 +77,9 @@ class Check(ABC):
     # Önemi özel nitelikli veri toplanıp toplanmadığını zaten hesaba katıyorsa True: skorlama
     # bu check'in bulgularını ayrıca yükseltmez (çift sayılmasın).
     considers_special_data: ClassVar[bool] = False
+    # Faz 2: check'in verisini üreten derin tarama modülü ("render", "perf", "llm"...). Modül
+    # çalışmadıysa check "geçti" listesinde gösterilmez (kontrol edilmemiştir).
+    module: ClassVar[str | None] = None
 
     def finding(
         self, evidence: dict[str, Any] | None = None, severity: Severity | None = None

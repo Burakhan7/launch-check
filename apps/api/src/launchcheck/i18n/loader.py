@@ -125,6 +125,21 @@ def passed_title(check_id: str, lang: str) -> str:
     return str(entry.get("passed_title") or entry.get("title") or check_id)
 
 
+def module_name(module: str, lang: str) -> str:
+    names = load_catalog(normalize_lang(lang)).get("deep_modules") or {}
+    return str(names.get(module) or module)
+
+
+def event_text(key: str, lang: str, params: dict[str, Any] | None = None) -> str:
+    """Faz 2 ilerleme olayının metni. `module` parametresi görünen modül adına çevrilir."""
+    lang = normalize_lang(lang)
+    events = load_catalog(lang).get("deep_events") or {}
+    values = {k: str(v) for k, v in (params or {}).items()}
+    if "module" in values:
+        values["module"] = module_name(values["module"], lang)
+    return _render(str(events.get(key) or key), values)
+
+
 def error_message(code: str, lang: str) -> str:
     errors = load_catalog(normalize_lang(lang))["errors"]
     return str(errors.get(code) or errors.get(FALLBACK_ERROR_CODE) or code)

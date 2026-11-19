@@ -21,11 +21,26 @@ def client_ip(request: Request) -> str:
     return request.client.host if request.client else UNKNOWN_CLIENT
 
 
-def rate_limit(kind: str, limit_of: Callable[[], int]) -> Callable[[Request], Awaitable[None]]:
+def rate_limit(
+    kind: str,
+    limit_of: Callable[[], int],
+    window_s: int | None = None,
+    error_code: str = "rate_limited",
+) -> Callable[[Request], Awaitable[None]]:
     async def dependency(request: Request) -> None:
-        limiter: RateLimiter = request.app.state.rate_limiter
-        result = await limiter.hit(kind, client_ip(request), limit_of())
-        if not result.allowed:
-            raise ApiError("rate_limited", 429, headers={"Retry-After": str(result.retry_after_s)})
+        await enforce_rate_limit(request, kind, limit_of(), window_s, error_code)
 
     return dependency
+
+
+async def enforce_rate_limit(
+    request: Request,
+    kind: str,
+    limit: int,
+    window_s: int | None = None,
+    error_code: str = "rate_limited",
+) -> None:
+    limiter: RateLimiter = request.app.state.rate_limiter
+    result = await limiter.hit(kind, client_ip(request), limit, window_s)
+    if not result.allowed:
+        raise ApiError(error_code, 429, headers={"Retry-After": str(result.retry_after_s)})

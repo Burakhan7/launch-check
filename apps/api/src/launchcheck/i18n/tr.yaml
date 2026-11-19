@@ -30,3 +30,32 @@ errors:
   upload_missing: "Yüklenen dosya bulunamadı. Lütfen dosyayı tekrar yükle."
   apk_decode_failed: "Uygulamanın içini açamadık. Dosya bozuk veya desteklemediğimiz bir biçimde olabilir."
   apk_timeout: "Uygulamayı açmak çok uzun sürdü ve durduruldu. Çok büyük bir uygulama olabilir."
+  parent_not_found: "Derin taramanın dayanacağı rapor bulunamadı. Raporlar 7 gün sonra otomatik silinir."
+  parent_not_ready: "Derin tarama sadece tamamlanmış bir web sitesi taramasından başlatılabilir."
+  parent_too_old: "Bu rapor derin tarama için çok eski. Önce siteyi yeniden tara, sonra derin taramayı başlat."
+  invalid_competitor_url: "Rakip olarak girdiğin adreslerden biri geçerli, herkese açık bir web sitesi değil."
+  competitor_same_origin: "Rakip olarak kendi siteni veya alt alan adını giremezsin."
+  invalid_compare_to: "Karşılaştırmak istediğin önceki derin tarama bulunamadı veya başka bir siteye ait."
+  deep_rate_limited: "Bugün yapabileceğin derin tarama sayısına ulaştın. Yarın tekrar deneyebilirsin."
+  queue_full: "Derin tarama sırası şu an dolu. Lütfen biraz sonra tekrar dene."
+
+# Faz 2 canlı ilerleme olayları (scan_events.key → metin). Parametreler {ad} ile doldurulur.
+deep_events:
+  deep.event.started: "Derin tarama başladı."
+  deep.event.phase1_copied: "Hızlı taramadaki {count} bulgu doğrulama için alındı."
+  deep.event.module_started: "{module} başladı."
+  deep.event.module_done: "{module} bitti: {found} bulgu."
+  deep.event.module_partial: "{module} süre sınırına ulaştı; bulunanlarla devam ediliyor ({found} bulgu)."
+  deep.event.module_failed: "{module} tamamlanamadı; tarama diğer bölümlerle devam ediyor."
+  deep.event.done: "Derin tarama tamamlandı."
+
+# Faz 2 modüllerinin görünen adları
+deep_modules:
+  render: "Gerçek ziyaretçi görünümü"
+  perf: "Hız ölçümü"
+  external: "Dış görünürlük"
+  links: "Link ve meta doğrulaması"
+  privacy: "Gizlilik ve üçüncü taraf kodlar"
+  funnel: "Kayıt/satın alma yolu"
+  llm: "İçerik yorumu"
+  benchmark: "Kıyas"
