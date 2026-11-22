@@ -464,6 +464,40 @@ class Settings(BaseSettings):
     deep_key_pages: int = 2
     deep_measure_widths: list[int] = Field(default_factory=lambda: [320, 375, 768, 1024, 1440])
     deep_admin_route_probes: int = 5
+    # --- Hız modülü (P4): Lighthouse + CrUX ---
+    deep_lighthouse_bin: str = "lighthouse"
+    deep_chrome_path: str = ""  # boşsa Playwright'ın kurduğu Chromium bulunur
+    # Mobil ölçüm tekrarı (ortanca alınır): ana sayfa ve kilit sayfa için ayrı ayrı
+    deep_lighthouse_runs: int = 3
+    deep_lighthouse_desktop_runs: int = 1
+    deep_lighthouse_run_timeout_s: float = 90
+    deep_lighthouse_max_wait_for_load_ms: int = 35000
+    deep_lighthouse_max_report_bytes: int = 40 * 1024 * 1024
+    # Kilit sayfa render modülünden gelir; en fazla bu kadar beklenir
+    deep_key_page_wait_s: float = 90
+    deep_crux_endpoint: str = "https://chromeuxreport.googleapis.com/v1/records:queryRecord"
+    deep_crux_timeout_s: float = 10
+    # Eşikler: Google'ın Core Web Vitals "iyi / geliştirilmeli / kötü" sınırları (web.dev/vitals)
+    deep_perf_lcp_good_ms: float = 2500
+    deep_perf_lcp_poor_ms: float = 4000
+    deep_perf_cls_good: float = 0.1
+    deep_perf_cls_poor: float = 0.25
+    deep_perf_inp_good_ms: float = 200
+    deep_perf_inp_poor_ms: float = 500
+    deep_perf_blank_screen_ms: float = 3000
+    # Filmstrip karesinde içerik sayılan piksel oranı (altı "boş ekran")
+    deep_perf_blank_content_ratio: float = 0.015
+    deep_perf_filmstrip_max_ms: float = 5000
+    deep_perf_unused_js_ratio: float = 0.5
+    deep_perf_unused_js_min_bytes: int = 200 * 1024
+    deep_perf_image_min_waste_bytes: int = 100 * 1024
+    deep_perf_unsized_images_min: int = 3
+    deep_perf_uncompressed_min_bytes: int = 10 * 1024  # tek dosya
+    deep_perf_uncompressed_total_bytes: int = 30 * 1024
+    deep_perf_short_cache_s: int = 24 * 3600
+    deep_perf_short_cache_min_bytes: int = 100 * 1024
+    deep_perf_third_party_bytes: int = 500 * 1024
+    deep_perf_third_party_main_thread_ms: float = 1000
     # Başarısız istek sayılmayan üçüncü taraf ölçüm/reklam host'ları (kayıtlı alan adı)
     deep_failed_request_ignore_domains: list[str] = Field(
         default_factory=lambda: [

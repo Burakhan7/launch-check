@@ -15,9 +15,10 @@ from launchcheck.deep.orchestrator import OrchestratorConfig
 
 
 def default_modules() -> list[DeepModule]:
+    from launchcheck.deep.perf_module import PerfModule
     from launchcheck.deep.render_module import RenderModule
 
-    return [RenderModule()]
+    return [RenderModule(), PerfModule()]
 
 
 def default_verification_rules() -> Mapping[str, VerificationRule]:

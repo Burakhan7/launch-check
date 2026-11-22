@@ -1,0 +1,175 @@
+# Faz 2 hız modülü check metinleri (Türkçe). Veri: Lighthouse (mobil, yavaş 4G benzetimi) ve
+# varsa CrUX (gerçek Chrome kullanıcıları). Ton: sade, suçlamayan, net.
+
+web.perf.lcp_slow:
+  title: "Sayfanın ana içeriği geç görünüyor"
+  passed_title: "Ana içerik hızlı görünüyor"
+  description: "Sayfadaki en büyük içerik (genelde ana görsel veya başlık) {source} {value} içinde görünüyor. Google'ın 'iyi' sınırı 2,5 sn.{top_fix}"
+  why_it_matters: "Ziyaretçilerin önemli bir kısmı birkaç saniye içinde bir şey göremezse sayfayı kapatır. Google da bu süreyi (LCP) sıralamada kullanır."
+  fix_steps:
+    - "Kanıttaki Lighthouse önerilerine bak; en büyük kazancı sağlayanla başla."
+    - "Ana görseli küçült, WebP/AVIF formatına çevir ve 'fetchpriority=high' ile önceliklendir."
+    - "Sayfa açılışını engelleyen CSS/JS dosyalarını azalt veya ertele (defer/async)."
+    - "İçerik sadece JavaScript çalışınca geliyorsa sunucuda oluşturmayı (SSR/SSG) değerlendir."
+  fix_prompt: |
+    Sitemin ana içeriği mobilde geç görünüyor (LCP değeri ve Lighthouse'un önerdiği iyileştirmeler kanıtta). Lütfen:
+    1. Sayfanın en büyük görünen öğesini (ana görsel/başlık) bul ve ilk açılışta hemen yüklenmesini sağla (fetchpriority="high", lazy-loading yok).
+    2. Ana görseli doğru boyutta ve WebP/AVIF formatında sun.
+    3. Açılışı engelleyen CSS/JS'i azalt: kritik olmayanları defer/async yap veya sonradan yükle.
+    4. İçerik sadece JavaScript ile oluşuyorsa sayfanın sunucuda önceden oluşturulmasını (SSR/SSG) öner.
+  fragments:
+    seconds: "{whole},{frac} sn"
+    source_field: "gerçek kullanıcılarda (Google verisi, %75'lik dilim)"
+    source_lab: "mobil ölçümümüzde"
+    top_fix: " En büyük tahmini kazanç: {fix} (~{saving}, Lighthouse tahmini)."
+    opp_render_blocking_insight: "açılışı engelleyen CSS/JS dosyaları"
+    opp_image_delivery_insight: "görsellerin küçültülmesi"
+    opp_unused_javascript: "kullanılmayan JavaScript'in kaldırılması"
+    opp_unused_css_rules: "kullanılmayan CSS'in kaldırılması"
+    opp_cache_insight: "önbellek ayarları"
+    opp_document_latency_insight: "sunucunun ilk yanıtının hızlandırılması"
+    opp_lcp_discovery_insight: "ana görselin erken keşfedilmesi"
+    opp_font_display_insight: "yazı tiplerinin yüklenme şekli"
+    opp_legacy_javascript_insight: "eski tarayıcılar için gereksiz kodun kaldırılması"
+    opp_duplicated_javascript_insight: "tekrar eden JavaScript modülleri"
+    opp_unminified_javascript: "JavaScript'in küçültülmesi (minify)"
+    opp_unminified_css: "CSS'in küçültülmesi (minify)"
+    opp_redirects: "yönlendirmelerin azaltılması"
+    opp_server_response_time: "sunucu yanıt süresi"
+    opp_modern_http_insight: "HTTP/2 veya HTTP/3 kullanımı"
+    opp_network_dependency_tree_insight: "art arda yüklenen dosya zinciri"
+    opp_third_parties_insight: "üçüncü taraf kodlar"
+
+web.perf.cls_high:
+  title: "Sayfa açılırken içerik yerinden kayıyor"
+  passed_title: "Sayfa açılırken içerik kaymıyor"
+  description: "Sayfa yüklenirken öğeler yer değiştiriyor: kayma puanı (CLS) {source} {value}. Google'ın 'iyi' sınırı 0,10.{top_fix}"
+  why_it_matters: "Kayan içerik yüzünden ziyaretçi okuduğu yeri kaybeder veya yanlış butona basar (ör. 'İptal' yerine 'Satın al'). Google bu değeri de sıralamada kullanır."
+  fix_steps:
+    - "Görsellere ve videolara width/height (veya aspect-ratio) ver."
+    - "Reklam, banner, çerez uyarısı gibi sonradan gelen alanlar için önceden yer ayır."
+    - "Yazı tipi değişiminde kaymayı azaltmak için font-display ve yedek yazı tipi ayarlarını kontrol et."
+  fix_prompt: |
+    Sitemde sayfa yüklenirken içerik kayıyor (CLS değeri kanıtta). Lütfen:
+    1. Boyutu belirtilmemiş görsel, video ve iframe'leri bul; width/height veya CSS aspect-ratio ekle.
+    2. Sonradan yüklenen alanlar (banner, çerez uyarısı, reklam, dinamik liste) için sabit yükseklikte yer tutucu ekle.
+    3. Mevcut içeriğin üstüne sonradan eklenen öğeleri kaldır veya altta göster.
+    4. Web fontları için font-display: swap ve uyumlu yedek font ayarla.
+  fragments:
+    decimal: "{whole},{frac}"
+    seconds: "{whole},{frac} sn"
+    source_field: "gerçek kullanıcılarda (Google verisi, %75'lik dilim)"
+    source_lab: "mobil ölçümümüzde"
+    top_fix: ""
+
+web.perf.inp_slow:
+  title: "Sayfa tıklamalara geç tepki veriyor"
+  passed_title: "Sayfa tıklamalara hızlı tepki veriyor"
+  description: "Gerçek kullanıcılarda (Google verisi, %75'lik dilim) bir tıklama veya dokunuştan sonra ekranın güncellenmesi {value} ms sürüyor. Google'ın 'iyi' sınırı 200 ms."
+  why_it_matters: "Butona basınca hemen bir şey olmazsa ziyaretçi sitenin donduğunu düşünür, tekrar tekrar basar veya vazgeçer. Google bu değeri (INP) sıralamada kullanır."
+  fix_steps:
+    - "Tıklamada çalışan ağır JavaScript işlerini küçük parçalara böl veya sonraya ertele."
+    - "Tıklamada önce görsel geri bildirim ver (buton durumu, yükleniyor), ağır işi sonra yap."
+    - "Ana sayfadaki üçüncü taraf script'lerin sayısını azalt."
+  fix_prompt: |
+    Sitemde gerçek kullanıcılarda tıklamalara tepki süresi (INP) yüksek (değer kanıtta). Lütfen:
+    1. Buton/menü/form etkileşimlerinde çalışan uzun JavaScript işlerini bul.
+    2. Bu işleri küçük parçalara böl (ör. await ile ana thread'e nefes aldır) veya gerekmiyorsa sonraya ertele.
+    3. Etkileşimde önce görsel geri bildirim göster, ağır hesaplamayı sonra yap.
+    4. Gereksiz yeniden çizimleri (ör. React'te gereksiz re-render) azalt.
+
+web.perf.blank_screen_long:
+  title: "Sayfa açılırken uzun süre boş ekran görünüyor"
+  passed_title: "Sayfa açılırken uzun süre boş kalmıyor"
+  description: "Mobil ölçümümüzde ziyaretçi ilk {value} boyunca boş (veya sadece yükleniyor işareti olan) bir ekran görüyor. Kare kare görüntüler raporda."
+  why_it_matters: "Boş ekran, ziyaretçiye sitenin çalışmadığını düşündürür. Özellikle mobil veriyle gelenlerin çoğu birkaç saniye boş ekran görünce geri döner."
+  fix_steps:
+    - "İlk ekrandaki içeriğin JavaScript'i beklemeden HTML'de gelmesini sağla (SSR/SSG veya ön oluşturma)."
+    - "Büyük JavaScript dosyalarını sayfalara böl (code splitting); ilk açılışta sadece gerekeni yükle."
+    - "Açılışı engelleyen CSS/JS'i azalt; yazı tiplerinin metni engellemesine izin verme."
+  fix_prompt: |
+    Sitem mobilde açılırken birkaç saniye boş ekran gösteriyor (süre kanıtta). Lütfen:
+    1. İlk ekrandaki içeriğin (başlık, ana metin, ana buton) JavaScript beklenmeden HTML'de gelmesi için sunucuda oluşturma veya ön oluşturma (SSR/SSG/prerender) ekle.
+    2. JavaScript paketini rotalara göre böl (code splitting / lazy import).
+    3. Açılışı engelleyen CSS/JS'i azalt ve kritik CSS'i satır içine al.
+    4. Yükleniyor ekranı yerine içeriğin iskeletini (skeleton) hemen göster.
+  fragments:
+    seconds: "{whole},{frac} sn"
+
+web.perf.unused_js:
+  title: "Sayfa kullanmadığı çok fazla JavaScript indiriyor"
+  passed_title: "İndirilen JavaScript'in çoğu kullanılıyor"
+  description: "Sayfanın indirdiği {total_kb} KB JavaScript'in yaklaşık {unused_kb} KB'ı (%{unused_pct}) açılışta hiç çalışmıyor.{saving}"
+  why_it_matters: "Kullanılmayan her kilobayt mobil veride indirme ve işlemci süresi demek; sayfa daha geç açılır ve telefon daha çok yorulur."
+  fix_steps:
+    - "Kanıttaki dosyalara bak: büyük kütüphaneleri sadece kullanıldığı sayfalarda yükle (lazy import)."
+    - "Kullanmadığın paketleri ve büyük ikon/tarih kütüphanelerinin tamamını içe aktarmayı kaldır."
+    - "Üçüncü taraf script'lerin gerçekten gerekli olup olmadığını kontrol et."
+  fix_prompt: |
+    Sitemin ana sayfası kullanmadığı çok fazla JavaScript indiriyor (dosyalar ve boyutlar kanıtta). Lütfen:
+    1. Paketin içeriğini analiz et (ör. vite-bundle-visualizer, @next/bundle-analyzer) ve en büyük modülleri listele.
+    2. Sadece belirli sayfalarda gereken bileşen ve kütüphaneleri dinamik import ile ayır.
+    3. Kütüphaneleri tamamen değil, sadece kullanılan parçalarıyla içe aktar (ör. ikon setinin tamamı yerine tek ikon).
+    4. Kullanılmayan bağımlılıkları kaldır.
+  fragments:
+    seconds: "{whole},{frac} sn"
+    saving: " Lighthouse'a göre bunu azaltmak açılışı ~{value} hızlandırabilir."
+
+web.perf.oversized_images:
+  title: "Görseller gereğinden büyük veya boyutsuz"
+  passed_title: "Görseller uygun boyut ve formatta"
+  description: "Sayfadaki görseller gösterildikleri boyuttan büyük, eski formatta veya genişlik/yükseklik bilgisi olmadan geliyor.{weight}{unsized}{saving}"
+  why_it_matters: "Büyük görseller mobil veride sayfanın geç açılmasının en yaygın nedenidir. Boyutu belirtilmemiş görseller ise yüklenirken içeriğin kaymasına yol açar."
+  fix_steps:
+    - "Görselleri gösterildikleri boyuta küçült ve WebP/AVIF formatına çevir."
+    - "Farklı ekranlar için srcset/sizes kullan (Next.js'te next/image bunu otomatik yapar)."
+    - "Her <img> için width ve height (veya CSS aspect-ratio) belirt."
+    - "İlk ekranda olmayan görsellere loading=\"lazy\" ekle."
+  fix_prompt: |
+    Sitemdeki görseller gereğinden büyük veya boyutsuz (görseller, gerçek ve gösterilen boyutları kanıtta). Lütfen:
+    1. Kanıttaki görselleri gösterildikleri boyutun en fazla 2 katına küçült ve WebP/AVIF'e çevir.
+    2. Responsive görseller için srcset/sizes ekle (Next.js kullanıyorsam next/image'a geçir).
+    3. Tüm <img> etiketlerine width/height veya aspect-ratio ekle.
+    4. İlk ekranda olmayan görsellere loading="lazy" ekle, ana görsele ekleme.
+  fragments:
+    seconds: "{whole},{frac} sn"
+    weight: " Doğru boyut ve formatla yaklaşık {kb} KB tasarruf edilebilir."
+    unsized: " {count} görselin genişlik/yükseklik bilgisi yok."
+    saving: " Lighthouse'a göre bu, ana içeriği ~{value} erken gösterebilir."
+
+web.perf.no_compression_or_cache:
+  title: "Dosyalar sıkıştırılmadan gönderiliyor veya önbelleğe alınmıyor"
+  passed_title: "Dosyalar sıkıştırılıyor ve önbelleğe alınıyor"
+  description: "{problem} Dosyalar kanıtta."
+  why_it_matters: "Sıkıştırma metin dosyalarını genelde %70 küçültür; önbellek ise siteye tekrar gelen ziyaretçinin aynı dosyaları baştan indirmesini önler. İkisi de ücretsiz hız kazancıdır."
+  fix_steps:
+    - "Sunucuda/hostingde gzip veya brotli sıkıştırmasını aç (Vercel, Netlify, Cloudflare'da varsayılan açıktır; kendi sunucunda nginx/Express ayarı gerekir)."
+    - "Adında hash olan statik dosyalar (ör. app.3f9a1c.js) için 'Cache-Control: public, max-age=31536000, immutable' ayarla."
+    - "HTML için kısa önbellek kalabilir; sadece statik dosyalara uzun süre ver."
+  fix_prompt: |
+    Sitemde bazı dosyalar sıkıştırılmadan gönderiliyor ve/veya statik dosyalar önbelleğe alınmıyor (dosyalar kanıtta). Lütfen:
+    1. Kullandığım sunucu/hosting için (nginx, Express, Vercel, Netlify, Cloudflare) gzip/brotli sıkıştırmasını açan ayarı ekle.
+    2. Adında içerik hash'i olan JS/CSS/font/görsel dosyaları için "Cache-Control: public, max-age=31536000, immutable" başlığını ayarla.
+    3. HTML ve hash'siz dosyalar için kısa önbellek (veya no-cache) bırak ki güncellemeler hemen görünsün.
+  fragments:
+    problem_compression: "Bazı metin dosyaları (JS/CSS/HTML) sıkıştırma (gzip/brotli) olmadan geliyor."
+    problem_cache: "Sitenin kendi statik dosyaları hiç veya çok kısa süre önbelleğe alınıyor; tekrar gelen ziyaretçi hepsini yeniden indiriyor."
+    problem_both: "Bazı metin dosyaları sıkıştırma (gzip/brotli) olmadan geliyor ve statik dosyalar hiç veya çok kısa süre önbelleğe alınıyor."
+
+web.perf.heavy_third_party:
+  title: "Üçüncü taraf kodlar sayfayı yavaşlatıyor"
+  passed_title: "Üçüncü taraf kodlar sayfayı fazla yavaşlatmıyor"
+  description: "Ana sayfa başka şirketlerin {total_kb} KB kodunu yüklüyor ve bunlar telefonun işlemcisini yaklaşık {main_thread} meşgul ediyor. En ağırları: {names}."
+  why_it_matters: "Analitik, sohbet, reklam ve video gibi dış script'ler sayfanın senin kodundan bağımsız olarak geç açılmasına ve tıklamalara geç tepki vermesine yol açabilir."
+  fix_steps:
+    - "Kanıttaki servislerin hepsine gerçekten ihtiyacın olup olmadığını kontrol et."
+    - "Sohbet balonu, video gibi ağır öğeleri ziyaretçi etkileşime geçince yükle (facade/lazy)."
+    - "Analitik ve reklam script'lerini async/defer ile veya sayfa açıldıktan sonra yükle."
+  fix_prompt: |
+    Sitemin ana sayfasında üçüncü taraf script'ler ağır (servisler, boyutlar ve işlemci süreleri kanıtta). Lütfen:
+    1. Her üçüncü taraf script'in sayfada nerede yüklendiğini bul ve gerçekten gerekli olanları listele.
+    2. Sohbet widget'ı, YouTube/Vimeo gibi ağır öğeler için tıklayınca yüklenen hafif bir önizleme (facade) kullan.
+    3. Analitik/reklam script'lerini async/defer veya sayfa yüklendikten sonra çalışacak şekilde yükle.
+    4. Next.js kullanıyorsam next/script ile strategy="lazyOnload" veya "afterInteractive" kullan.
+  fragments:
+    seconds: "{whole},{frac} sn"

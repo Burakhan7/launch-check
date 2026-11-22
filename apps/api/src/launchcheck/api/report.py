@@ -63,7 +63,9 @@ def _passed(
     if scan.status != ScanStatus.DONE:
         return []
     flagged = {canonical_check_id(r.check_id) for r in rows}
-    failed = set((scan.meta or {}).get("checks_failed", []))
+    meta = scan.meta or {}
+    # Atlananlar: verisi olmadığı için değerlendirilemeyenler (ör. saha verisi yokken INP)
+    failed = set(meta.get("checks_failed", [])) | set(meta.get("checks_skipped", []))
     completed = _completed_modules(scan)
     return [
         PassedCheckOut(check_id=c.id, category=c.category, title=passed_title(c.id, lang))

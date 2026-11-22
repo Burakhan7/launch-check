@@ -66,6 +66,13 @@ class RenderModule(DeepModule):
         return settings.deep_budget_browser_s
 
     async def run(self, ctx: DeepContext, out: ModuleOutput) -> None:
+        try:
+            await self._run(ctx, out)
+        finally:
+            # Hız şeridi kilit sayfayı bekliyorsa (bulunamadıysa ana sayfayla) devam etsin
+            ctx.key_urls_ready.set()
+
+    async def _run(self, ctx: DeepContext, out: ModuleOutput) -> None:
         base = await self._base(ctx)
         ctx.base = base
         try:
@@ -84,10 +91,7 @@ class RenderModule(DeepModule):
         result = await run_checks(ctx, checks)
         out.findings.extend(result.findings)
         if result.failed:
-            ctx.meta["checks_failed"] = [
-                *ctx.parent_meta.get("checks_failed", []),
-                *result.failed,
-            ]
+            ctx.note_checks("checks_failed", result.failed)
 
     async def _base(self, ctx: DeepContext) -> WebContext | None:
         """Faz 1 bağlamı (sunucu HTML'i, JS bundle'ları). Site art arda isteklere bot doğrulaması
@@ -144,6 +148,7 @@ class RenderModule(DeepModule):
             fetch=fetch,
             save_screenshot=save,
             progress=progress,
+            on_key_pages=ctx.set_key_urls,
             # Bütçenin bir kısmı check'lere ve kapanışa kalsın
             deadline=time.monotonic() + self.budget_s(settings) * COLLECT_BUDGET_SHARE,
         )

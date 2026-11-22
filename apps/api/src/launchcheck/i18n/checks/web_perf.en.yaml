@@ -1,0 +1,175 @@
+# Phase 2 speed module check texts (English). Data: Lighthouse (mobile, simulated slow 4G) and,
+# when available, CrUX (real Chrome users). Tone: plain, non-blaming, clear.
+
+web.perf.lcp_slow:
+  title: "Your page's main content shows up late"
+  passed_title: "Main content shows up quickly"
+  description: "The largest piece of content on the page (usually the main image or heading) appears after {value} {source}. Google's 'good' limit is 2.5 s.{top_fix}"
+  why_it_matters: "Many visitors leave if they can't see anything within a few seconds. Google also uses this timing (LCP) for ranking."
+  fix_steps:
+    - "Look at the Lighthouse suggestions in the evidence and start with the biggest saving."
+    - "Shrink the main image, convert it to WebP/AVIF and prioritize it with 'fetchpriority=high'."
+    - "Reduce or defer CSS/JS files that block the page from showing (defer/async)."
+    - "If the content only appears after JavaScript runs, consider server rendering (SSR/SSG)."
+  fix_prompt: |
+    My site's main content appears late on mobile (the LCP value and Lighthouse's suggested improvements are in the evidence). Please:
+    1. Find the largest visible element on the page (main image/heading) and make it load immediately on first view (fetchpriority="high", no lazy-loading).
+    2. Serve the main image at the right size and in WebP/AVIF format.
+    3. Reduce render-blocking CSS/JS: defer/async non-critical files or load them later.
+    4. If the content is built only by JavaScript, suggest pre-rendering the page on the server (SSR/SSG).
+  fragments:
+    seconds: "{whole}.{frac} s"
+    source_field: "for real users (Google data, 75th percentile)"
+    source_lab: "in our mobile test"
+    top_fix: " Biggest estimated saving: {fix} (~{saving}, Lighthouse estimate)."
+    opp_render_blocking_insight: "render-blocking CSS/JS files"
+    opp_image_delivery_insight: "smaller images"
+    opp_unused_javascript: "removing unused JavaScript"
+    opp_unused_css_rules: "removing unused CSS"
+    opp_cache_insight: "cache settings"
+    opp_document_latency_insight: "a faster first server response"
+    opp_lcp_discovery_insight: "letting the browser discover the main image early"
+    opp_font_display_insight: "how fonts are loaded"
+    opp_legacy_javascript_insight: "removing code only needed by old browsers"
+    opp_duplicated_javascript_insight: "duplicated JavaScript modules"
+    opp_unminified_javascript: "minifying JavaScript"
+    opp_unminified_css: "minifying CSS"
+    opp_redirects: "fewer redirects"
+    opp_server_response_time: "server response time"
+    opp_modern_http_insight: "using HTTP/2 or HTTP/3"
+    opp_network_dependency_tree_insight: "a chain of files loaded one after another"
+    opp_third_parties_insight: "third-party code"
+
+web.perf.cls_high:
+  title: "Content jumps around while the page loads"
+  passed_title: "Content doesn't jump around while loading"
+  description: "Elements move while the page loads: the layout shift score (CLS) is {value} {source}. Google's 'good' limit is 0.10.{top_fix}"
+  why_it_matters: "Shifting content makes visitors lose their place or tap the wrong button (e.g. 'Buy' instead of 'Cancel'). Google also uses this value for ranking."
+  fix_steps:
+    - "Give images and videos width/height (or aspect-ratio)."
+    - "Reserve space in advance for things that arrive later, like ads, banners and cookie notices."
+    - "Check font-display and fallback font settings to reduce shifts when fonts swap."
+  fix_prompt: |
+    Content on my site shifts while the page loads (the CLS value is in the evidence). Please:
+    1. Find images, videos and iframes without set dimensions; add width/height or CSS aspect-ratio.
+    2. Add fixed-height placeholders for areas that load later (banners, cookie notices, ads, dynamic lists).
+    3. Remove elements that get inserted above existing content, or show them below it.
+    4. Set font-display: swap and a matching fallback font for web fonts.
+  fragments:
+    decimal: "{whole}.{frac}"
+    seconds: "{whole}.{frac} s"
+    source_field: "for real users (Google data, 75th percentile)"
+    source_lab: "in our mobile test"
+    top_fix: ""
+
+web.perf.inp_slow:
+  title: "The page reacts slowly to taps and clicks"
+  passed_title: "The page reacts quickly to taps and clicks"
+  description: "For real users (Google data, 75th percentile), the screen takes {value} ms to update after a tap or click. Google's 'good' limit is 200 ms."
+  why_it_matters: "If nothing happens right after pressing a button, visitors think the site froze, press again or give up. Google uses this value (INP) for ranking."
+  fix_steps:
+    - "Split heavy JavaScript work that runs on click into smaller pieces, or postpone it."
+    - "Give visual feedback first (button state, loading) and do the heavy work afterwards."
+    - "Reduce the number of third-party scripts on the page."
+  fix_prompt: |
+    My site's response time to interactions (INP) is high for real users (value in the evidence). Please:
+    1. Find long JavaScript tasks that run on button/menu/form interactions.
+    2. Split them into smaller chunks (e.g. yield to the main thread with await) or postpone them if not needed right away.
+    3. Show visual feedback first on interaction, then do heavy computation.
+    4. Reduce unnecessary re-renders (e.g. needless React re-renders).
+
+web.perf.blank_screen_long:
+  title: "The page shows a blank screen for a long time while loading"
+  passed_title: "The page doesn't stay blank for long while loading"
+  description: "In our mobile test, visitors see a blank screen (or only a loading indicator) for the first {value}. Frame-by-frame images are in the report."
+  why_it_matters: "A blank screen makes visitors think the site is broken. Especially on mobile data, many people go back after a few seconds of nothing."
+  fix_steps:
+    - "Make first-screen content arrive in the HTML without waiting for JavaScript (SSR/SSG or pre-rendering)."
+    - "Split large JavaScript files per page (code splitting); load only what the first view needs."
+    - "Reduce render-blocking CSS/JS; don't let fonts block text."
+  fix_prompt: |
+    My site shows a blank screen for several seconds while loading on mobile (duration in the evidence). Please:
+    1. Add server rendering or pre-rendering (SSR/SSG/prerender) so first-screen content (heading, main text, main button) arrives in the HTML without waiting for JavaScript.
+    2. Split the JavaScript bundle by route (code splitting / lazy import).
+    3. Reduce render-blocking CSS/JS and inline the critical CSS.
+    4. Show a content skeleton immediately instead of a loading screen.
+  fragments:
+    seconds: "{whole}.{frac} s"
+
+web.perf.unused_js:
+  title: "The page downloads a lot of JavaScript it doesn't use"
+  passed_title: "Most downloaded JavaScript is used"
+  description: "About {unused_kb} KB ({unused_pct}%) of the {total_kb} KB of JavaScript the page downloads never runs on load.{saving}"
+  why_it_matters: "Every unused kilobyte costs download and processor time on mobile; the page opens later and drains the phone more."
+  fix_steps:
+    - "Check the files in the evidence: load large libraries only on pages that use them (lazy import)."
+    - "Remove packages you don't use and stop importing entire icon/date libraries."
+    - "Check whether all third-party scripts are really needed."
+  fix_prompt: |
+    My site's home page downloads a lot of JavaScript it doesn't use (files and sizes in the evidence). Please:
+    1. Analyze the bundle (e.g. vite-bundle-visualizer, @next/bundle-analyzer) and list the largest modules.
+    2. Split components and libraries that only some pages need into dynamic imports.
+    3. Import only the parts of libraries that are used (e.g. a single icon instead of the whole icon set).
+    4. Remove unused dependencies.
+  fragments:
+    seconds: "{whole}.{frac} s"
+    saving: " According to Lighthouse, reducing this could make the page show up ~{value} sooner."
+
+web.perf.oversized_images:
+  title: "Images are larger than needed or have no dimensions"
+  passed_title: "Images have suitable size and format"
+  description: "Images on the page are bigger than they're displayed, in an older format, or come without width/height.{weight}{unsized}{saving}"
+  why_it_matters: "Large images are the most common reason pages load slowly on mobile data. Images without dimensions also make content shift while loading."
+  fix_steps:
+    - "Resize images to the size they're displayed at and convert them to WebP/AVIF."
+    - "Use srcset/sizes for different screens (next/image does this automatically in Next.js)."
+    - "Set width and height (or CSS aspect-ratio) for every <img>."
+    - "Add loading=\"lazy\" to images that aren't on the first screen."
+  fix_prompt: |
+    Images on my site are larger than needed or have no dimensions (images with their real and displayed sizes are in the evidence). Please:
+    1. Resize the images in the evidence to at most 2× their displayed size and convert them to WebP/AVIF.
+    2. Add srcset/sizes for responsive images (switch to next/image if I use Next.js).
+    3. Add width/height or aspect-ratio to all <img> tags.
+    4. Add loading="lazy" to images not on the first screen, but not to the main image.
+  fragments:
+    seconds: "{whole}.{frac} s"
+    weight: " Right size and format could save about {kb} KB."
+    unsized: " {count} images have no width/height."
+    saving: " According to Lighthouse, this could show the main content ~{value} sooner."
+
+web.perf.no_compression_or_cache:
+  title: "Files are sent uncompressed or aren't cached"
+  passed_title: "Files are compressed and cached"
+  description: "{problem} The files are in the evidence."
+  why_it_matters: "Compression usually makes text files about 70% smaller; caching stops returning visitors from downloading the same files again. Both are free speed wins."
+  fix_steps:
+    - "Turn on gzip or brotli compression on your server/hosting (on by default at Vercel, Netlify, Cloudflare; your own server needs an nginx/Express setting)."
+    - "For static files with a hash in their name (e.g. app.3f9a1c.js), set 'Cache-Control: public, max-age=31536000, immutable'."
+    - "HTML can keep a short cache; give long caching only to static files."
+  fix_prompt: |
+    Some files on my site are sent uncompressed and/or static files aren't cached (files in the evidence). Please:
+    1. Add the setting that enables gzip/brotli compression for my server/hosting (nginx, Express, Vercel, Netlify, Cloudflare).
+    2. Set "Cache-Control: public, max-age=31536000, immutable" for JS/CSS/font/image files with a content hash in their name.
+    3. Keep a short cache (or no-cache) for HTML and unhashed files so updates show up right away.
+  fragments:
+    problem_compression: "Some text files (JS/CSS/HTML) are sent without compression (gzip/brotli)."
+    problem_cache: "Your site's own static files aren't cached, or only very briefly; returning visitors download them all again."
+    problem_both: "Some text files are sent without compression (gzip/brotli), and static files aren't cached or only very briefly."
+
+web.perf.heavy_third_party:
+  title: "Third-party code slows the page down"
+  passed_title: "Third-party code doesn't slow the page much"
+  description: "The home page loads {total_kb} KB of other companies' code, keeping the phone's processor busy for about {main_thread}. Heaviest: {names}."
+  why_it_matters: "External scripts like analytics, chat, ads and video can make the page open later and react slowly, regardless of your own code."
+  fix_steps:
+    - "Check whether you really need every service in the evidence."
+    - "Load heavy items like chat bubbles and videos only when the visitor interacts (facade/lazy)."
+    - "Load analytics and ad scripts with async/defer or after the page has loaded."
+  fix_prompt: |
+    Third-party scripts on my site's home page are heavy (services, sizes and processor times in the evidence). Please:
+    1. Find where each third-party script is loaded and list the ones that are really needed.
+    2. Use a lightweight click-to-load preview (facade) for heavy items like chat widgets and YouTube/Vimeo.
+    3. Load analytics/ad scripts with async/defer or so they run after the page has loaded.
+    4. If I use Next.js, use next/script with strategy="lazyOnload" or "afterInteractive".
+  fragments:
+    seconds: "{whole}.{frac} s"

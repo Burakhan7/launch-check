@@ -110,6 +110,8 @@ class RenderInput:
     fetch: Callable[[str], Awaitable[bytes | None]] | None = None
     save_screenshot: Callable[[str, str, bytes, int, int], ScanAsset | None] | None = None
     progress: Callable[[int, int], Awaitable[None]] | None = None
+    # Kilit sayfalar belli olunca (hız şeridi onları Lighthouse ile ölçer)
+    on_key_pages: Callable[[list[str]], None] | None = None
     # time.monotonic() sınırı: geçince yeni sayfa açılmaz, toplananlarla devam edilir
     deadline: float | None = None
 
@@ -316,7 +318,10 @@ class RenderCollector:
             home.internal_links,
             s.deep_max_pages,
         )
-        keys = set(key_pages(urls, home.priority_links, s.deep_key_pages))
+        ordered_keys = key_pages(urls, home.priority_links, s.deep_key_pages)
+        keys = set(ordered_keys)
+        if data.on_key_pages:
+            data.on_key_pages(ordered_keys)
         await self._extras_for_key(session, desktop, mobile, home, data, is_home=True)
 
         sem = asyncio.Semaphore(s.deep_render_concurrency)

@@ -223,3 +223,39 @@ Kaçırabilir: map'te `sources` alanı 1 MB'tan sonra başlıyorsa (alan genelde
 - `web.files.sourcemap_exposed` → map'lerden kaynak ağacı okunabildiyse `escalated`.
 - `web.meta.viewport_missing` (eksik / sabit / cihaz genişliği yok) → mobilde layout genişliği cihaz genişliğine eşitse (etiket JS ile ekleniyor) `refuted`, değilse `confirmed`; sadece zoom engeli varsa karar verilmez.
 - `web.bundle.localhost_urls` → sayfa render sırasında localhost/LAN adresine gerçekten istek attıysa (proxy engelledi) `escalated`, atmadıysa `confirmed`.
+
+## Faz 2 — hız modülü (Lighthouse + CrUX)
+
+Lighthouse 13 (mobil: simüle yavaş 4G + 4× CPU) ana sayfada 3 kez mobil + 1 kez masaüstü, render modülünün bulduğu kilit sayfada (fiyat > kayıt > ürün > ilk menü linki) 3 kez mobil çalışır; ortanca alınır. Chromium'u biz başlatırız (render ile aynı güvenlik bayrakları, tüm trafik egress proxy'den); Lighthouse `--port` ile bağlanır. CrUX (Google'ın gerçek kullanıcı verisi, p75) sırasıyla sayfa/telefon → origin/telefon → origin/tüm cihazlar sorgulanır. Kanıttaki "tahmini kazanç" değerleri Lighthouse'undur. Bütçe yetmeyecekse yeni ölçüm başlatılmaz; aynı adres 2 kez başarısız olursa (zaman aşımı, NO_FCP, 4xx/5xx ana belge — bot doğrulaması dahil) tekrar denenmez.
+
+### web.perf.lcp_slow
+Yakalar: saha verisi varsa CrUX p75 LCP'si, yoksa ölçülen sayfaların en kötü laboratuvar ortancası Google sınırlarına göre (> 2,5 sn medium, > 4 sn high); kanıta LCP'ye en çok kazanç sağlayacak Lighthouse önerileri (önbellek hariç, ilk ziyarette etkisiz).
+Kaçırabilir: sadece başka sayfalarda (ölçülmeyen) yavaş olan siteler; laboratuvar ölçümü tek konumdan ve sabit ağ benzetimiyle yapılır, gerçek kullanıcı dağılımını yansıtmaz (saha verisi bunun için önceliklidir).
+
+### web.perf.cls_high
+Yakalar: saha CrUX p75 CLS'si veya laboratuvar ortancası (> 0,1 medium, > 0,25 high).
+Kaçırabilir: kullanıcı kaydırınca/etkileşince oluşan kaymalar laboratuvarda görülmez (saha verisi görür).
+
+### web.perf.inp_slow
+Yakalar: sadece CrUX p75 INP (> 200 ms medium, > 500 ms high).
+Kaçırabilir: CrUX'ta yer almayan (az trafikli) siteler — bu durumda check "geçti" sayılmaz, `checks_skipped` olur.
+
+### web.perf.blank_screen_long
+Yakalar: max(simüle FCP, filmstrip'te ilk anlamlı kareye kadar gözlenen süre) > 3 sn; kare "boş" sayılırsa baskın renkten belirgin farklı pikseller %1,5'in altındadır (beyaz ekran, ortada küçük yükleniyor işareti). Ana sayfaysa kanıtta filmstrip asset'i.
+Kaçırabilir: tek renk büyük bir arka plan + küçük logo gibi "yarı boş" ilk ekranlar (içerik sayılabilir); iki alt sınırın büyüğü kullanıldığı için gerçek mobil süre daha uzun olabilir (bilinçli: yanlış pozitif üretmemek için).
+
+### web.perf.unused_js
+Yakalar: Lighthouse coverage'ına göre açılışta çalışmayan JS > %50 ve > 200 KB (sayfaların en kötüsü); dosyalar üçüncü taraf işaretiyle.
+Kaçırabilir: etkileşimde kullanılacak kod da "kullanılmayan" sayılır (Lighthouse'un sınırı); bu yüzden eşik yüksek tutuldu.
+
+### web.perf.oversized_images
+Yakalar: Lighthouse `image-delivery-insight` toplam tasarrufu ≥ 100 KB (gösterilenden büyük, eski format, sıkıştırma) veya ≥ 3 boyutsuz (width/height'sız) görsel; kanıtta gerçek ve gösterilen boyut.
+Kaçırabilir: lazy-load ile ilk açılışta yüklenmeyen görseller ve CSS arka plan görsellerinin bir kısmı.
+
+### web.perf.no_compression_or_cache
+Yakalar: aktarılan boyutu gerçek boyutunun ≥ %90'ı olan ≥ 10 KB'lık metin dosyaları (JS/CSS/HTML/JSON/SVG; toplam ≥ 30 KB) ve sitenin kendi alan adındaki, önbellek süresi 1 günden kısa statik dosyalar (toplam ≥ 100 KB; üçüncü taraflar hariç).
+Kaçırabilir: zaten küçültülmüş ve sıkıştırması az kazandıran dosyalar (sıkıştırılmamış olsalar da oran eşiği yakalar); CDN'in sadece bazı bölgelerde önbelleklediği dosyalar.
+
+### web.perf.heavy_third_party
+Yakalar: ana sayfanın ortanca mobil ölçümünde başka alan adlarından (Lighthouse varlık gruplaması) gelen kodun toplamı > 500 KB veya ana thread süresi > 1 sn; en ağır 5 servis.
+Kaçırabilir: aynı şirketin farklı alan adındaki kendi CDN'i üçüncü taraf sayılabilir (yanlış pozitif); sadece etkileşimle yüklenen widget'lar.
