@@ -1,0 +1,153 @@
+# Alt alan adı ele geçirme parmak izleri.
+#
+# Kaynak: "can-i-take-over-xyz" (https://github.com/EdOverflow/can-i-take-over-xyz),
+# fingerprints.json, 2026-11-23 itibarıyla. Lisans: CC BY 4.0 — atıf: EdOverflow ve katkıda
+# bulunanlar. Liste uyarlandı: sadece CNAME son eki bilinen servisler alındı; kaynakta "Not
+# vulnerable" olanlar alınmadı.
+#
+# Alanlar:
+#   cname: CNAME zincirindeki bir adın bitebileceği son ekler
+#   fingerprints: servisin "proje/uygulama yok" sayfasında geçen metinler (büyük/küçük harf duyarsız)
+#   regex: true ise fingerprints düzenli ifade
+#   nxdomain: true ise parmak izi sayfa değil, CNAME hedefinin DNS'te hiç olmaması
+#   confidence: vulnerable (kaynakta "Vulnerable") → high; edge (kaynakta "Edge case": servis
+#     alan adı doğrulaması veya özel koşul istiyor) → medium
+#
+# Sadece okuma: hedefe normal bir ziyaretçi gibi ana sayfa isteği atılır; servis asla "claim"
+# edilmez.
+
+- service: AWS Elastic Beanstalk
+  cname: [elasticbeanstalk.com]
+  nxdomain: true
+  confidence: vulnerable
+- service: AWS S3
+  cname: [s3.amazonaws.com, s3-website.amazonaws.com, s3-website-us-east-1.amazonaws.com]
+  fingerprints: ["The specified bucket does not exist", "NoSuchBucket"]
+  confidence: vulnerable
+- service: Microsoft Azure
+  cname:
+    - cloudapp.net
+    - cloudapp.azure.com
+    - azurewebsites.net
+    - blob.core.windows.net
+    - azure-api.net
+    - azurehdinsight.net
+    - azureedge.net
+    - azurecontainer.io
+    - database.windows.net
+    - azuredatalakestore.net
+    - search.windows.net
+    - azurecr.io
+    - redis.cache.windows.net
+    - servicebus.windows.net
+    - trafficmanager.net
+    - visualstudio.com
+  nxdomain: true
+  confidence: vulnerable
+- service: Discourse
+  cname: [trydiscourse.com]
+  nxdomain: true
+  confidence: vulnerable
+- service: Agile CRM
+  cname: [agilecrm.com]
+  fingerprints: ["Sorry, this page is no longer available."]
+  confidence: vulnerable
+- service: Anima
+  cname: [animaapp.io]
+  fingerprints: ["The page you were looking for does not exist."]
+  confidence: vulnerable
+- service: Bitbucket
+  cname: [bitbucket.io]
+  fingerprints: ["Repository not found"]
+  confidence: vulnerable
+- service: Gemfury
+  cname: [furyns.com]
+  fingerprints: ["404: This page could not be found."]
+  confidence: vulnerable
+- service: Ghost
+  cname: [ghost.io]
+  fingerprints: ["Site unavailable", "Failed to resolve DNS path for this host"]
+  confidence: vulnerable
+- service: HatenaBlog
+  cname: [hatenablog.com]
+  fingerprints: ["404 Blog is not found"]
+  confidence: vulnerable
+- service: Help Juice
+  cname: [helpjuice.com]
+  fingerprints: ["We could not find what you're looking for."]
+  confidence: vulnerable
+- service: Help Scout
+  cname: [helpscoutdocs.com]
+  fingerprints: ["No settings were found for this company:"]
+  confidence: vulnerable
+- service: JetBrains YouTrack
+  cname: [youtrack.cloud]
+  fingerprints: ["is not a registered InCloud YouTrack"]
+  confidence: vulnerable
+- service: Ngrok
+  cname: [ngrok.io]
+  fingerprints: ["Tunnel [a-z0-9.-]*ngrok\\.io not found"]
+  regex: true
+  confidence: vulnerable
+- service: Readme.io
+  cname: [readme.io]
+  fingerprints: ["The creators of this project are still working on making everything perfect!"]
+  confidence: vulnerable
+- service: Strikingly
+  cname: [s.strikinglydns.com]
+  fingerprints: ["PAGE NOT FOUND."]
+  confidence: vulnerable
+- service: Surge.sh
+  cname: [surge.sh]
+  fingerprints: ["project not found"]
+  confidence: vulnerable
+- service: SurveySparrow
+  cname: [surveysparrow.com]
+  fingerprints: ["Account not found."]
+  confidence: vulnerable
+- service: Uberflip
+  cname: [read.uberflip.com]
+  fingerprints: ["The URL you've accessed does not provide a hub."]
+  confidence: vulnerable
+- service: UptimeRobot
+  cname: [stats.uptimerobot.com]
+  fingerprints: ["page not found"]
+  confidence: vulnerable
+- service: WordPress.com
+  cname: [wordpress.com]
+  fingerprints: ["Do you want to register [a-z0-9-]+\\.wordpress\\.com\\?"]
+  regex: true
+  confidence: vulnerable
+- service: Worksites
+  cname: [worksites.net]
+  fingerprints: ["Sorry, but the website you&rsquo;re looking for doesn&rsquo;t exist."]
+  confidence: vulnerable
+# --- "Edge case": servis çoğu durumda alan adı doğrulaması istiyor; kayıt yine de temizlenmeli
+- service: GitHub Pages
+  cname: [github.io]
+  fingerprints: ["There isn't a GitHub Pages site here."]
+  confidence: edge
+- service: Heroku
+  cname: [herokuapp.com, herokudns.com, herokussl.com]
+  fingerprints: ["No such app"]
+  confidence: edge
+- service: Netlify
+  cname: [netlify.app, netlify.com]
+  fingerprints: ["Not Found - Request ID:"]
+  confidence: edge
+- service: Vercel
+  cname: [vercel.app, vercel-dns.com, now.sh]
+  fingerprints: ["DEPLOYMENT_NOT_FOUND"]
+  confidence: edge
+- service: Shopify
+  cname: [myshopify.com]
+  fingerprints: ["Sorry, this shop is currently unavailable."]
+  confidence: edge
+- service: Webflow
+  cname: [proxy-ssl.webflow.com, proxy.webflow.com]
+  fingerprints: ["The page you are looking for doesn't exist or has been moved."]
+  confidence: edge
+- service: Tumblr
+  cname: [domains.tumblr.com]
+  fingerprints: ["Whatever you were looking for doesn't currently exist at this address"]
+  confidence: edge

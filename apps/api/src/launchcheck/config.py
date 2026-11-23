@@ -498,6 +498,136 @@ class Settings(BaseSettings):
     deep_perf_short_cache_min_bytes: int = 100 * 1024
     deep_perf_third_party_bytes: int = 500 * 1024
     deep_perf_third_party_main_thread_ms: float = 1000
+    # --- Dış görünürlük modülü (P5): crt.sh, DNS, Wayback, RDAP, sertifika ---
+    deep_budget_external_s: float = 150
+    # Servis başına toplam istek süresi (sn). Wayback CDX büyük sitelerde ~60 sn sürebiliyor
+    # (2026-11-23 ölçümü); crt.sh sık sık 502 döner, o zaman Cert Spotter'a geçilir.
+    deep_external_timeouts_s: dict[str, float] = Field(
+        default_factory=lambda: {"crtsh": 30, "certspotter": 20, "wayback": 60, "rdap": 15}
+    )
+    deep_external_max_response_bytes: int = 8 * 1024 * 1024
+    deep_crtsh_endpoint: str = "https://crt.sh/"
+    deep_certspotter_endpoint: str = "https://api.certspotter.com/v1/issuances"
+    deep_wayback_endpoint: str = "https://web.archive.org/cdx/search/cdx"
+    deep_rdap_endpoint: str = "https://rdap.org/domain/"
+    # Tüm taramalar için ortak istek sınırı (Redis): servis → [istek, pencere sn]. Aşılırsa o
+    # parça atlanır. Cert Spotter kimliksiz kullanımda saatte 10 alt alan adlı sorgu verir.
+    deep_external_rate_limits: dict[str, list[int]] = Field(
+        default_factory=lambda: {
+            "crtsh": [10, 60],
+            "certspotter": [10, 3600],
+            "wayback": [15, 60],
+            "rdap": [30, 60],
+        }
+    )
+    deep_dns_timeout_s: float = 5
+    # crt.sh'tan gelen adlardan en fazla bu kadarının DNS'i çözülür (öncelikliler önce)
+    deep_subdomain_max_candidates: int = 60
+    deep_subdomain_dns_concurrency: int = 10
+    deep_subdomain_scan_concurrency: int = 3
+    deep_subdomain_scan_timeout_s: float = 45
+    deep_subdomain_max_js_files: int = 20
+    deep_subdomain_max_total_bytes: int = 15 * 1024 * 1024
+    # Ad içinde geçerse önce taranır (unutulmuş ortam olma ihtimali yüksek). Tespit için tek
+    # başına yeterli değildir: alt alan adı bulgusu ancak Faz 1 check'i bir sorun bulursa çıkar.
+    deep_subdomain_priority_words: list[str] = Field(
+        default_factory=lambda: [
+            "staging",
+            "stage",
+            "dev",
+            "test",
+            "beta",
+            "admin",
+            "panel",
+            "api",
+            "old",
+            "backup",
+            "demo",
+            "preview",
+            "eski",
+            "yedek",
+            "deneme",
+            "yonetim",
+        ]
+    )
+    # Alt alan adlarında çalışan Faz 1 check'leri ("*" ile biten önek demek)
+    deep_subdomain_check_ids: list[str] = Field(
+        default_factory=lambda: [
+            "web.files.*",
+            "web.secrets.*",
+            "web.bundle.localhost_urls",
+            "web.https.missing",
+            "web.seo.noindex_left",
+        ]
+    )
+    # Sadece bilgi: tek başına alt alan adı bulgusu üretmez (staging'in noindex olması iyidir)
+    deep_subdomain_info_checks: list[str] = Field(default_factory=lambda: ["web.seo.noindex_left"])
+    # Ortak barındırma alan adları: hedef bunların altındaysa (ör. app.lovable.app) alt alan
+    # adları, e-posta DNS'i ve alan adı kaydı platformundur, kullanıcının değil → atlanır.
+    # Public Suffix List'in "private" bölümü ayrıca kontrol edilir; bu liste ek güvencedir.
+    deep_shared_host_suffixes: list[str] = Field(
+        default_factory=lambda: [
+            "lovable.app",
+            "lovableproject.com",
+            "bolt.host",
+            "netlify.app",
+            "vercel.app",
+            "pages.dev",
+            "workers.dev",
+            "github.io",
+            "herokuapp.com",
+            "onrender.com",
+            "fly.dev",
+            "replit.app",
+            "repl.co",
+            "web.app",
+            "firebaseapp.com",
+            "glitch.me",
+            "surge.sh",
+            "azurewebsites.net",
+            "wixsite.com",
+            "webflow.io",
+            "framer.website",
+            "framer.app",
+            "carrd.co",
+            "myshopify.com",
+            "blogspot.com",
+            "wordpress.com",
+            "squarespace.com",
+            "notion.site",
+            "up.railway.app",
+            "bubbleapps.io",
+            "softr.app",
+            "expo.app",
+        ]
+    )
+    deep_spf_max_lookups: int = 10  # RFC 7208 §4.6.4
+    deep_wayback_max_rows: int = 5000
+    deep_wayback_max_probes: int = 15
+    # Arşivdeki hassas yol türleri (yol üzerinde, büyük/küçük harf duyarsız). Her türün içerik
+    # doğrulaması kodda (deep/external/wayback.py); eşleşme tek başına bulgu değildir.
+    deep_wayback_patterns: dict[str, str] = Field(
+        default_factory=lambda: {
+            "env": r"(^|/)\.env([._-][a-z0-9]+)?$",
+            "git": r"(^|/)\.git/(head|config)$",
+            "sql": r"\.sql(\.gz)?$",
+            "backup": r"(backup|yedek|dump|db)[^/]*\.(zip|tar|tgz|tar\.gz|gz|bak|7z|rar)$",
+            "config": r"(^|/)(config|settings|credentials|secrets?|appsettings)"
+            r"(\.[a-z]+)?\.(json|ya?ml|ini|bak|old|txt)$",
+            "phpinfo": r"(^|/)(php)?info\.php$",
+            "api_docs": r"(swagger|openapi|api-docs)[^/]*(\.json|\.ya?ml|/?$|\.html$)",
+        }
+    )
+    deep_domain_expiry_high_days: int = 30
+    deep_domain_expiry_medium_days: int = 60
+    # Sertifika: kısa ömürlü otomatik sertifikalar (Let's Encrypt 90/45/6 gün) yenilemeyi kalan
+    # sürenin ~1/3'ünde yapar; eşik ömrün bu oranıyla da sınırlanır (normal yenileme
+    # penceresindeki sertifikaya alarm verilmesin).
+    deep_cert_expiry_high_days: int = 14
+    deep_cert_expiry_medium_days: int = 30
+    deep_cert_expiry_high_ratio: float = 0.2
+    deep_cert_expiry_medium_ratio: float = 0.3
+    deep_cert_timeout_s: float = 10
     # Başarısız istek sayılmayan üçüncü taraf ölçüm/reklam host'ları (kayıtlı alan adı)
     deep_failed_request_ignore_domains: list[str] = Field(
         default_factory=lambda: [

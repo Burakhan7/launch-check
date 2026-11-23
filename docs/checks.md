@@ -259,3 +259,31 @@ Kaçırabilir: zaten küçültülmüş ve sıkıştırması az kazandıran dosya
 ### web.perf.heavy_third_party
 Yakalar: ana sayfanın ortanca mobil ölçümünde başka alan adlarından (Lighthouse varlık gruplaması) gelen kodun toplamı > 500 KB veya ana thread süresi > 1 sn; en ağır 5 servis.
 Kaçırabilir: aynı şirketin farklı alan adındaki kendi CDN'i üçüncü taraf sayılabilir (yanlış pozitif); sadece etkileşimle yüklenen widget'lar.
+
+## Faz 2 — dış görünürlük modülü (crt.sh, DNS, Wayback, RDAP, sertifika)
+
+Beş parça paralel çalışır: alt alan adları (crt.sh sertifika kayıtları → DNS), e-posta DNS'i, Wayback arşivi, RDAP, TLS sertifikası. Bir parçanın servisi hata verirse, zaman aşımına uğrarsa veya global hız sınırına takılırsa sadece o parçanın check'leri atlanır (`checks_skipped`, raporda "geçti" sayılmaz). Hedef ortak barındırmadaysa (Public Suffix List'in private bölümü veya `LC_DEEP_SHARED_HOST_SUFFIXES`: x.vercel.app, x.lovable.app...) alan adı platformundur. Bu durumda sadece Wayback çalışır; başka kullanıcıların uygulamaları asla taranmaz. Hedefe ve alt alan adlarına sadece normal ziyaretçi GET'i gider.
+
+### web.external.forgotten_subdomain
+Yakalar: crt.sh'taki adlardan DNS'i herkese açık IP'ye çözülen en fazla 8 alt alan adında (staging/dev/admin/eski/yedek... önce) Faz 1'in dosya, anahtar, localhost ve HTTPS check'lerinin bulduğu sorunlar; ana sayfası 4xx/5xx dönen API alt alan adlarında da dosya/HTTPS check'leri çalışır. Önem: alt bulguların en yükseği; sadece `noindex` (staging için doğru davranış) bulgu üretmez.
+Kaçırabilir: sertifikası hiç alınmamış (sadece HTTP) veya wildcard sertifikanın arkasındaki adlar (crt.sh'ta görünmez); 8'den fazla canlı alt alan adı olan sitelerde öncelik dışı kalanlar.
+
+### web.external.subdomain_takeover_risk
+Yakalar: CNAME zinciri parmak izi listesindeki bir servise (can-i-take-over-xyz, CC BY 4.0) yönelen ve servisin "proje/uygulama yok" sayfasını döndüren veya CNAME hedefi NXDOMAIN olan (Azure, Elastic Beanstalk gibi) adlar. Kaynakta "Edge case" olan servisler (GitHub Pages, Heroku, Netlify, Vercel...) medium, "Vulnerable" olanlar high.
+Kaçırabilir: listede olmayan servisler (Cloudflare Pages, Render, Fly.io: doğrulanmış parmak izi yok), A kaydıyla bırakılmış eski bulut IP'leri, crt.sh'ta görünmeyen adlar.
+
+### web.external.email_spoofing
+Yakalar: MX var ve SPF yok / `+all` / DMARC yok / `p=none` → high; birden fazla SPF kaydı veya 10 DNS sorgusu sınırını aşan SPF (include zinciri sayılır) → medium; MX yoksa (null MX dahil) aynı eksikler → low. `-all`/`~all` + DMARC quarantine/reject yanlış alarm vermez.
+Kaçırabilir: DKIM (seçici adı bilinmeden sorgulanamaz) ve DMARC'ın `sp=`/`pct=` ayrıntıları; e-postayı alt alan adından gönderen siteler (sadece kayıtlı alan adına bakılır).
+
+### web.external.archived_sensitive_paths
+Yakalar: Wayback CDX'te (statü 200, en fazla 5000 satır) `.env`, `.git/HEAD|config`, `.sql`, yedek arşivleri (backup/yedek/dump/db + zip/tar/gz/bak), hassas yapılandırma dosyaları, phpinfo ve API dokümanı yolları. En fazla 15 tanesi şimdi sorgu dizesi olmadan tekrar istenir ve Faz 1'in içerik doğrulamasından geçer (SPA catch-all elenir): hâlâ açık → high, artık yok → info ("o dönemki anahtarları değiştirdin mi?").
+Kaçırabilir: arşivlenmemiş veya robots.txt ile arşivden çıkarılmış yollar; denenen 15 yolun dışında kalanlar (raporda gösterilmez çünkü şu anki durumları bilinmiyor). `/admin` ve `/api/` yolları bilinçli olarak alınmadı (aşağıda decisions).
+
+### web.external.domain_expiry_soon
+Yakalar: RDAP `expiration` tarihi < 30 gün → high, < 60 gün → medium; süresi dolmuşsa high.
+Kaçırabilir: RDAP sunmayan uzantılar (ör. .tr: check atlanır) ve otomatik yenilemesi açık alan adları (bitişe yakın görünür ama yenilenecektir: metin bunu kontrol ettirir).
+
+### web.external.cert_expiry_soon
+Yakalar: sitenin 443 portundan alınan sertifikanın kalan süresi; eşikler min(14 gün, ömrün %20'si) → high ve min(30 gün, ömrün %30'u) → medium. Bu sayede 90/45/6 günlük otomatik sertifikalar normal yenileme penceresinde alarm vermez.
+Kaçırabilir: alt alan adlarının ve CDN'in farklı bölgelerdeki sertifikaları (sadece hedef host, tek IP); geçersiz sertifika burada değil Faz 1 HTTPS check'lerinde.

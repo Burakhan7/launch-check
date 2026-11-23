@@ -20,6 +20,7 @@ dependencies = [
     "defusedxml>=0.7",
     "tldextract>=5.1",
     "pillow>=11.0",
+    "dnspython>=2.6",
 ]
 
 [project.optional-dependencies]

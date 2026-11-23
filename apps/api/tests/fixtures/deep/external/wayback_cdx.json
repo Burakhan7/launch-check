@@ -1,0 +1,13 @@
+[["original","timestamp"],
+["http://www.example.com/","20190301120000"],
+["http://www.example.com:80/.env","20210112083000"],
+["https://www.example.com/.env?token=abc123","20210115083000"],
+["https://www.example.com/backup/db_2020.sql","20200605110000"],
+["https://www.example.com/old/config.json","20220101000000"],
+["https://www.example.com/.git/config","20230303030303"],
+["https://www.example.com/static/app.3f2a.js","20230303030303"],
+["https://www.example.com/wp-admin/","20190101000000"],
+["https://www.example.com/api/users?page=2","20240101000000"],
+["https://www.example.com/blog/how-to-configure-env-files","20240101000000"],
+["https://www.example.com/swagger.json","20240202000000"],
+["https://other.example.com/.env","20240101000000"]]

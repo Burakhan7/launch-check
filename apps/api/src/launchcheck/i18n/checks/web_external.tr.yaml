@@ -1,0 +1,122 @@
+# Faz 2 dış görünürlük modülü check metinleri (Türkçe). Veri: sertifika kayıtları (crt.sh), DNS,
+# Internet Archive, alan adı kaydı (RDAP). Ton: sade, suçlamayan, net; korkutma yok.
+
+web.external.forgotten_subdomain:
+  title: "Alt alan adında sorun var: {host}"
+  passed_title: "Alt alan adlarında sorun bulunmadı"
+  description: "Sitene ait {host} adresinde, ana sitende yaptığımız kontrollerden {count} tanesi sorun buldu. Bu adres sertifika kayıtlarında görünüyor ve internetten açılabiliyor; ayrıntılar kanıtta."
+  why_it_matters: "Test, eski sürüm veya yönetim için açılıp unutulan alt alan adları genelde ana site kadar iyi korunmaz. Saldırganlar önce sertifika kayıtlarına bakarak bu adresleri bulur; buradaki açık bir dosya veya anahtar ana sitene ve verilerine de ulaşabilir."
+  fix_steps:
+    - "Bu adres hâlâ kullanılıyor mu kontrol et. Kullanılmıyorsa DNS kaydını sil ve sunucuyu/projeyi kapat."
+    - "Kullanılıyorsa kanıttaki her sorunu ana sitende düzeltir gibi düzelt (açık dosyaları kaldır, anahtarları yenile, HTTPS'e yönlendir)."
+    - "Test/staging ortamlarını şifre korumasına (ör. Basic Auth, Vercel/Netlify şifre koruması) al."
+    - "Bu ortamda kullanılan anahtarlar açığa çıktıysa hepsini yenile."
+  fix_prompt: |
+    Sitemin bir alt alan adında (adres ve bulunan sorunlar kanıtta) güvenlik sorunları var. Lütfen:
+    1. Bu alt alan adının hangi projeye/ortama (staging, test, eski sürüm) ait olduğunu bul.
+    2. Kullanılmıyorsa: DNS kaydının ve barındırma projesinin nasıl kaldırılacağını adım adım yaz.
+    3. Kullanılıyorsa: kanıttaki her sorunu düzelt (herkese açık .env/.git/yedek dosyalarını kaldır, koda gömülü anahtarları sunucu tarafına taşı, HTTP'yi HTTPS'e yönlendir).
+    4. Test/staging ortamı için şifre koruması ekle ve arama motorlarına kapat.
+    5. Açığa çıkmış olabilecek tüm anahtarları yenileme listesini çıkar.
+
+web.external.subdomain_takeover_risk:
+  title: "Alt alan adı ele geçirilebilir görünüyor: {host}"
+  passed_title: "Ele geçirilebilir alt alan adı bulunmadı"
+  description: "{host} adresinin DNS kaydı {service} servisine yönleniyor ama {reason} Böyle bir kayıtta başka biri aynı servis adını kendi hesabına alıp bu adreste kendi sayfasını yayınlayabilir."
+  why_it_matters: "Adresi ele geçiren kişi senin alan adında sahte giriş sayfası açabilir, ziyaretçilerini dolandırabilir veya ana sitenin çerezlerine erişmeye çalışabilir. Ziyaretçiler adres senin olduğu için sayfaya güvenir."
+  fix_steps:
+    - "DNS panelinde bu alt alan adının CNAME kaydını bul."
+    - "Servisteki proje artık yoksa DNS kaydını hemen sil."
+    - "Proje hâlâ gerekiyorsa servis hesabında aynı adla projeyi yeniden oluştur ve alan adını oraya bağla."
+    - "İleride bir projeyi kapatırken önce DNS kaydını, sonra projeyi silmeyi alışkanlık yap."
+  fix_prompt: |
+    Alan adımın bir alt alan adı, artık var olmayan bir barındırma projesine yönleniyor (adres, CNAME hedefi ve servis kanıtta). Lütfen:
+    1. Bu DNS kaydının ne işe yaradığını ve hangi projeye ait olduğunu bulmama yardım et.
+    2. Proje gerekmiyorsa DNS kaydını silmem için kullandığım DNS sağlayıcısına göre adımları yaz.
+    3. Proje gerekiyorsa servisin kendi panelinde projeyi yeniden oluşturup alan adını nasıl doğrulayacağımı yaz.
+    4. DNS'te başka "boşa düşmüş" (hedefi olmayan) CNAME kayıtlarını nasıl bulacağımı açıkla.
+  fragments:
+    reason_page: "servis bu adres için 'proje/uygulama bulunamadı' sayfası gösteriyor."
+    reason_nxdomain: "yönlendiği servis adı artık mevcut değil (DNS'te bulunamıyor)."
+
+web.external.email_spoofing:
+  title: "Alan adın adına sahte e-posta gönderilebilir"
+  passed_title: "E-posta sahteciliğine karşı koruma var"
+  description: "{domain} için e-posta koruma kayıtlarında eksik var: {problems}. {mx_note}"
+  why_it_matters: "SPF ve DMARC kayıtları, 'bu alan adından kim e-posta gönderebilir' sorusunu cevaplar. Eksikse dolandırıcılar müşterilerine senin adınla (ör. destek@siten.com) fatura, şifre sıfırlama veya ödeme e-postası gönderebilir; senin gerçek e-postaların da spam'e düşebilir."
+  fix_steps:
+    - "E-postanı gönderen servisleri (Google Workspace, Microsoft 365, Resend, SendGrid vb.) listele."
+    - "Tek bir SPF kaydı oluştur: bu servislerin include'larını ekle ve sonunu '-all' veya '~all' yap."
+    - "_dmarc adına bir DMARC kaydı ekle; önce p=none ile raporları izle, sorun yoksa p=quarantine ve sonra p=reject yap."
+    - "Alan adından hiç e-posta göndermiyorsan 'v=spf1 -all' ve 'p=reject' kullan."
+  fix_prompt: |
+    Alan adımın e-posta koruma (SPF/DMARC) kayıtları eksik veya zayıf (sorunlar kanıtta). Lütfen:
+    1. E-posta gönderdiğim servislere göre (bana sor) doğru tek SPF kaydını yaz; sonu -all veya ~all olsun, 10 DNS sorgusu sınırını aşmasın.
+    2. Bir DMARC kaydı öner: başlangıç için p=none ve rapor adresi, sonra p=quarantine/p=reject'e geçiş planı.
+    3. Kullandığım servis için DKIM'in nasıl açılacağını yaz.
+    4. Bu kayıtları DNS sağlayıcıma nasıl ekleyeceğimi adım adım anlat.
+  fragments:
+    spf_missing: "SPF kaydı yok"
+    spf_pass_all: "SPF kaydı herkese izin veriyor (+all)"
+    spf_multiple: "birden fazla SPF kaydı var (bu durumda hiçbiri geçerli sayılmaz)"
+    spf_too_many_lookups: "SPF kaydı 10 DNS sorgusu sınırını aşıyor (geçersiz sayılır)"
+    dmarc_missing: "DMARC kaydı yok"
+    dmarc_none: "DMARC kaydı sadece izliyor (p=none), sahte e-postaları engellemiyor"
+    mx_note: "Alan adın e-posta alıyor (MX kaydı var), bu yüzden risk yüksek."
+    no_mx_note: "Alan adın e-posta almıyor (MX kaydı yok); yine de adına sahte e-posta gönderilebilir."
+
+web.external.archived_sensitive_paths:
+  title: "İnternet arşivinde hassas dosya yolları var"
+  passed_title: "İnternet arşivinde hassas dosya yolu bulunmadı"
+  description: "Internet Archive (Wayback Machine) sitenin geçmişinde şu yolları kaydetmiş: {paths}. {state}"
+  why_it_matters: "Arşivlenen bir .env, veritabanı yedeği veya yapılandırma dosyası, o dönemde içindeki anahtar ve şifrelerin herkese açık olduğu anlamına gelir. Arşiv kayıtları silinmez; kim isterse geçmişe dönüp bakabilir."
+  fix_steps:
+    - "Hâlâ açık olan dosyaları sunucudan hemen kaldır veya erişimini kapat."
+    - "Bu dosyalarda bulunmuş olabilecek tüm anahtar, şifre ve veritabanı bilgilerini yenile."
+    - "Arşivdeki kopyanın kaldırılması için Internet Archive'a (info@archive.org) başvurabilirsin; ama asıl çözüm anahtarları değiştirmektir."
+    - "Bu tür dosyaların tekrar yayına çıkmaması için derleme/deploy ayarlarını kontrol et."
+  fix_prompt: |
+    Sitemin geçmişte herkese açık olmuş hassas dosyaları internet arşivinde kayıtlı (yollar kanıtta). Lütfen:
+    1. Bu dosyaların (.env, yedek, yapılandırma) neden yayına çıktığını bulmak için deploy/derleme ayarlarımı incele.
+    2. Bu dosyaların sunucuda artık hiç servis edilmemesini sağla (ignore listeleri, sunucu kuralları).
+    3. Bu dosyalarda olabilecek tüm anahtar ve şifreler için bir yenileme listesi çıkar.
+    4. Internet Archive'dan kaldırma talebi için kısa bir e-posta taslağı yaz.
+  fragments:
+    state_live: "Bu dosyaların en az biri şu an da açık ve gerçek içerik döndürüyor."
+    state_gone: "Bu dosyalar artık açık değil; ama o dönemde içlerindeki anahtarlar herkese açıktı, değiştirdin mi?"
+
+web.external.domain_expiry_soon:
+  title: "Alan adının süresi yakında doluyor"
+  passed_title: "Alan adının süresi yakın zamanda dolmuyor"
+  description: "{name} alan adının kaydı {date} tarihinde bitiyor ({when})."
+  why_it_matters: "Süresi dolan alan adında site ve e-postalar çalışmaz. Bir süre sonra alan adı serbest kalır ve başkası satın alıp senin trafiğini ve itibarını kullanabilir."
+  fix_steps:
+    - "Alan adını aldığın firmanın panelinde otomatik yenilemenin açık olduğunu kontrol et."
+    - "Kayıtlı ödeme yönteminin geçerli olduğundan emin ol."
+    - "Gerekirse alan adını şimdi birkaç yıllığına yenile."
+  fix_prompt: |
+    Alan adımın kayıt süresi yakında doluyor (tarih kanıtta). Lütfen:
+    1. Alan adını aldığım firmada (bana sor) otomatik yenilemeyi nasıl kontrol edeceğimi yaz.
+    2. Süre dolarsa site, e-posta ve SSL sertifikasında ne olacağını kısaca açıkla.
+    3. Benzer hatırlatmalar için basit bir takvim/izleme önerisi ver.
+  fragments:
+    days_left: "{days} gün kaldı"
+    expired: "{days} gün önce doldu"
+
+web.external.cert_expiry_soon:
+  title: "SSL sertifikasının süresi yakında doluyor"
+  passed_title: "SSL sertifikasının süresi yakında dolmuyor"
+  description: "{name} adresinin SSL sertifikası {date} tarihinde bitiyor ({when}); otomatik yenileme normalde bundan önce yapılırdı."
+  why_it_matters: "Sertifikanın süresi dolunca tarayıcılar sitende kırmızı bir 'bağlantı güvenli değil' uyarısı gösterir. Ziyaretçilerin çoğu bu ekranda siteyi terk eder, uygulamaların API bağlantıları da kopar."
+  fix_steps:
+    - "Sertifika barındırma servisinden (Vercel, Netlify, Cloudflare...) geliyorsa panelde alan adının durumunu kontrol et; DNS kaydı değiştiyse yenileme başarısız olabilir."
+    - "Kendi sunucundaysa certbot/acme yenileme görevinin çalıştığını ve hata vermediğini kontrol et."
+    - "Yenilemeyi şimdi elle tetikle ve yeni bitiş tarihini doğrula."
+  fix_prompt: |
+    Sitemin SSL sertifikası yakında bitiyor ve otomatik yenilenmemiş görünüyor (tarih ve sertifikayı veren kurum kanıtta). Lütfen:
+    1. Barındırma ortamıma göre (bana sor) sertifika yenilemenin neden başarısız olabileceğini listele (DNS değişikliği, CAA kaydı, port 80 kapalı, cron durmuş...).
+    2. Yenilemeyi elle tetikleme komutlarını veya panel adımlarını yaz.
+    3. Yenileme başarısız olursa haber verecek basit bir izleme öner.
+  fragments:
+    days_left: "{days} gün kaldı"
+    expired: "{days} gün önce doldu"

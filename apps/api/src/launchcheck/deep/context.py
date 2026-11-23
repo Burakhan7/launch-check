@@ -9,6 +9,7 @@ from launchcheck.checks.base import Category, ScanContext, Severity
 from launchcheck.collectors.web_collector import WebContext
 from launchcheck.deep.assets import AssetStore
 from launchcheck.deep.events import EventSink, MemoryEventSink
+from launchcheck.deep.external_data import ExternalData
 from launchcheck.deep.perf_data import PerfData
 from launchcheck.deep.render_data import RenderData
 
@@ -40,6 +41,8 @@ class DeepContext(ScanContext):
     render: RenderData | None = None
     # Hız modülünün topladığı veri (Lighthouse + CrUX)
     perf: PerfData | None = None
+    # Dış görünürlük modülünün topladığı veri (crt.sh, DNS, Wayback, RDAP, sertifika)
+    external: ExternalData | None = None
     # Şeritler arası: render modülü kilit sayfaları (fiyat > kayıt > ürün) bulunca doldurur;
     # render bitince (başarısız olsa bile) olay işaretlenir, hız şeridi sonsuza dek beklemez.
     key_urls: list[str] = field(default_factory=list)

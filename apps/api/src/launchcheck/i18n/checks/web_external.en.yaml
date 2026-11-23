@@ -1,0 +1,122 @@
+# Phase 2 external visibility module check texts (English). Data: certificate logs (crt.sh), DNS,
+# Internet Archive, domain registration (RDAP). Tone: plain, non-blaming, clear; no scare tactics.
+
+web.external.forgotten_subdomain:
+  title: "Problems found on a subdomain: {host}"
+  passed_title: "No problems found on subdomains"
+  description: "On {host}, which belongs to your site, {count} of the checks we run on your main site found a problem. This address appears in certificate logs and is reachable from the internet; details are in the evidence."
+  why_it_matters: "Subdomains opened for testing, old versions or admin work and then forgotten are usually less protected than the main site. Attackers find them first by reading certificate logs; an exposed file or key there can lead to your main site and data."
+  fix_steps:
+    - "Check whether this address is still in use. If not, delete its DNS record and shut down the server/project."
+    - "If it is, fix each problem in the evidence as you would on your main site (remove exposed files, rotate keys, redirect to HTTPS)."
+    - "Put test/staging environments behind a password (e.g. Basic Auth, Vercel/Netlify password protection)."
+    - "If keys used in this environment were exposed, rotate all of them."
+  fix_prompt: |
+    A subdomain of my site has security problems (address and findings are in the evidence). Please:
+    1. Help me identify which project/environment (staging, test, old version) this subdomain belongs to.
+    2. If it's unused: write step-by-step instructions to remove its DNS record and hosting project.
+    3. If it's in use: fix each problem in the evidence (remove public .env/.git/backup files, move embedded keys server-side, redirect HTTP to HTTPS).
+    4. Add password protection to the test/staging environment and block search engines.
+    5. List all keys that may have been exposed and need rotating.
+
+web.external.subdomain_takeover_risk:
+  title: "Subdomain looks open to takeover: {host}"
+  passed_title: "No subdomains open to takeover found"
+  description: "The DNS record of {host} points to {service}, but {reason} With a record like this, someone else can claim the same name on that service with their own account and publish their own page at this address."
+  why_it_matters: "Whoever takes over the address can host a fake login page on your domain, scam your visitors or try to reach your main site's cookies. Visitors trust the page because the address is yours."
+  fix_steps:
+    - "Find this subdomain's CNAME record in your DNS panel."
+    - "If the project on the service no longer exists, delete the DNS record right away."
+    - "If you still need it, recreate the project with the same name in your service account and connect the domain there."
+    - "When shutting down a project in the future, delete the DNS record first, then the project."
+  fix_prompt: |
+    A subdomain of my domain points to a hosting project that no longer exists (address, CNAME target and service are in the evidence). Please:
+    1. Help me figure out what this DNS record was for and which project it belonged to.
+    2. If the project isn't needed, write the steps to delete the DNS record for my DNS provider.
+    3. If it is needed, explain how to recreate the project on that service and verify the domain.
+    4. Explain how I can find other dangling CNAME records (pointing to nothing) in my DNS.
+  fragments:
+    reason_page: "the service shows a 'project/app not found' page for this address."
+    reason_nxdomain: "the service name it points to no longer exists (not found in DNS)."
+
+web.external.email_spoofing:
+  title: "Fake emails can be sent in your domain's name"
+  passed_title: "Your domain is protected against email spoofing"
+  description: "Email protection records for {domain} have gaps: {problems}. {mx_note}"
+  why_it_matters: "SPF and DMARC records answer the question 'who may send email from this domain'. If they're missing, scammers can send your customers invoices, password resets or payment requests in your name (e.g. support@yoursite.com), and your real emails may land in spam."
+  fix_steps:
+    - "List the services that send your email (Google Workspace, Microsoft 365, Resend, SendGrid, etc.)."
+    - "Create a single SPF record: add those services' includes and end it with '-all' or '~all'."
+    - "Add a DMARC record at _dmarc; start with p=none to watch reports, then move to p=quarantine and p=reject."
+    - "If you never send email from this domain, use 'v=spf1 -all' and 'p=reject'."
+  fix_prompt: |
+    My domain's email protection (SPF/DMARC) records are missing or weak (problems are in the evidence). Please:
+    1. Based on the services I send email with (ask me), write the correct single SPF record; end it with -all or ~all and stay within the 10 DNS lookup limit.
+    2. Suggest a DMARC record: p=none with a report address to start, then a plan to move to p=quarantine/p=reject.
+    3. Explain how to enable DKIM for the service I use.
+    4. Walk me through adding these records at my DNS provider.
+  fragments:
+    spf_missing: "there is no SPF record"
+    spf_pass_all: "the SPF record allows everyone (+all)"
+    spf_multiple: "there is more than one SPF record (none of them count in that case)"
+    spf_too_many_lookups: "the SPF record exceeds the 10 DNS lookup limit (treated as invalid)"
+    dmarc_missing: "there is no DMARC record"
+    dmarc_none: "the DMARC record only monitors (p=none) and doesn't block fake emails"
+    mx_note: "Your domain receives email (it has an MX record), so the risk is high."
+    no_mx_note: "Your domain doesn't receive email (no MX record); fake emails can still be sent in its name."
+
+web.external.archived_sensitive_paths:
+  title: "Sensitive file paths are in the internet archive"
+  passed_title: "No sensitive file paths found in the internet archive"
+  description: "The Internet Archive (Wayback Machine) recorded these paths in your site's history: {paths}. {state}"
+  why_it_matters: "An archived .env, database backup or config file means the keys and passwords inside it were public at that time. Archive records aren't deleted; anyone can look back."
+  fix_steps:
+    - "Remove files that are still exposed from the server or block access to them right away."
+    - "Rotate every key, password and database credential that may have been in those files."
+    - "You can ask the Internet Archive (info@archive.org) to remove the copy, but the real fix is changing the keys."
+    - "Check your build/deploy settings so such files don't get published again."
+  fix_prompt: |
+    Sensitive files of my site that were public in the past are recorded in the internet archive (paths are in the evidence). Please:
+    1. Review my deploy/build settings to find out why these files (.env, backups, config) were published.
+    2. Make sure the server never serves these files again (ignore lists, server rules).
+    3. Make a rotation list for all keys and passwords that may have been in them.
+    4. Draft a short email asking the Internet Archive to remove them.
+  fragments:
+    state_live: "At least one of these files is still exposed right now and returns real content."
+    state_gone: "These files are no longer exposed, but the keys inside them were public back then. Have you changed them?"
+
+web.external.domain_expiry_soon:
+  title: "Your domain registration expires soon"
+  passed_title: "Your domain doesn't expire soon"
+  description: "The registration of {name} ends on {date} ({when})."
+  why_it_matters: "When the domain expires, the site and email stop working. After a while the domain becomes available and someone else can buy it and use your traffic and reputation."
+  fix_steps:
+    - "Check that auto-renew is on in your registrar's panel."
+    - "Make sure the saved payment method is valid."
+    - "If needed, renew the domain now for a few years."
+  fix_prompt: |
+    My domain registration expires soon (date is in the evidence). Please:
+    1. Explain how to check auto-renew at my registrar (ask me which one).
+    2. Briefly explain what happens to my site, email and SSL certificate if it expires.
+    3. Suggest a simple calendar/monitoring setup for similar reminders.
+  fragments:
+    days_left: "{days} days left"
+    expired: "expired {days} days ago"
+
+web.external.cert_expiry_soon:
+  title: "Your SSL certificate expires soon"
+  passed_title: "Your SSL certificate doesn't expire soon"
+  description: "The SSL certificate of {name} ends on {date} ({when}); automatic renewal would normally have happened before this."
+  why_it_matters: "Once the certificate expires, browsers show a red 'connection is not secure' warning on your site. Most visitors leave at that screen, and apps' API connections break too."
+  fix_steps:
+    - "If the certificate comes from your host (Vercel, Netlify, Cloudflare...), check the domain status in its panel; renewal can fail if a DNS record changed."
+    - "On your own server, check that the certbot/ACME renewal job runs without errors."
+    - "Trigger a renewal manually now and confirm the new expiry date."
+  fix_prompt: |
+    My site's SSL certificate expires soon and doesn't seem to have renewed automatically (date and issuer are in the evidence). Please:
+    1. Based on my hosting setup (ask me), list why renewal might be failing (DNS change, CAA record, port 80 closed, stopped cron...).
+    2. Write the commands or panel steps to trigger renewal manually.
+    3. Suggest simple monitoring that alerts me if renewal fails.
+  fragments:
+    days_left: "{days} days left"
+    expired: "expired {days} days ago"

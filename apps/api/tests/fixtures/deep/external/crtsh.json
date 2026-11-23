@@ -1,0 +1,16 @@
+[
+  {"issuer_name": "C=US, O=Let's Encrypt, CN=R11", "common_name": "example.com", "name_value": "example.com\nwww.example.com"},
+  {"issuer_name": "C=US, O=Let's Encrypt, CN=R11", "common_name": "*.example.com", "name_value": "*.example.com\nexample.com"},
+  {"issuer_name": "C=US, O=Let's Encrypt, CN=E6", "common_name": "staging.example.com", "name_value": "staging.example.com"},
+  {"issuer_name": "C=US, O=Let's Encrypt, CN=E6", "common_name": "old.example.com", "name_value": "old.example.com"},
+  {"issuer_name": "C=US, O=Let's Encrypt, CN=R10", "common_name": "api.example.com", "name_value": "api.example.com\nAPI.example.com."},
+  {"issuer_name": "C=US, O=Let's Encrypt, CN=R10", "common_name": "blog.example.com", "name_value": "blog.example.com"},
+  {"issuer_name": "C=US, O=Let's Encrypt, CN=R10", "common_name": "preview.example.com", "name_value": "preview.example.com"},
+  {"issuer_name": "C=US, O=Amazon, CN=Amazon RSA 2048 M02", "common_name": "gone.example.com", "name_value": "gone.example.com"},
+  {"issuer_name": "C=US, O=Let's Encrypt, CN=R11", "common_name": "docs.example.com", "name_value": "docs.example.com"},
+  {"issuer_name": "C=US, O=Microsoft Corporation, CN=Microsoft Azure RSA TLS Issuing CA 04", "common_name": "legacy.example.com", "name_value": "legacy.example.com"},
+  {"issuer_name": "C=US, O=Let's Encrypt, CN=R11", "common_name": "cdn.example.com", "name_value": "cdn.example.com"},
+  {"issuer_name": "C=US, O=Let's Encrypt, CN=R11", "common_name": "internal.example.com", "name_value": "internal.example.com"},
+  {"issuer_name": "C=US, O=DigiCert Inc, CN=DigiCert Global G2 TLS RSA SHA256 2020 CA1", "common_name": "mail.example.com", "name_value": "mail.example.com\nhostmaster@example.com"},
+  {"issuer_name": "C=US, O=Let's Encrypt, CN=R11", "common_name": "notexample.com", "name_value": "notexample.com\nexample.com.evil.net"}
+]
