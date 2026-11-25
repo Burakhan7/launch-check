@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Clean Corp</title>
+  <!-- Düz HTML, CookieYes benzeri banner, doğru davranış: takip SADECE kabul edilirse başlar -->
+  <style>
+    body { color: #111; background: #fff; font: 16px/1.5 sans-serif; }
+    .cky-consent-container { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; color: #111; border-top: 1px solid #333; padding: 16px; }
+    button { color: #fff; background: #0b4f9c; border: 0; padding: 10px 14px; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Clean Corp</h1>
+    <p>We build tools for teams.</p>
+  </main>
+  <div class="cky-consent-container" role="region" aria-label="Cookie consent">
+    <p>We use cookies to analyse traffic. You can accept or reject them.</p>
+    <button class="cky-btn cky-btn-accept" onclick="consent('yes')">Accept All</button>
+    <button class="cky-btn cky-btn-reject" onclick="consent('no')">Reject All</button>
+  </div>
+  <script>
+    function startTracking() {
+      document.cookie = '_ga=GA1.1.333.444; path=/';
+      fetch('http://track.test:' + location.port + '/collect', {mode: 'no-cors'});
+    }
+    function consent(v) {
+      document.cookie = 'cookieyes-consent=' + v + '; path=/';
+      document.querySelector('.cky-consent-container').remove();
+      if (v === 'yes') startTracking();
+    }
+    const saved = document.cookie.match(/cookieyes-consent=(\w+)/);
+    if (saved) { document.querySelector('.cky-consent-container').remove(); if (saved[1] === 'yes') startTracking(); }
+  </script>
+</body>
+</html>

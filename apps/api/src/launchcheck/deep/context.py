@@ -10,7 +10,9 @@ from launchcheck.collectors.web_collector import WebContext
 from launchcheck.deep.assets import AssetStore
 from launchcheck.deep.events import EventSink, MemoryEventSink
 from launchcheck.deep.external_data import ExternalData
+from launchcheck.deep.links_data import LinksData
 from launchcheck.deep.perf_data import PerfData
+from launchcheck.deep.privacy_data import PrivacyData
 from launchcheck.deep.render_data import RenderData
 
 
@@ -47,6 +49,12 @@ class DeepContext(ScanContext):
     # render bitince (başarısız olsa bile) olay işaretlenir, hız şeridi sonsuza dek beklemez.
     key_urls: list[str] = field(default_factory=list)
     key_urls_ready: asyncio.Event = field(default_factory=asyncio.Event)
+    # Render modülü bitince (başarısız olsa bile) işaretlenir: link modülü render verisini bekler
+    render_ready: asyncio.Event = field(default_factory=asyncio.Event)
+    # Link modülünün topladığı veri (iç/dış link durumları, og:image, JSON-LD, YouTube)
+    links: LinksData | None = None
+    # Gizlilik modülünün topladığı veri (onay, takipçiler, kütüphaneler, axe)
+    privacy: PrivacyData | None = None
 
     def note_checks(self, key: str, check_ids: list[str]) -> None:
         """`checks_failed` / `checks_skipped` listelerine ekler (modüller paralel yazar).

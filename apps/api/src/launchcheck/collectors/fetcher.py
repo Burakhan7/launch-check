@@ -19,9 +19,11 @@ BROWSER_ACCEPT = "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.
 class FetchError(Exception):
     """`code` i18n `errors` anahtarıdır."""
 
-    def __init__(self, code: str) -> None:
+    def __init__(self, code: str, detail: str = "") -> None:
         super().__init__(code)
         self.code = code
+        # Ağ hatasının türü (link doğrulaması için): tls | connect | timeout | transport
+        self.detail = detail
 
 
 @dataclass
@@ -87,14 +89,21 @@ class SafeFetcher:
             raise FetchError(exc.code) from exc
 
     async def fetch(
-        self, url: str, max_bytes: int, follow_redirects: bool = True, cookieless: bool = False
+        self,
+        url: str,
+        max_bytes: int,
+        follow_redirects: bool = True,
+        cookieless: bool = False,
+        method: str = "GET",
     ) -> FetchResult:
         """`cookieless=True`: istemcinin çerez kavanozundaki çerezler gönderilmez (ilk ziyaret
-        eden biri gibi)."""
+        eden biri gibi). `method` sadece GET veya HEAD olabilir (link doğrulaması)."""
+        if method not in ("GET", "HEAD"):
+            raise ValueError("sadece GET/HEAD")
         current = await self._validate(url)
         redirects: list[str] = []
         for _ in range(self._settings.max_redirects + 1):
-            result = await self._get_once(current, max_bytes, cookieless)
+            result = await self._get_once(current, max_bytes, cookieless, method)
             location = result.headers.get("location")
             if not (follow_redirects and result.status in REDIRECT_STATUSES and location):
                 result.url, result.redirects = url, redirects
@@ -103,10 +112,12 @@ class SafeFetcher:
             redirects.append(current)
         raise FetchError("too_many_redirects")
 
-    async def _get_once(self, url: str, max_bytes: int, cookieless: bool = False) -> FetchResult:
+    async def _get_once(
+        self, url: str, max_bytes: int, cookieless: bool = False, method: str = "GET"
+    ) -> FetchResult:
         limit = min(max_bytes, self._budget)
         try:
-            request = self._client.build_request("GET", url)
+            request = self._client.build_request(method, url)
             if cookieless:
                 request.headers.pop("cookie", None)
             resp = await self._client.send(request, stream=True)
@@ -123,10 +134,14 @@ class SafeFetcher:
                 truncated=truncated,
             )
         except httpx.ConnectError as exc:
-            code = "url_not_public" if "url_not_public" in str(exc) else "site_unreachable"
-            raise FetchError(code) from exc
-        except (httpx.TimeoutException, httpx.TransportError) as exc:
-            raise FetchError("site_unreachable") from exc
+            message = str(exc)
+            code = "url_not_public" if "url_not_public" in message else "site_unreachable"
+            tls = "ssl" in message.lower() or "certificate" in message.lower()
+            raise FetchError(code, "tls" if tls else "connect") from exc
+        except httpx.TimeoutException as exc:
+            raise FetchError("site_unreachable", "timeout") from exc
+        except httpx.TransportError as exc:
+            raise FetchError("site_unreachable", "transport") from exc
 
     async def _read_limited(self, resp: httpx.Response, limit: int) -> tuple[bytes, bool]:
         chunks: list[bytes] = []

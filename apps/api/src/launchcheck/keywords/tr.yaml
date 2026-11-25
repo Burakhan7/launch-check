@@ -122,3 +122,16 @@ listing_pages: ["kesfet*", "uyeler*", "profiller*", "kullanicilar*", "sunucular*
 counter_units: ["uye*", "kullanici*", "kisi*", "sunucu*", "topluluk*", "yorum*", "degerlendirme*", "paylasim*", "ilan*", "satici*", "urun*", "takipci*", "aktif*"]
 # Boş durum metinleri
 empty_states: ["henuz hic*", "henuz yok*", "sonuc bulunamadi*", "kayit bulunamadi*", "hic uye yok*", "burasi bos*"]
+
+# Faz 2 / P6 — yapılandırılmış veri fırsatı sinyalleri (tek başına yeterli değil; fiyat/soru
+# sayısı gibi sayfa yapısı sinyalleriyle birlikte kullanılır)
+structured_data:
+  add_to_cart: ["sepete ekle*", "sepete at", "satin al*", "hemen al", "siparis ver*"]
+  faq_headings: [sss, "sikca sorulan*", "sik sorulan*", "merak edilen*", "soru*"]
+
+# Faz 2 / P6 — çerez onay banner'ı. Düğme etiketi tamamı/başı eşleşmeli (kısa etiketler)
+consent:
+  banner: ["cerez*", kvkk, "kisisel veri*", "gizlilik*", "aydinlatma*"]
+  reject: ["reddet*", "tumunu reddet*", "hepsini reddet*", "sadece gerekli*", "yalnizca gerekli*", "sadece zorunlu*", "yalnizca zorunlu*", "zorunlu olanlar*", "gerekli olanlar*", "kabul etmiyorum", "izin vermiyorum", "onaylamiyorum"]
+  settings: ["ayarlar*", "cerez ayar*", "tercih*", "ozellestir*", "yonet*"]
+  accept: ["kabul*", "tumunu kabul*", "onayla*", "izin ver*", "anladim", "tamam"]

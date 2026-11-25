@@ -43,6 +43,7 @@ from launchcheck.deep.render_data import (
     OfflineProbe,
     RenderData,
     RenderedPage,
+    SdSignals,
 )
 
 if TYPE_CHECKING:
@@ -408,6 +409,11 @@ class RenderCollector:
                 main_words=int(d_raw.get("mainWords") or 0),
                 internal_links=[str(u) for u in d_raw.get("links") or []],
                 priority_links=[str(u) for u in d_raw.get("priorityLinks") or []],
+                external_links={
+                    str(e.get("url")): str(e.get("where") or "content")
+                    for e in d_raw.get("externalLinks") or []
+                    if isinstance(e, dict) and e.get("url")
+                },
                 console_errors=dedupe_console(d_rec.console + m_rec.console),
                 failures=list(dict.fromkeys(d_rec.failures + m_rec.failures)),
                 broken_images=parse_broken_images(d_raw),
@@ -418,6 +424,14 @@ class RenderCollector:
                 has_password_field=bool(d_raw.get("hasPassword")),
                 admin_signals=[str(a) for a in d_raw.get("admin") or []],
                 bot_challenge=bool(d_raw.get("challenge")),
+                jsonld=[str(b) for b in d_raw.get("jsonld") or []][:10],
+                microdata=[str(m) for m in d_raw.get("microdata") or []][:20],
+                videos={
+                    str(v.get("url")): bool(v.get("embed"))
+                    for v in (d_raw.get("videos") or [])[:30]
+                    if isinstance(v, dict) and v.get("url")
+                },
+                sd=SdSignals.from_js(d_raw.get("sd")),
             )
             page.widths[page.mobile.width] = page.mobile
             page.widths[page.desktop.width] = page.desktop

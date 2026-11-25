@@ -421,7 +421,8 @@ class Settings(BaseSettings):
     # Şerit bütçeleri: aşınca modül elindekiyle biter (meta.deep.partial_modules)
     deep_budget_browser_s: float = 420
     deep_budget_lighthouse_s: float = 240
-    deep_budget_network_s: float = 180
+    # Ağ şeridi: dış görünürlük (150) + linkler (120). P6'da 180'den yükseltildi (decisions).
+    deep_budget_network_s: float = 300
     deep_budget_llm_s: float = 360
     # Tek bir modülün bütçesi (şerit bütçesinden de sınırlıdır)
     deep_budget_module_s: float = 420
@@ -459,6 +460,8 @@ class Settings(BaseSettings):
     deep_render_quiet_s: float = 2
     deep_render_max_wait_s: float = 10
     deep_render_concurrency: int = 3
+    # Render modülünün payı (tarayıcı şeridi: render → gizlilik → [P7 huni] → [P9 kıyas])
+    deep_budget_render_s: float = 270
     # Ana sayfa + en fazla bu kadar kilit sayfa (fiyat > kayıt > ürün > ilk menü linki):
     # 5 genişlikte ölçülür, ekran görüntüsü ve JS kapalı görüntü alınır
     deep_key_pages: int = 2
@@ -503,7 +506,13 @@ class Settings(BaseSettings):
     # Servis başına toplam istek süresi (sn). Wayback CDX büyük sitelerde ~60 sn sürebiliyor
     # (2026-11-23 ölçümü); crt.sh sık sık 502 döner, o zaman Cert Spotter'a geçilir.
     deep_external_timeouts_s: dict[str, float] = Field(
-        default_factory=lambda: {"crtsh": 30, "certspotter": 20, "wayback": 60, "rdap": 15}
+        default_factory=lambda: {
+            "crtsh": 30,
+            "certspotter": 20,
+            "wayback": 60,
+            "rdap": 15,
+            "youtube": 10,
+        }
     )
     deep_external_max_response_bytes: int = 8 * 1024 * 1024
     deep_crtsh_endpoint: str = "https://crt.sh/"
@@ -518,6 +527,7 @@ class Settings(BaseSettings):
             "certspotter": [10, 3600],
             "wayback": [15, 60],
             "rdap": [30, 60],
+            "youtube": [120, 60],
         }
     )
     deep_dns_timeout_s: float = 5
@@ -643,6 +653,99 @@ class Settings(BaseSettings):
             "linkedin.com",
             "sentry.io",
         ]
+    )
+    # --- Linkler, meta ve yapılandırılmış veri (P6, PHASE2 §6.4; ağ şeridi) ---
+    deep_budget_links_s: float = 120
+    # Render modülünün linkleri toplaması en fazla bu kadar beklenir (sonra Faz 1 sayfalarıyla)
+    deep_links_render_wait_s: float = 90
+    deep_links_max_internal: int = 100
+    deep_links_max_external: int = 40
+    deep_links_concurrency: int = 6
+    # Aynı host'a iki istek arası en az bu kadar (sn). Hedefin kendisi için daha sık olabilir.
+    deep_links_per_host_interval_s: float = 1.0
+    deep_links_own_host_interval_s: float = 0.25
+    deep_links_request_timeout_s: float = 10
+    # Otomatik ziyaretçiyi giriş duvarı / 999 / 429 ile karşılayan siteler: sonuç güvenilmez,
+    # bu alan adlarına giden linkler kontrol edilmez (kayıtlı alan adı).
+    deep_links_unverifiable_domains: list[str] = Field(
+        default_factory=lambda: [
+            "linkedin.com",
+            "instagram.com",
+            "facebook.com",
+            "x.com",
+            "twitter.com",
+            "tiktok.com",
+            "threads.net",
+            "pinterest.com",
+            "wa.me",
+            "whatsapp.com",
+            "t.me",
+        ]
+    )
+    # Yolunda bu kelimeler geçen iç linklere istek atılmaz (oturum kapatma, sepete ekleme vb.
+    # GET ile durum değiştiren uç noktalar; pasiflik ilkesi). Kelime, yol parçalarında aranır.
+    deep_links_skip_path_words: list[str] = Field(
+        default_factory=lambda: [
+            "logout",
+            "signout",
+            "sign-out",
+            "log-out",
+            "cikis",
+            "oturumu-kapat",
+            "unsubscribe",
+            "abonelikten-cik",
+            "add-to-cart",
+            "sepete-ekle",
+            "delete",
+            "sil",
+        ]
+    )
+    deep_youtube_oembed_endpoint: str = "https://www.youtube.com/oembed"
+    deep_youtube_max_videos: int = 15
+    # og:image: WhatsApp/Telegram önizlemeleri büyük dosyada görünmeyebilir. Spec eşiği 5 MB.
+    deep_og_image_max_bytes: int = 5 * 1024 * 1024
+    deep_og_image_min_px: int = 200
+    # Genişlik/yükseklik oranı bu aralığın dışındaysa önizlemede kötü kırpılır (önerilen 1.91)
+    deep_og_image_ratio_min: float = 1.0
+    deep_og_image_ratio_max: float = 2.2
+    deep_og_image_max_checks: int = 5
+    # --- Gizlilik, tedarik zinciri, erişilebilirlik (P6, PHASE2 §6.5; tarayıcı şeridi) ---
+    deep_budget_privacy_s: float = 120
+    # Hiçbir şeye tıklamadan bekleme (spec: 5 sn) ve "Reddet"ten sonra
+    deep_privacy_observe_s: float = 5
+    deep_privacy_after_click_s: float = 2
+    # EasyPrivacy (CC BY-SA 3.0; decisions P0) ve retire.js veritabanı (Apache-2.0): imaja
+    # gömülür. Dosya yoksa takipçiler sadece elle tutulan listeyle tanınır, açıklı kütüphane
+    # check'i atlanır.
+    deep_tracker_list_path: str = "/app/data/easyprivacy.txt"
+    deep_retire_db_path: str = "/app/data/jsrepository.json"
+    # Haftalık güncelleme (worker-deep cron): indirilen kopya buraya yazılır (tmpfs) ve
+    # geçerliyse imajdakinin yerine kullanılır.
+    deep_retire_update_url: str = (
+        "https://raw.githubusercontent.com/RetireJS/retire.js/master/repository/jsrepository.json"
+    )
+    deep_retire_update_dir: str = Field(default="/tmp/launchcheck-data")  # noqa: S108
+    deep_retire_max_bytes: int = 8 * 1024 * 1024
+    deep_axe_path: str = "/usr/local/lib/node_modules/axe-core/axe.min.js"
+    deep_axe_pages: int = 5  # ana sayfa + 4 kilit sayfa
+    deep_axe_timeout_s: float = 25
+    # Sürüm tespiti için okunan script gövdeleri
+    deep_supply_max_scripts: int = 60
+    deep_supply_max_script_bytes: int = 3 * 1024 * 1024
+    deep_supply_max_total_bytes: int = 40 * 1024 * 1024
+    # Ele geçirilmiş / kötüye kullanılmış script CDN'leri: alan adı → kaynak. Alt alan adları da
+    # eşleşir. Yeni giriş eklerken kamuya açık bir olay raporu kaynak olarak yazılmalı.
+    deep_risky_script_domains: dict[str, str] = Field(
+        default_factory=lambda: {
+            "polyfill.io": "Sansec, 2024-06-25: polyfill.io supply chain attack",
+            "polyfill.com": "Cloudflare/Censys, 2024-06: polyfill.io sahibine ait alan adları",
+            "polyfillcache.com": "Censys, 2024-06: polyfill.io sahibine ait alan adları",
+            "bootcdn.net": "Sansec/Censys, 2024-06: polyfill.io ile aynı operatör",
+            "bootcss.com": "Sansec/Censys, 2024-06: polyfill.io ile aynı operatör",
+            "staticfile.net": "Sansec/Censys, 2024-06: polyfill.io ile aynı operatör",
+            "staticfile.org": "Sansec/Censys, 2024-06: polyfill.io ile aynı operatör",
+            "rawgit.com": "RawGit 2019'da kapatıldı (terk edilmiş CDN; içerik garanti değil)",
+        }
     )
 
 

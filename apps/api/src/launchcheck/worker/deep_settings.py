@@ -51,9 +51,25 @@ async def sweep_orphan_assets(ctx: dict[str, Any]) -> int:
     return deleted
 
 
+async def refresh_retire_db(ctx: dict[str, Any]) -> bool:
+    """retire.js veritabanını haftalık günceller (açıklı kütüphane check'i). Başarısız olursa
+    imajdaki kopya kullanılmaya devam eder; tarama etkilenmez."""
+    from launchcheck.deep.supply.retire_update import update_retire_db
+
+    try:
+        return await update_retire_db(get_settings())
+    except Exception as exc:
+        logger.warning("retire güncellemesi başarısız (%s)", type(exc).__name__)
+        return False
+
+
 class DeepWorkerSettings:
     functions: ClassVar[list[Any]] = [run_deep_scan]
-    cron_jobs: ClassVar[list[Any]] = [cron(sweep_orphan_assets, minute=30, run_at_startup=True)]
+    cron_jobs: ClassVar[list[Any]] = [
+        cron(sweep_orphan_assets, minute=30, run_at_startup=True),
+        # Pazartesi 04:10 (UTC) + başlangıçta: güncel kopya tmpfs'te, yeniden başlayınca kaybolur
+        cron(refresh_retire_db, weekday=0, hour=4, minute=10, run_at_startup=True),
+    ]
     on_startup = startup
     on_shutdown = shutdown
     queue_name = DEEP_QUEUE

@@ -157,21 +157,72 @@
   const canon = document.querySelector('link[rel=canonical]');
   out.canonical = canon ? canon.href : '';
   out.og = {};
-  for (const p of ['og:title', 'og:description', 'og:image']) { const v = meta(p); if (v) out.og[p] = v.slice(0, 300); }
+  for (const p of ['og:title', 'og:description', 'og:image', 'twitter:image']) { const v = meta(p); if (v) out.og[p] = v.slice(0, 300); }
+  // Yapılandırılmış veri (JSON-LD) ham metni: Python ayrıştırır ve doğrular
+  out.jsonld = [...document.querySelectorAll('script[type="application/ld+json"]')].slice(0, 10)
+    .map((s) => (s.textContent || '').slice(0, 50000));
+  out.microdata = [...new Set([...document.querySelectorAll('[itemtype]')]
+    .map((e) => (e.getAttribute('itemtype') || '').slice(0, 100)))].slice(0, 20);
+  // Video gömmeleri ve linkleri (YouTube oEmbed doğrulaması için; sadece adres)
+  // embed: sayfada oynatılıyor (iframe/lite-youtube) → gömme kapalıysa ziyaretçi oynatamaz
+  const vids = new Map();
+  for (const el of document.querySelectorAll('iframe[src], a[href], lite-youtube[videoid], [data-youtube-id]')) {
+    if (vids.size >= 30) break;
+    const vid = el.getAttribute('videoid') || el.getAttribute('data-youtube-id');
+    if (vid) { vids.set('https://www.youtube.com/watch?v=' + vid.slice(0, 40), true); continue; }
+    const raw = el.getAttribute('src') || el.getAttribute('href') || '';
+    if (!/youtu\.be|youtube(-nocookie)?\.com/i.test(raw)) continue;
+    try {
+      const href = new URL(raw, location.href).href.slice(0, 300);
+      vids.set(href, vids.get(href) || el.tagName === 'IFRAME');
+    } catch (e) { /* geçersiz adres */ }
+  }
+  out.videos = [...vids].map(([url, embed]) => ({url, embed}));
+  // Yapılandırılmış veri fırsatı sinyalleri: karar Python'da, dile özgü kelime listeleriyle
+  const PRICE = /(?:₺|\bTL\b|\bTRY\b|\$|€|£|\bUSD\b|\bEUR\b)\s?\d|\d[\d.,]*\s?(?:₺|\bTL\b|\bTRY\b|\bUSD\b|\bEUR\b|€|\$|£)/;
+  let prices = 0;
+  const pw = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+  for (let n = pw.nextNode(), seen = 0; n && seen < 3000 && prices < 50; n = pw.nextNode(), seen++) {
+    const t = n.textContent;
+    if (t && t.length < 40 && PRICE.test(t) && n.parentElement && !n.parentElement.closest('script, style')
+      && visible(n.parentElement)) prices += 1;
+  }
+  const qHeads = [...document.querySelectorAll('h2, h3, h4, h5, summary, dt, button[aria-expanded]')]
+    .filter((el) => visible(el) || el.tagName === 'SUMMARY');
+  out.sd = {
+    headings: [...document.querySelectorAll('h1, h2, h3')].filter(visible).map((el) => short(el.innerText))
+      .filter(Boolean).slice(0, 40),
+    actions: [...document.querySelectorAll('button, a[href], input[type=submit], [role=button]')]
+      .filter((el) => !inChrome(el) && visible(el)).map(label).filter(Boolean).slice(0, 60),
+    questions: qHeads.filter((el) => /\?\s*$/.test((el.innerText || el.textContent || '').trim())).length,
+    accordions: document.querySelectorAll('details, [aria-expanded]').length,
+    prices,
+    tel: document.querySelectorAll('a[href^="tel:"]').length,
+    map: !!document.querySelector('iframe[src*="google.com/maps"], iframe[src*="maps.google"], '
+      + 'iframe[src*="yandex"][src*="map"], iframe[src*="openstreetmap"], iframe[src*="maps.apple"]'),
+    address: !!document.querySelector('address'),
+  };
   const chromeWords = [...document.querySelectorAll(CHROME)].filter((el) => !el.parentElement.closest(CHROME))
     .reduce((n, el) => n + words(el.innerText), 0);
   out.mainWords = Math.max(0, words(document.body.innerText) - chromeWords);
-  const links = new Set(), priority = new Set();
+  const links = new Set(), priority = new Set(), external = new Map();
   for (const a of document.querySelectorAll('a[href]')) {
     let u;
     try { u = new URL(a.getAttribute('href'), location.href); } catch (e) { continue; }
-    if (u.origin !== location.origin || !/^https?:$/.test(u.protocol)) continue;
+    if (!/^https?:$/.test(u.protocol)) continue;
+    if (u.origin !== location.origin) {
+      // Dış linkler (link doğrulaması): sorgu dizesi ve # olmadan, konumuyla
+      const key = u.origin + u.pathname;
+      if (!external.has(key) && external.size < 150) external.set(key, inChrome(a) ? 'chrome' : 'content');
+      continue;
+    }
     const clean = u.origin + u.pathname;
     links.add(clean);
     if (inChrome(a)) priority.add(clean);
   }
   out.links = [...links].slice(0, 200);
   out.priorityLinks = [...priority].slice(0, 100);
+  out.externalLinks = [...external].map(([url, where]) => ({url: url.slice(0, 300), where}));
   out.brokenImages = [];
   for (const img of document.querySelectorAll('img')) {
     const src = img.currentSrc || img.getAttribute('src') || '';

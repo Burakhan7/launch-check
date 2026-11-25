@@ -88,6 +88,23 @@ def localhost_urls(ctx: DeepContext, finding: ParentFinding) -> Verification | N
     return Verification.ESCALATED if hit else Verification.CONFIRMED
 
 
+def insecure_http_links(ctx: DeepContext, finding: ParentFinding) -> Verification | None:
+    """Hedeflerin hepsi HTTPS destekliyorsa sorun gerçek ama kolay ("sadece linki düzelt") →
+    `confirmed`; en az bir hedefte SSL yoksa link düzeltmekle çözülmez → `escalated`."""
+    targets = ctx.links.https_targets if ctx.links is not None else []
+    decided = [t for t in targets if t.supports_https is not None]
+    if not decided:
+        return None
+    if any(not t.supports_https for t in decided):
+        return Verification.ESCALATED
+    return Verification.CONFIRMED
+
+
+LINK_RULES: Mapping[str, VerificationRule] = {
+    "web.links.insecure_http_links": insecure_http_links,
+}
+
+
 RENDER_RULES: Mapping[str, VerificationRule] = {
     "web.render.empty_server_html": empty_server_html,
     "web.render.route_serves_root_shell": route_serves_root_shell,

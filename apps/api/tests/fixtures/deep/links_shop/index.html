@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kupa Dükkanı</title>
+  <meta property="og:image" content="/og.png">
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"Organization","name":"Kupa"}</script>
+</head>
+<body>
+  <header><nav><a href="/urunler">Ürünler</a> <a href="https://partner.test/katalog?utm_source=x">Katalog</a></nav></header>
+  <main>
+    <h1>Kupalar</h1>
+    <div itemscope itemtype="https://schema.org/Offer"></div>
+    <section>
+      <h2>Beyaz kupa</h2><span class="price">₺149,90</span> <button>Sepete Ekle</button>
+      <h2>Siyah kupa</h2><span class="price">179,00 TL</span> <button>Sepete Ekle</button>
+    </section>
+    <section>
+      <h2>Sıkça Sorulan Sorular</h2>
+      <details><summary>Kargo ne kadar sürer?</summary>2 gün.</details>
+      <details><summary>İade var mı?</summary>Evet.</details>
+      <details><summary>Faturalı mı?</summary>Evet.</details>
+    </section>
+    <iframe title="Tanıtım" src="https://www.youtube.com/embed/AAAAAAAAAAA" width="320" height="180"></iframe>
+    <a href="https://youtu.be/BBBBBBBBBBB">Kurulum videosu</a>
+    <lite-youtube videoid="CCCCCCCCCCC"></lite-youtube>
+  </main>
+  <footer>
+    <address>Kadıköy, İstanbul</address>
+    <a href="tel:+902120000000">Ara</a>
+    <a href="https://social.test/acme">Sosyal</a>
+  </footer>
+  <script>
+    // JSON-LD'nin bir kısmı JS ile eklenir (render sonrası DOM'da görünmeli)
+    const s = document.createElement('script');
+    s.type = 'application/ld+json';
+    s.textContent = '{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[]}';
+    document.head.appendChild(s);
+  </script>
+</body>
+</html>

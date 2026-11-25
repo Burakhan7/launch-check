@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Acme Shop</title>
+  <!-- Vite benzeri SPA, bilerek hatalı: takip onaysız başlar ve "Reddet"ten sonra da sürer -->
+  <script src="/vendor/jquery-1.8.3.min.js"></script>
+  <script>
+    const T = 'http://track.test:' + location.port;
+    document.cookie = '_ga=GA1.1.111.222; path=/';
+    fetch(T + '/collect?ev=pageview&uid=42', {mode: 'no-cors'});
+    const s = document.createElement('script');
+    s.src = 'http://cdn.polyfill.io:' + location.port + '/v3/polyfill.min.js';
+    document.head.appendChild(s);
+  </script>
+  <style>
+    #cookie-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #222; color: #fff; padding: 16px; }
+    .faint { color: #bbb; background: #fff; }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <h1>Kupalar</h1>
+    <p class="faint">Bu metnin kontrastı çok düşük.</p>
+    <button><svg width="16" height="16"></svg></button>
+  </div>
+  <div id="cookie-bar" role="dialog" aria-label="Çerezler">
+    <p>Sitemizde çerezler kullanıyoruz. Ayrıntılar için çerez politikamıza bakın.</p>
+    <button id="accept">Kabul et</button>
+    <button id="reject" onclick="localStorage.setItem('consent','rejected'); this.parentElement.remove();">Reddet</button>
+  </div>
+  <script>
+    if (localStorage.getItem('consent')) document.getElementById('cookie-bar').remove();
+  </script>
+</body>
+</html>

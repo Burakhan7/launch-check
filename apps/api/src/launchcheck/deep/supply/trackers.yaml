@@ -1,0 +1,130 @@
+# Elle tutulan takipçi listesi (PHASE2 §6.5). EasyPrivacy alan adlarına ek olarak: yaygın
+# takipçilerin okunur adı, kategorisi ve çerez adları. Alan adı eşleşmesi kayıtlı alan adı veya
+# alt alan adıyla yapılır ("facebook.net" → "connect.facebook.net").
+#
+# category:
+#   analytics, ads, session_recording, social → takip aracı (onay gerekir)
+#   tag_manager → sadece yükleyici: tek başına takip sayılmaz (Consent Mode ile onay sonrası
+#                 etiket çalıştırabilir); asıl takip, yüklediği etiketlerin istekleriyle görülür
+#   exempt      → çerezsiz/kişisel veri toplamayan ölçüm veya hata izleme. Bu araçlar
+#                 EasyPrivacy'de olsa bile takipçi sayılmaz (yanlış alarm olmasın). Gerekçe:
+#                 kalıcı tanımlayıcı/çerez yazmazlar; ayrıntılar docs/decisions.md (P6).
+# cookies: tam ad veya "*" ile biten önek.
+
+- name: Google Analytics
+  category: analytics
+  domains: [google-analytics.com, analytics.google.com]
+  cookies: [_ga, "_ga_*", _gid, "_gat*", __utma, __utmb, __utmc, __utmz]
+- name: Google Tag Manager
+  category: tag_manager
+  domains: [googletagmanager.com]
+- name: Google Ads / DoubleClick
+  category: ads
+  domains: [doubleclick.net, googleadservices.com, googlesyndication.com, adservice.google.com]
+  cookies: ["_gcl_*", IDE, test_cookie, DSID]
+- name: Meta Pixel
+  category: ads
+  domains: [connect.facebook.net, facebook.com]
+  cookies: [_fbp, _fbc]
+- name: TikTok Pixel
+  category: ads
+  domains: [analytics.tiktok.com, analytics-sg.tiktok.com]
+  cookies: [_ttp, _tt_enable_cookie, "_tt_*"]
+- name: Hotjar
+  category: session_recording
+  domains: [hotjar.com, hotjar.io]
+  cookies: ["_hj*"]
+- name: Microsoft Clarity
+  category: session_recording
+  domains: [clarity.ms]
+  cookies: [_clck, _clsk, CLID]
+- name: Yandex Metrica
+  category: session_recording
+  domains: [mc.yandex.ru, mc.yandex.com, mc.yandex.com.tr, metrika.yandex.ru]
+  cookies: ["_ym_*", yandexuid]
+- name: LinkedIn Insight
+  category: ads
+  domains: [snap.licdn.com, px.ads.linkedin.com]
+  cookies: [li_sugr, bcookie, lidc, li_fat_id, UserMatchHistory, AnalyticsSyncHistory]
+- name: Microsoft Advertising (UET)
+  category: ads
+  domains: [bat.bing.com]
+  cookies: [_uetsid, _uetvid]
+- name: Pinterest Tag
+  category: ads
+  domains: [ct.pinterest.com]
+  cookies: [_pin_unauth, "_pinterest_*"]
+- name: Snap Pixel
+  category: ads
+  domains: [sc-static.net, tr.snapchat.com]
+  cookies: [_scid, "_scid_*"]
+- name: X (Twitter) Ads
+  category: ads
+  domains: [static.ads-twitter.com, analytics.twitter.com, ads-api.twitter.com]
+  cookies: [muc_ads, personalization_id]
+- name: Criteo
+  category: ads
+  domains: [criteo.com, criteo.net]
+- name: Mixpanel
+  category: analytics
+  domains: [mixpanel.com, mxpnl.com]
+  cookies: ["mp_*"]
+- name: Segment
+  category: analytics
+  domains: [segment.io, segment.com]
+  cookies: [ajs_anonymous_id, ajs_user_id]
+- name: Amplitude
+  category: analytics
+  domains: [amplitude.com]
+  cookies: ["AMP_*"]
+- name: PostHog
+  category: analytics
+  domains: [posthog.com]
+  cookies: ["ph_*"]
+- name: Heap
+  category: analytics
+  domains: [heap.io, heapanalytics.com]
+  cookies: ["_hp2_*"]
+- name: FullStory
+  category: session_recording
+  domains: [fullstory.com]
+  cookies: [fs_uid, fs_lua]
+- name: Mouseflow
+  category: session_recording
+  domains: [mouseflow.com]
+- name: Smartlook
+  category: session_recording
+  domains: [smartlook.com, smartlook.cloud]
+- name: Lucky Orange
+  category: session_recording
+  domains: [luckyorange.com, luckyorange.net]
+- name: HubSpot
+  category: analytics
+  domains: [hs-analytics.net, hs-scripts.com, hubspot.com]
+  cookies: [__hstc, hubspotutk, __hssc, __hssrc]
+
+# Çerezsiz ölçüm ve hata izleme: takipçi sayılmaz
+- name: Plausible
+  category: exempt
+  domains: [plausible.io]
+- name: Fathom
+  category: exempt
+  domains: [usefathom.com]
+- name: Simple Analytics
+  category: exempt
+  domains: [simpleanalytics.com, simpleanalyticscdn.com]
+- name: Umami
+  category: exempt
+  domains: [umami.is]
+- name: Vercel Web Analytics
+  category: exempt
+  domains: [vercel-scripts.com, vercel-insights.com]
+- name: Cloudflare Web Analytics
+  category: exempt
+  domains: [cloudflareinsights.com]
+- name: Sentry
+  category: exempt
+  domains: [sentry.io, sentry-cdn.com]
+- name: Bugsnag
+  category: exempt
+  domains: [bugsnag.com]

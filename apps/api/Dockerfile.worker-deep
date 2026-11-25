@@ -24,6 +24,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends libatomic1 \
     && playwright install --with-deps chromium \
     && apt-get install -y --no-install-recommends fonts-noto-core fonts-noto-color-emoji \
     && rm -rf /var/lib/apt/lists/*
+# P6 gizlilik/tedarik zinciri verisi (lisanslar: docs/decisions.md P0/P6):
+# - axe-core (MPL-2.0, değiştirilmeden): /usr/local/lib/node_modules/axe-core/axe.min.js
+# - retire.js veritabanı (Apache-2.0): /app/data/jsrepository.json (worker-deep haftalık günceller)
+# - EasyPrivacy (CC BY-SA 3.0): /app/data/easyprivacy.txt (sadece eşleştirme verisi)
+ARG AXE_VERSION=4.14.1
+RUN npm install -g --omit=dev --no-audit --no-fund "axe-core@${AXE_VERSION}" \
+    && npm cache clean --force
+ARG RETIRE_REF=master
+ADD --chmod=644 https://raw.githubusercontent.com/RetireJS/retire.js/${RETIRE_REF}/repository/jsrepository.json /app/data/jsrepository.json
+ADD --chmod=644 https://easylist.to/easylist/easyprivacy.txt /app/data/easyprivacy.txt
 COPY src ./src
 RUN uv sync --frozen --no-dev --extra deep
 
@@ -31,7 +41,8 @@ RUN groupadd --system --gid 10001 app \
     && useradd --system --uid 10001 --gid 10001 app \
     && mkdir -p /var/lib/launchcheck/assets \
     && chown -R app:app /var/lib/launchcheck \
-    && chmod 700 /var/lib/launchcheck/assets
+    && chmod 700 /var/lib/launchcheck/assets \
+    && chmod 755 /app/data && chmod 644 /app/data/*
 USER app
 # Salt okunur kökte Chromium profili/önbelleği /tmp'ye (tmpfs) yazar
 ENV HOME=/tmp/home XDG_CONFIG_HOME=/tmp/home/.config XDG_CACHE_HOME=/tmp/home/.cache

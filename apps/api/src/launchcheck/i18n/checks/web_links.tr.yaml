@@ -1,0 +1,128 @@
+# Faz 2 link, meta ve yapılandırılmış veri check metinleri (Türkçe). Veri: sitenin gerçek
+# tarayıcıda açılan sayfaları, linklere atılan normal ziyaretçi istekleri, YouTube oEmbed.
+
+web.links.broken_internal:
+  title: "Sitende {count} kırık iç link var"
+  passed_title: "İç linklerde kırık link bulunmadı"
+  description: "Sayfalarındaki linkleri tek tek açtık ({checked} link kontrol edildi). {count} tanesi 'sayfa bulunamadı' (404) veya sunucu hatası veriyor. Hangi linkin hangi sayfada olduğu kanıtta."
+  why_it_matters: "Kırık bir linke tıklayan ziyaretçi aradığını bulamaz ve çoğu zaman siteden çıkar. Menüdeki bir link kırıksa bunu her ziyaretçi görür. Arama motorları da kırık linkleri bakımsız site işareti sayar."
+  fix_steps:
+    - "Kanıttaki her link için doğru adresi bul: sayfa taşındıysa linki yeni adrese güncelle."
+    - "Sayfa artık yoksa linki kaldır veya en yakın sayfaya yönlendirme (301) ekle."
+    - "Sunucu hatası (5xx) veren sayfalar için sunucu/uygulama loglarına bak."
+    - "Düzelttikten sonra derin taramayı tekrar çalıştır."
+  fix_prompt: |
+    Sitemde kırık iç linkler var (adresler, durum kodları ve bulundukları sayfalar kanıtta). Lütfen:
+    1. Projede bu linklerin geçtiği yerleri (menü, footer, içerik, bileşenler) bul.
+    2. Her biri için doğru hedefi öner: sayfa taşındıysa yeni adres, silindiyse kaldırma veya 301 yönlendirme.
+    3. Yönlendirmeleri kullandığım barındırmaya uygun şekilde yaz (ör. vercel.json, _redirects, Next.js redirects).
+    4. 5xx veren sayfalar için olası hata sebeplerini ve kontrol edilecek logları listele.
+
+web.links.broken_external:
+  title: "Sitende {count} kırık dış link var"
+  passed_title: "Dış linklerde kırık link bulunmadı"
+  description: "Başka sitelere verdiğin linklerden {checked} tanesini açtık. {count} tanesi artık yok (404), hata veriyor veya alan adı hiç açılmıyor."
+  why_it_matters: "Ziyaretçi verdiğin kaynağa, iş ortağına veya sosyal medya hesabına ulaşamaz; site bakımsız görünür. Alan adı tamamen kapanmış bir linki başkası satın alıp ziyaretçilerini kendi sayfasına çekebilir."
+  fix_steps:
+    - "Kanıttaki linkleri tarayıcıda açıp kontrol et."
+    - "Sayfa taşındıysa yeni adresi bul ve linki güncelle; artık yoksa linki kaldır."
+    - "Alan adı hiç açılmayan linkleri öncelikle kaldır."
+  fix_prompt: |
+    Sitemde başka sitelere giden kırık linkler var (adresler ve bulundukları sayfalar kanıtta). Lütfen:
+    1. Projede bu linklerin geçtiği yerleri bul.
+    2. Her biri için: güncel bir adres öner veya linkin kaldırılmasını sağla.
+    3. Alan adı artık açılmayan linkleri öncelikli olarak kaldır.
+
+web.links.http_target_no_https:
+  title: "Şifresiz linklerin hedefleri kontrol edildi"
+  passed_title: "Şifresiz link hedefleri kontrol edildi"
+  description: "Hızlı taramada bulduğumuz http:// linklerinin hedeflerine HTTPS ile bağlanmayı denedik. {summary}"
+  why_it_matters: "http:// linkine tıklayan ziyaretçinin bağlantısı şifresiz gider; aynı ağdaki biri trafiği görebilir veya değiştirebilir. Hedef site HTTPS destekliyorsa düzeltme sadece linkteki 'http'yi 'https' yapmaktır."
+  fix_steps:
+    - "HTTPS destekleyen hedeflerde linkteki http:// kısmını https:// yap."
+    - "HTTPS desteklemeyen hedefler için sitenin sahibine haber ver veya linki kaldırmayı düşün."
+  fix_prompt: |
+    Sitemde http:// ile başlayan linkler var; hangi hedeflerin HTTPS desteklediği kanıtta. Lütfen:
+    1. HTTPS destekleyen hedeflerin linklerini projede bul ve https:// ile değiştir.
+    2. HTTPS desteklemeyen hedefler için linki koruyup korumamam gerektiğini birlikte değerlendirelim; kaldırılacaksa kaldır.
+  fragments:
+    all_support_https: "Hedeflerin hepsi ({fixable}) HTTPS destekliyor: linkteki http'yi https yapman yeterli."
+    some_without_ssl: "{fixable} hedef HTTPS destekliyor (linki düzeltmen yeterli), {no_https} hedefte ise SSL yok veya geçersiz: link düzeltmekle çözülmez."
+
+web.links.youtube_unavailable:
+  title: "Sitendeki {count} YouTube videosu açılmıyor"
+  passed_title: "Sitendeki YouTube videoları açılıyor"
+  description: "Sayfalarındaki videoları YouTube'a sorduk: {count} tanesi silinmiş, gizlenmiş ya da sayfanda gömülü olduğu hâlde sahibi başka sitelerde oynatılmasını kapatmış."
+  why_it_matters: "Ziyaretçi videonun yerinde 'Video kullanılamıyor' yazısı görür. Ürün tanıtımı veya eğitim videosuysa ziyaretçi anlatmak istediğini hiç görmez."
+  fix_steps:
+    - "Kanıttaki videoları YouTube'da kontrol et (silinmiş mi, gizli mi, gömme kapalı mı)."
+    - "Kendi videon ise YouTube Studio'da görünürlüğü 'Herkese açık' veya 'Liste dışı' yap ve 'Yerleştirmeye izin ver'i aç."
+    - "Başkasının videosuysa çalışan başka bir videoyla değiştir veya kaldır."
+  fix_prompt: |
+    Sitemde açılmayan YouTube videoları var (video kimlikleri, sayfaları ve durumları kanıtta). Lütfen:
+    1. Projede bu videoların gömüldüğü veya linklendiği yerleri bul.
+    2. Kendi videolarımsa YouTube Studio'da görünürlük ve yerleştirme ayarlarını nasıl düzelteceğimi yaz.
+    3. Değilse videoyu değiştirmek veya kaldırmak için gereken kod değişikliğini yap.
+
+web.meta.og_image_unreachable:
+  title: "Paylaşım görselin düzgün görünmüyor"
+  passed_title: "Paylaşım görselin düzgün yükleniyor"
+  description: "Linkin WhatsApp, LinkedIn, X veya Facebook'ta paylaşıldığında görünen görseli (og:image) indirdik. Sorun: {issues}."
+  why_it_matters: "Paylaşılan link görselsiz veya bozuk görünürse tıklanma ciddi şekilde düşer. Paylaşım botları sayfadaki JavaScript'i çalıştırmaz; görsel adresi sunucudan gelen HTML'de doğru ve erişilebilir olmalı."
+  fix_steps:
+    - "og:image değerini tam adres (https://... ile başlayan) olarak yaz."
+    - "Görseli PNG, JPG veya WebP olarak, 1200×630 piksel civarında ve mümkünse 1 MB'tan küçük hazırla (SVG desteklenmez)."
+    - "Görsel adresini tarayıcıda açıp gerçekten görsel geldiğini kontrol et."
+    - "Facebook Sharing Debugger ve LinkedIn Post Inspector ile önizlemeyi yenile."
+  fix_prompt: |
+    Sitemin paylaşım görseli (og:image / twitter:image) sorunlu (adres, boyut ve sorunlar kanıtta). Lütfen:
+    1. og:image ve twitter:image etiketlerinin üretildiği yeri bul ve tam (https://) adres kullanılmasını sağla.
+    2. Etiketler sunucudan gelen HTML'de olsun (JS ile sonradan eklenirse paylaşım botları görmez).
+    3. 1200×630 boyutunda, 1 MB altında PNG/JPG/WebP bir paylaşım görseli kullanacak şekilde düzenle.
+    4. Sayfa bazında farklı görsel gerekiyorsa her sayfa için doğru görseli üreten yapıyı kur.
+  fragments:
+    issue_unreachable: "görsel adresine ulaşılamıyor"
+    issue_http_error: "görsel adresi hata dönüyor"
+    issue_not_image: "adres görsel değil başka bir içerik döndürüyor"
+    issue_svg_unsupported: "görsel SVG (paylaşım önizlemeleri SVG göstermez)"
+    issue_too_large: "dosya çok büyük (5 MB üstü; WhatsApp gibi uygulamalar göstermeyebilir)"
+    issue_relative_url: "adres tam değil (https:// ile başlamıyor)"
+    issue_too_small: "görsel çok küçük (200 pikselden az)"
+    issue_bad_ratio: "en-boy oranı önizlemede kötü kırpılıyor (önerilen 1.91:1, ör. 1200×630)"
+
+web.seo.structured_data_invalid:
+  title: "Yapılandırılmış verinde {count} hata var"
+  passed_title: "Yapılandırılmış verinde hata bulunmadı"
+  description: "Sayfalarındaki JSON-LD (arama motorlarına ürün, şirket, SSS gibi bilgileri anlatan kod) okunamıyor veya Google'ın istediği zorunlu alanlar eksik. Sayfalar ve eksik alanlar kanıtta."
+  why_it_matters: "Hatalı veya eksik yapılandırılmış veri Google tarafından kullanılmaz: fiyat, yıldız, stok gibi zengin sonuçlar arama sonucunda görünmez. Okunamayan JSON hiç yokmuş gibi sayılır."
+  fix_steps:
+    - "Kanıttaki sayfaları Google'ın Zengin Sonuç Testi'nde (search.google.com/test/rich-results) kontrol et."
+    - "Okunamayan bloklarda JSON yazım hatasını düzelt (fazla virgül, kaçırılmamış tırnak vb.)."
+    - "Eksik zorunlu alanları ekle (ör. Product için name ve offers; Offer için price ve priceCurrency)."
+  fix_prompt: |
+    Sitemin JSON-LD yapılandırılmış verisinde hatalar var (sayfalar, türler ve eksik alanlar kanıtta). Lütfen:
+    1. JSON-LD'nin üretildiği yeri (bileşen, şablon, eklenti) bul.
+    2. Ayrıştırma hatalarını düzelt; JSON'u elle string birleştirmek yerine nesneden JSON.stringify ile üret.
+    3. Her tür için Google'ın zorunlu alanlarını ekle ve değerleri sayfadaki gerçek verilerden doldur.
+    4. Sonucu Zengin Sonuç Testi ile nasıl doğrulayacağımı yaz.
+
+web.seo.structured_data_opportunity:
+  title: "Arama sonuçlarında öne çıkma fırsatı var"
+  passed_title: "Yapılandırılmış veri fırsatı kaçırılmamış"
+  description: "Sitende şu içerikler var ama arama motorlarına bunları anlatan yapılandırılmış veri (JSON-LD) yok: {kinds}. Hangi sayfada hangi işaretleri gördüğümüz kanıtta."
+  why_it_matters: "Yapılandırılmış veri, arama sonucunda fiyat, stok, puan, adres ve çalışma saatleri gibi bilgilerin görünmesini sağlayabilir; bu da tıklanmayı artırır. Google 2023'ten beri SSS zengin sonucunu çoğu siteye göstermiyor; ama diğer arama motorları ve yapay zekâ asistanları bu veriyi okuyabiliyor."
+  fix_steps:
+    - "Ürün sayfalarına Product + Offer (ad, görsel, fiyat, para birimi, stok) ekle."
+    - "SSS bölümüne FAQPage (soru ve cevaplar sayfadakiyle birebir aynı) ekle."
+    - "Fiziksel bir işletmeysen LocalBusiness (ad, adres, telefon, çalışma saatleri) ekle."
+    - "Eklediklerini Zengin Sonuç Testi ile doğrula."
+  fix_prompt: |
+    Sitemde yapılandırılmış veri eklenebilecek içerikler var ama JSON-LD yok (türler ve sayfalar kanıtta). Lütfen:
+    1. Kanıttaki her tür için uygun schema.org JSON-LD'yi üreten kodu yaz (Product/Offer, FAQPage veya LocalBusiness).
+    2. Değerleri sayfadaki gerçek veriden doldur; sayfada görünmeyen bilgi ekleme.
+    3. JSON-LD'nin sunucudan gelen HTML'de olmasını sağla.
+    4. Zengin Sonuç Testi ile nasıl doğrulayacağımı yaz.
+  fragments:
+    kind_product: "fiyatlı ve sepete eklenebilen ürünler"
+    kind_faq: "sıkça sorulan sorular bölümü"
+    kind_local_business: "haritası ve iletişim bilgileri olan bir işletme"

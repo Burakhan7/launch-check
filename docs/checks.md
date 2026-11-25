@@ -287,3 +287,66 @@ Kaçırabilir: RDAP sunmayan uzantılar (ör. .tr: check atlanır) ve otomatik y
 ### web.external.cert_expiry_soon
 Yakalar: sitenin 443 portundan alınan sertifikanın kalan süresi; eşikler min(14 gün, ömrün %20'si) → high ve min(30 gün, ömrün %30'u) → medium. Bu sayede 90/45/6 günlük otomatik sertifikalar normal yenileme penceresinde alarm vermez.
 Kaçırabilir: alt alan adlarının ve CDN'in farklı bölgelerdeki sertifikaları (sadece hedef host, tek IP); geçersiz sertifika burada değil Faz 1 HTTPS check'lerinde.
+
+## Faz 2 — link, meta ve yapılandırılmış veri modülü
+
+Ağ şeridinde dış görünürlükten sonra çalışır. Linkler render modülünün gezdiği sayfalardan gelir; render verisi yoksa Faz 1'in sunucu HTML'inden. İstekler sorgu dizesi olmadan atılır (HEAD, desteklenmezse küçük gövdeli GET); oturum kapatma, sepete ekleme gibi durum değiştiren yollar (`LC_DEEP_LINKS_SKIP_PATH_WORDS`) ve indirilebilir dosyalar istenmez. Aynı host'a saniyede en fazla 1 istek gider. Altı parça bağımsızdır; tamamlanamayan parçanın check'i atlanır (`checks_skipped`).
+
+### web.links.broken_internal
+Yakalar: taranan sayfalardaki iç linklerden 404/410/5xx dönenler (en fazla 100; menüdekiler önce). Render'ın zaten açtığı sayfaların durumu tekrar istenmez. 401/403/429 ve bot doğrulaması "bilinmiyor" sayılır. SPA rotası doğrudan açınca 404 verip tıklayınca açılıyorsa 404'ler `web.render.spa_deep_link_404`'e bırakılır.
+Kaçırabilir: her yola 200 dönen SPA'larda "yumuşak 404" (sayfa yok ama durum 200), sadece JS ile üretilen ve DOM'da `<a href>` olmayan linkler, ilk 100'ün dışında kalanlar.
+
+### web.links.broken_external
+Yakalar: dış linklerden en fazla 40'ı (menü/footer önce): 404/410, 5xx, alan adı çözülmüyor, bağlantı reddediliyor, TLS hatası.
+Kaçırabilir: otomatik ziyaretçiye giriş duvarı / 999 / 429 gösteren siteler (LinkedIn, Instagram, X... `LC_DEEP_LINKS_UNVERIFIABLE_DOMAINS`, hiç kontrol edilmez) ve geçici sunucu hatası veren hedefler (yanlış pozitif olabilir).
+
+### web.links.http_target_no_https
+Yakalar: Faz 1 `insecure_http_links` hedeflerine (host başına bir tane, en fazla 20) HTTPS ile bağlanır: el sıkışma başarılıysa "sadece linki düzelt", TLS/bağlantı hatasıysa "hedefte SSL yok". Önem `info` (Faz 1 bulgusu zaten skora girer); doğrulama etiketini belirler.
+Kaçırabilir: HTTPS'te farklı içerik/yönlendirme sunan hedefler (sadece bağlantı denenir) ve zaman aşımına uğrayan hedefler (karar verilmez).
+
+### web.links.youtube_unavailable
+Yakalar: sayfadaki (render sonrası DOM; iframe, link, lite-youtube) videolar için YouTube oEmbed: 404 → silinmiş/gizli, 401/403 → gömme kapalı (sadece sayfada gömülüyse sorun).
+Kaçırabilir: bölge kısıtlamalı veya yaş sınırlı videolar (oEmbed 200 döner), en fazla 15 video; YouTube dışındaki oynatıcılar.
+
+### web.meta.og_image_unreachable
+Yakalar: og:image / twitter:image (önce sunucu HTML'i: paylaşım botları JS çalıştırmaz) indirilir: ulaşılamıyor, hata, görsel değil, SVG, 5 MB üstü, göreli adres → medium; 200 px altı veya oran 1.0–2.2 dışı → low.
+Kaçırabilir: platforma özgü önbellek sorunları (Facebook eski önizlemeyi tutar), botlara farklı içerik sunan siteler, en fazla 5 farklı görsel.
+
+### web.seo.structured_data_invalid
+Yakalar: render sonrası DOM'daki JSON-LD blokları: ayrıştırma hatası, `@context` (schema.org) / `@type` eksik, yaygın türlerde Google'ın zorunlu alanları (Product: name + offers/review/aggregateRating; Offer: price + priceCurrency; FAQPage; BreadcrumbList; Article; Event; Recipe; JobPosting; LocalBusiness: name + address; AggregateRating). CDATA/HTML yorum sarmalayıcıları kabul edilir.
+Kaçırabilir: microdata/RDFa hataları (sadece tür adları okunur), Google'ın "önerilen" alanları ve değerlerin doğruluğu (ör. sayfadaki fiyatla tutarlılık).
+
+### web.seo.structured_data_opportunity
+Yakalar: en az iki bağımsız sinyal + sitede o türde yapılandırılmış veri yokken: ürün (görünür fiyat + "sepete ekle/satın al" düğmesi), SSS (soru işaretiyle biten ≥3 başlık/summary + SSS başlığı veya ≥3 akordeon), yerel işletme (harita gömmesi + telefon/adres). Kelime listeleri `keywords/{tr,en}.yaml` → `structured_data`.
+Kaçırabilir: fiyatı görsel içinde veya düğmesi farklı etiketli mağazalar; harita gömmeyen yerel işletmeler (footer'daki telefon+adres SaaS'ta da olduğu için tek başına yeterli sayılmaz). Organization verisi olan sitelere yerel işletme önerilmez.
+
+### Faz 1 doğrulama kuralı (linkler)
+- `web.links.insecure_http_links`: hedeflerin hepsi HTTPS destekliyorsa `confirmed` ("sadece linki düzelt"), en az birinde SSL yoksa `escalated`; hiçbir hedefe karar verilemediyse `not_verifiable`.
+
+## Faz 2 — gizlilik, tedarik zinciri ve erişilebilirlik modülü
+
+Tarayıcı şeridinde render'dan sonra, yeni ve boş bir context'te çalışır. Ana sayfa açılır, hiçbir şeye tıklamadan `LC_DEEP_PRIVACY_OBSERVE_S` (5 sn) ağ istekleri ve çerez ADLARI kaydedilir. Banner varsa "Reddet / Sadece gerekli"ye (yoksa önce "Ayarlar"a) tıklanır, takipçi çerezleri silinir (tercih çerezi kalır), sayfa yenilenip kayıt tekrarlanır. Takipçi: elle tutulan liste (`deep/supply/trackers.yaml`: ad, kategori, çerez kalıpları) + EasyPrivacy alan adları. Birinci taraf istekleri, tag manager yükleyicileri (GTM), Google Consent Mode "reddedildi" ping'leri (`gcs=G1x0`) ve çerezsiz ölçüm/hata izleme araçları (Plausible, Fathom, Cloudflare/Vercel Analytics, Sentry...) takip sayılmaz. Site bot doğrulaması gösterdiyse modül çalışmaz.
+
+### web.privacy.trackers_before_consent
+Yakalar: onay mekanizması (görünür banner veya bilinen CMP script'i) VARKEN, ziyaretçi seçim yapmadan takip isteği gönderen veya takipçi çerezi yazan araçlar. Mekanizma yoksa aynı durum `consent_banner_missing`'tir (çift sayılmaz).
+Kaçırabilir: sunucu taraflı (first-party proxy, sGTM) takip, 5 sn'den sonra veya kaydırma/etkileşimle başlayan takip, sadece localStorage'a yazan araçlar.
+
+### web.privacy.trackers_after_reject
+Yakalar: "Reddet" (ilk katman veya "Ayarlar" sonrası ikinci katman) tıklanıp sayfa yenilendikten sonra yine takip isteği gönderen veya takipçi çerezini yeniden yazan araçlar.
+Kaçırabilir: reddetme düğmesi bulunamayan banner'lar (check atlanır, "geçti" sayılmaz), kapalı shadow DOM'daki düğmeler, iç sayfalarda farklı davranan siteler.
+
+### web.privacy.consent_banner_missing
+Yakalar: takip aracı çalışıyor ama ne görünür bir çerez banner'ı (sabit/diyalog katman + çerez/KVKK/consent kelimesi + kabul/reddet/ayarlar düğmesi; TR/EN) ne de bilinen bir CMP (`deep/browser/cmps.yaml`) var.
+Kaçırabilir: banner'ı sadece belirli ülkelere gösteren siteler (sonuç sunucunun konumuna bağlı; worker AB'de çalışır), çok sıra dışı banner tasarımları (yanlış pozitif verebilir).
+
+### web.security.vulnerable_js_library
+Yakalar: tarayıcının yüklediği tüm script'ler + Faz 1 bundle'larında retire.js veritabanı (`uri`, `filename`, `filecontent`, `hashes`) ile tespit edilen ve açığı olan sürümler; önem retire'ın en yüksek önemi (critical → high ile sınırlı).
+Kaçırabilir: lisans yorumu küçültülürken silinmiş, bundle içine gömülmüş kütüphaneler; `func` çıkarıcıları (sayfada ifade çalıştırır) bilinçli olarak kullanılmaz; veritabanında olmayan kütüphaneler.
+
+### web.security.risky_third_party_script
+Yakalar: kamuya açık olaylarla ele geçirildiği/terk edildiği bilinen CDN alan adlarından (ve alt alan adlarından) yüklenen script'ler (`LC_DEEP_RISKY_SCRIPT_DOMAINS`, her giriş kaynaklı: polyfill.io ve aynı operatörün alan adları, rawgit).
+Kaçırabilir: listede olmayan yeni olaylar ve şu an temiz görünen ama sonradan ele geçirilecek CDN'ler (SRI eksikliği ayrı bir konu).
+
+### web.a11y.axe_violations
+Yakalar: axe-core (WCAG 2.0–2.2 A/AA etiketleri) ana sayfa + en fazla 4 kilit/menü sayfasında, mobil ve masaüstünde; `serious` → medium, `critical` → high, kural bazında tek bulgu. Faz 1'in aynı konudaki bulgusu varsa (`image-alt` ↔ `img_missing_alt`, `meta-viewport` ↔ `viewport_missing`) kural tekrar sayılmaz.
+Kaçırabilir: otomatik araçların göremediği sorunlar (anlamlı alt metin, klavye tuzakları, odak sırası mantığı), `moderate`/`minor` ihlaller, giriş arkasındaki sayfalar.

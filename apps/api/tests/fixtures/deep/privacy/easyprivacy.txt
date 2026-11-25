@@ -1,0 +1,13 @@
+[Adblock Plus 1.1]
+! Title: EasyPrivacy (test fixture: a few representative lines in the original format)
+! Licence: https://easylist.to/pages/licence.html (CC BY-SA 3.0)
+||track.test^
+||pixel.example-ads.test^$third-party
+||google-analytics.com^$script,third-party,xmlhttprequest
+||plausible.io^
+||firstparty-only.test^$~third-party
+||scoped.test^$domain=example.com
+||withpath.test^*/collect
+@@||allowed.test^
+&ev=PageView&
+###cookie-banner

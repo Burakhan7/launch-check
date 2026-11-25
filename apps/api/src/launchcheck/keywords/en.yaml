@@ -92,3 +92,16 @@ auth_targets:
 listing_pages: ["explore*", "browse*", "directory*", "members*", "profiles*", "users*", "servers*", "communities*", "listings*", "sellers*", "products*", "reviews*", "testimonials*", "discover*"]
 counter_units: ["member*", "user*", "people", "person", "server*", "communit*", "review*", "comment*", "post*", "listing*", "seller*", "product*", "follower*", "online"]
 empty_states: ["no results*", "nothing here yet", "no members yet", "no reviews yet", "be the first", "no items*", "it's empty"]
+
+# Phase 2 / P6 — structured data opportunity signals (never enough on their own; combined with
+# page structure such as price or question counts)
+structured_data:
+  add_to_cart: ["add to cart", "add to bag", "add to basket", "buy now", "buy it now", "order now"]
+  faq_headings: [faq, faqs, "frequently asked*", "common questions", "questions*"]
+
+# Phase 2 / P6 — cookie consent banner. Button labels must match fully or as a prefix
+consent:
+  banner: ["cookie*", consent, gdpr, "privacy*", "tracking"]
+  reject: ["reject*", "decline*", deny, "refuse*", "only necessary*", "necessary only", "only essential*", "essential only", "use necessary cookies only", "continue without accepting", "disagree*", "do not accept"]
+  settings: ["settings", "cookie settings", "preferences", "customi*", "manage*", "more options"]
+  accept: ["accept*", "agree*", "allow*", "got it", "ok"]

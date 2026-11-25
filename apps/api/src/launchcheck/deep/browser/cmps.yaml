@@ -1,0 +1,81 @@
+# Bilinen çerez onay yönetim araçları (CMP). Tespit için ek sinyaldir; listede olmayan banner'lar
+# genel kurallarla (sabit/diyalog katman + çerez kelimeleri + kabul/reddet düğmesi) bulunur.
+# scripts: yüklenen script adresinde geçen parça; banner: banner kapsayıcısı; reject: reddet
+# düğmesi (bulunamazsa düğme etiketiyle aranır). Seçiciler aracın kendi belgelerinden/DOM'undan.
+
+- name: Cookiebot
+  scripts: [consent.cookiebot.com, consentcdn.cookiebot.com]
+  banner: "#CybotCookiebotDialog"
+  reject: "#CybotCookiebotDialogBodyButtonDecline"
+- name: OneTrust
+  scripts: [cdn.cookielaw.org, optanon.blob.core.windows.net, onetrust.com]
+  banner: "#onetrust-banner-sdk, #onetrust-consent-sdk"
+  reject: "#onetrust-reject-all-handler"
+- name: Usercentrics
+  scripts: [app.usercentrics.eu, web.cmp.usercentrics.eu]
+  banner: "#usercentrics-root, #usercentrics-cmp-ui"
+  reject: "[data-testid=uc-deny-all-button]"
+- name: CookieYes
+  scripts: [cdn-cookieyes.com]
+  banner: ".cky-consent-container"
+  reject: ".cky-btn-reject"
+- name: Complianz
+  scripts: [complianz-gdpr]
+  banner: ".cmplz-cookiebanner"
+  reject: ".cmplz-deny"
+- name: Didomi
+  scripts: [sdk.privacy-center.org]
+  banner: "#didomi-host"
+  reject: "#didomi-notice-disagree-button"
+- name: iubenda
+  scripts: [cdn.iubenda.com, cs.iubenda.com]
+  banner: "#iubenda-cs-banner"
+  reject: ".iubenda-cs-reject-btn"
+- name: Osano
+  scripts: [cmp.osano.com]
+  banner: ".osano-cm-window"
+  reject: ".osano-cm-denyAll"
+- name: TrustArc
+  scripts: [consent.trustarc.com, consent.truste.com]
+  banner: "#truste-consent-track"
+  reject: "#truste-consent-required"
+- name: Quantcast Choice
+  scripts: [quantcast.mgr.consensu.org, cmp.inmobi.com]
+  banner: "#qc-cmp2-container"
+  reject: ""
+- name: CookieScript
+  scripts: [cdn.cookie-script.com]
+  banner: "#cookiescript_injected"
+  reject: "#cookiescript_reject"
+- name: Termly
+  scripts: [app.termly.io]
+  banner: "#termly-code-snippet-support"
+  reject: "[data-tid=banner-decline]"
+- name: Borlabs Cookie
+  scripts: [borlabs-cookie]
+  banner: "#BorlabsCookieBox"
+  reject: ""
+- name: Cookie Notice (WordPress)
+  scripts: [cookie-notice]
+  banner: "#cookie-notice"
+  reject: "#cn-refuse-cookie"
+- name: Axeptio
+  scripts: [static.axept.io]
+  banner: "#axeptio_overlay"
+  reject: "#axeptio_btn_dismiss"
+- name: Sourcepoint
+  scripts: [cdn.privacy-mgmt.com]
+  banner: "[id^=sp_message_container]"
+  reject: ""
+- name: consentmanager
+  scripts: [consentmanager.net, cdn.consentmanager.net]
+  banner: "#cmpbox"
+  reject: ".cmpboxbtnno"
+- name: Klaro
+  scripts: [klaro]
+  banner: ".klaro .cookie-notice, .klaro .cookie-modal"
+  reject: ".cn-decline"
+- name: CookieFirst
+  scripts: [consent.cookiefirst.com]
+  banner: ".cookiefirst-root"
+  reject: "[data-cookiefirst-action=reject]"

@@ -1,0 +1,105 @@
+# Faz 2 gizlilik, tedarik zinciri ve erişilebilirlik check metinleri (Türkçe). Veri: siteyi
+# gerçek tarayıcıda ilk kez açan bir ziyaretçinin gördüğü ağ istekleri ve çerez adları; çerez
+# değerleri okunmaz. Ton: sade, suçlamayan; hukuki kesinlik iddiası yok.
+
+web.privacy.trackers_before_consent:
+  title: "Ziyaretçi onay vermeden {count} takip aracı çalışıyor"
+  passed_title: "Takip araçları onaydan önce çalışmıyor"
+  description: "Sitende bir çerez onay mekanizması var, ama ziyaretçi henüz hiçbir seçim yapmadan şu takip araçları veri göndermeye veya çerez yazmaya başlıyor: {names}. Ayrıntılar kanıtta."
+  why_it_matters: "KVKK ve GDPR'a göre analiz ve reklam çerezleri ziyaretçinin açık onayından sonra çalışmalı. Onay banner'ı gösterip takibi önceden başlatmak, banner'ı hiç yokmuş gibi yapar; şikâyet ve idari para cezası riski doğurur ve ziyaretçi güvenini zedeler."
+  fix_steps:
+    - "Takip kodlarını (Analytics, Pixel, Hotjar vb.) doğrudan sayfaya değil, onay aracının 'onay verilince çalıştır' özelliğiyle ekle."
+    - "Google araçları için Consent Mode v2'yi varsayılan olarak 'denied' ile başlat."
+    - "Onay aracının otomatik engelleme (auto-blocking) özelliğini aç ve test et."
+    - "Gizli pencerede siteyi açıp hiçbir şeye tıklamadan geliştirici araçlarının Ağ sekmesini kontrol et."
+  fix_prompt: |
+    Sitemde çerez onay banner'ı var ama takip araçları (adları, alan adları ve çerez adları kanıtta) ziyaretçi onay vermeden çalışıyor. Lütfen:
+    1. Bu takip kodlarının projede nereden yüklendiğini bul (index.html, layout, tag manager, eklentiler).
+    2. Her birinin sadece ilgili kategoride onay verildikten sonra yüklenmesini sağla (kullandığım onay aracına göre; bana sor).
+    3. Google Analytics/Ads için Consent Mode v2 varsayılanlarını 'denied' yap.
+    4. Onay verilmeden hiçbir takip isteği gitmediğini nasıl test edeceğimi yaz.
+
+web.privacy.trackers_after_reject:
+  title: "'Reddet'e tıklandıktan sonra bile {count} takip aracı çalışıyor"
+  passed_title: "'Reddet'ten sonra takip araçları çalışmıyor"
+  description: "Çerez banner'ında '{clicked}' düğmesine tıkladık ve sayfayı yeniledik. Şu takip araçları yine de veri göndermeye veya çerez yazmaya devam etti: {names}."
+  why_it_matters: "Ziyaretçi açıkça 'istemiyorum' dedikten sonra takibin sürmesi, KVKK ve GDPR açısından onaysız takipten daha ağır bir durumdur: banner'ın çalışmadığını gösterir ve ziyaretçinin tercihini yok sayar."
+  fix_steps:
+    - "Onay aracında her takip kodunun doğru kategoriye (analiz, pazarlama) atandığını kontrol et."
+    - "Takip kodlarını sayfaya elle eklediysen onay aracının engelleme mekanizmasına bağla."
+    - "Reddet'ten sonra onay tercihinin saklandığını (sayfayı yenileyince banner'ın tekrar sorup sormadığını) kontrol et."
+    - "Gizli pencerede 'Reddet'e tıklayıp sayfayı yenile; Ağ sekmesinde takip isteği kalmamalı."
+  fix_prompt: |
+    Sitemde çerez banner'ında 'Reddet'e tıklandıktan sonra bile takip araçları çalışıyor (adları, alan adları ve çerez adları kanıtta). Lütfen:
+    1. Bu takip kodlarının nasıl yüklendiğini bul ve onay aracının kategori/engelleme yapısına bağla.
+    2. Reddedilen kategoride hiçbir kodun yüklenmediğini ve çerez yazmadığını garanti et.
+    3. Onay tercihinin kalıcı olarak saklandığını kontrol et.
+    4. Bunu otomatik doğrulayan basit bir test (ör. Playwright ile ağ isteklerini kontrol eden) yaz.
+
+web.privacy.consent_banner_missing:
+  title: "Takip araçları var ama çerez onayı istenmiyor"
+  passed_title: "Takip araçları için onay mekanizması var (veya takip aracı yok)"
+  description: "Sitende {count} takip aracı çalışıyor ({names}), ama ziyaretçiden çerez onayı isteyen bir banner veya onay aracı bulamadık."
+  why_it_matters: "KVKK ve GDPR, analiz ve reklam çerezleri için ziyaretçinin önceden açık onayını ister. Onay mekanizması olmadan bu araçları çalıştırmak idari para cezası ve şikâyet riski doğurur; ziyaretçiler de verilerinin nasıl kullanıldığını bilemez."
+  fix_steps:
+    - "Bu takip araçlarına gerçekten ihtiyacın var mı değerlendir; gerekmiyorsa kaldır."
+    - "Gerekiyorsa bir çerez onay aracı ekle (ör. ücretsiz planı olan CookieYes, Cookiebot, Klaro veya kendi bileşenin)."
+    - "Banner'da 'Kabul et' kadar görünür bir 'Reddet' seçeneği olsun."
+    - "Takip kodlarını sadece onay verildikten sonra çalışacak şekilde bağla."
+    - "Çerez politikanda hangi çerezleri ne amaçla kullandığını yaz."
+  fix_prompt: |
+    Sitemde takip araçları var (adları ve alan adları kanıtta) ama çerez onay mekanizması yok. Lütfen:
+    1. Sitemin yapısına uygun basit bir çerez onay banner'ı ekle: 'Kabul et', 'Reddet' ve 'Ayarlar' seçenekleri aynı görünürlükte olsun.
+    2. Takip kodlarını sadece ilgili kategoride onay verildikten sonra yükle; tercih saklansın.
+    3. Google araçları için Consent Mode v2 varsayılanlarını 'denied' yap.
+    4. Çerez politikası metni için başlık başlık bir taslak çıkar (hangi çerez, ne amaçla, ne kadar süre).
+
+web.security.vulnerable_js_library:
+  title: "Bilinen açığı olan {count} JavaScript kütüphanesi kullanılıyor"
+  passed_title: "Bilinen açığı olan kütüphane bulunmadı"
+  description: "Sitenin yüklediği kodlarda bilinen güvenlik açıkları olan eski kütüphane sürümleri bulduk: {names}. Açıklar, kimlikleri (CVE) ve hangi sürümde düzeltildikleri kanıtta."
+  why_it_matters: "Bu açıklar herkese açık olarak yayımlanmış ve çoğunun nasıl kullanılacağı biliniyor. En yaygın risk, saldırganın sitende ziyaretçi adına kod çalıştırması (XSS): oturum bilgilerini çalmak veya sahte form göstermek gibi."
+  fix_steps:
+    - "Kanıttaki her kütüphaneyi 'düzeltildiği sürüm' veya daha yenisine yükselt."
+    - "Kütüphane bir eklenti/tema içinden geliyorsa (ör. WordPress) eklentiyi veya temayı güncelle."
+    - "Kütüphaneyi bir CDN adresinden yüklüyorsan adresteki sürüm numarasını güncelle."
+    - "Güncellemeden sonra siteyi test et; büyük sürüm atlamalarında değişiklik notlarına bak."
+  fix_prompt: |
+    Sitemde bilinen açığı olan JavaScript kütüphaneleri var (kütüphane, sürüm, açıklar ve düzeltildiği sürümler kanıtta). Lütfen:
+    1. Bu kütüphanelerin projede nereden geldiğini bul (package.json, CDN script etiketi, eklenti/tema).
+    2. Her birini açığın kapandığı sürüme veya güncel kararlı sürüme yükselt.
+    3. Büyük sürüm atlamasında kırılabilecek kullanımları listele ve düzelt.
+    4. Bağımlılıkları düzenli kontrol etmek için npm audit / Dependabot benzeri bir yöntem öner.
+
+web.security.risky_third_party_script:
+  title: "Ele geçirilmiş bir kaynaktan kod yükleniyor"
+  passed_title: "Riskli üçüncü taraf kaynaktan kod yüklenmiyor"
+  description: "Siten, kötü niyetli kod dağıttığı veya terk edildiği kamuya açık olaylarla bilinen şu alan adlarından script yüklüyor: {domains}. Kaynaklar kanıtta."
+  why_it_matters: "Bu alan adlarından gelen kod sitende senin kodunla aynı yetkiyle çalışır: ziyaretçileri dolandırıcılık sitelerine yönlendirebilir, form verilerini çalabilir. 2024'teki polyfill.io olayında çok sayıda site bu şekilde etkilendi."
+  fix_steps:
+    - "Bu script etiketlerini hemen kaldır."
+    - "Gerçekten ihtiyaç varsa kütüphaneyi kendi projene paket olarak ekle (npm) veya güvenilir bir CDN'den (ör. cdnjs, jsDelivr) sabit sürümle yükle."
+    - "Dış CDN kullanmaya devam edeceksen SRI (integrity özniteliği) ekle."
+    - "Sitenin son dönemde ziyaretçileri başka yerlere yönlendirdiğine dair şikâyet var mı kontrol et."
+  fix_prompt: |
+    Sitem, ele geçirildiği bilinen bir alan adından script yüklüyor (adresler ve kaynaklar kanıtta). Lütfen:
+    1. Projede bu script etiketlerini veya import'larını bul ve kaldır.
+    2. Kütüphane gerçekten gerekiyorsa npm paketi olarak ekle; gerekmiyorsa (ör. modern tarayıcılarda polyfill) tamamen kaldır.
+    3. Kalan tüm dış script'lere sabit sürüm ve SRI (integrity) ekle.
+    4. Bu tür riskleri önlemek için Content-Security-Policy ile izin verilen script kaynaklarını sınırla.
+
+web.a11y.axe_violations:
+  title: "Erişilebilirlikte {count} ciddi sorun var"
+  passed_title: "Ciddi erişilebilirlik sorunu bulunmadı"
+  description: "Ana sayfa ve önemli sayfaların, telefonda ve bilgisayarda axe-core ile (uluslararası WCAG kurallarına göre) ölçüldü. {count} kuralda ciddi veya kritik ihlal var; kurallar, örnek öğeler ve açıklama linkleri kanıtta."
+  why_it_matters: "Ekran okuyucu kullananlar, klavyeyle gezinenler ve az görenler bu sorunlar yüzünden siteni kullanamayabilir veya düğmelerin ne yaptığını anlayamaz. Bu ziyaretçileri kaybettiğin gibi, bazı sektörlerde erişilebilirlik yasal bir gerekliliktir."
+  fix_steps:
+    - "Kanıttaki her kuralın açıklama linkini aç ve örnek öğelerden başla."
+    - "En sık görülenler: düğme/link adı eksik, düşük renk kontrastı, form alanının etiketi yok."
+    - "Düzelttikten sonra tarayıcının erişilebilirlik denetimiyle (Lighthouse) veya axe DevTools eklentisiyle tekrar kontrol et."
+  fix_prompt: |
+    Sitemde erişilebilirlik (WCAG) ihlalleri var (axe kural adları, örnek öğeler ve sayfalar kanıtta). Lütfen:
+    1. Her kural için sorunun ne olduğunu kısaca açıkla.
+    2. Projede ilgili bileşenleri bul ve düzelt (erişilebilir ad, aria-label, label, kontrast, odak sırası vb.).
+    3. Ortak bileşenlerde (düğme, ikon, form alanı) düzeltmeyi bir kez yaparak tüm sayfalara yayılmasını sağla.
+    4. Tekrarını önlemek için eslint-plugin-jsx-a11y veya benzeri bir kontrol öner.

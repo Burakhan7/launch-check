@@ -113,6 +113,35 @@ class CookieInfo:
     session: bool  # tarayıcı kapanınca silinir mi
 
 
+@dataclass(frozen=True)
+class SdSignals:
+    """Yapılandırılmış veri fırsatı için sayfa sinyalleri (metin kısaltılmış, kişisel veri yok)."""
+
+    headings: list[str] = field(default_factory=list)
+    actions: list[str] = field(default_factory=list)  # menü dışı düğme/link etiketleri
+    questions: int = 0  # soru işaretiyle biten başlık/summary/dt sayısı
+    accordions: int = 0
+    prices: int = 0  # görünür fiyat metni sayısı
+    tel: int = 0
+    map: bool = False
+    address: bool = False
+
+    @classmethod
+    def from_js(cls, data: Any) -> "SdSignals":
+        if not isinstance(data, dict):
+            return cls()
+        return cls(
+            headings=[str(h)[:80] for h in data.get("headings") or []][:40],
+            actions=[str(a)[:80] for a in data.get("actions") or []][:60],
+            questions=int(data.get("questions") or 0),
+            accordions=int(data.get("accordions") or 0),
+            prices=int(data.get("prices") or 0),
+            tel=int(data.get("tel") or 0),
+            map=bool(data.get("map")),
+            address=bool(data.get("address")),
+        )
+
+
 @dataclass
 class RenderedPage:
     url: str
@@ -125,6 +154,8 @@ class RenderedPage:
     main_words: int = 0  # render sonrası ana içerik kelime sayısı (nav/footer hariç)
     internal_links: list[str] = field(default_factory=list)
     priority_links: list[str] = field(default_factory=list)  # nav/header/footer
+    # Başka origin'e giden linkler (sorgu dizesiz) → "chrome" (menü/footer) | "content"
+    external_links: dict[str, str] = field(default_factory=dict)
     console_errors: list[ConsoleError] = field(default_factory=list)
     failures: list[NetworkFailure] = field(default_factory=list)
     broken_images: list[BrokenImage] = field(default_factory=list)
@@ -136,6 +167,11 @@ class RenderedPage:
     has_password_field: bool = False
     admin_signals: list[str] = field(default_factory=list)
     bot_challenge: bool = False  # bot doğrulama sayfası geldi (taranmaz)
+    jsonld: list[str] = field(default_factory=list)  # ham JSON-LD blokları (render sonrası DOM)
+    microdata: list[str] = field(default_factory=list)  # itemtype değerleri
+    # YouTube gömme/link adresi → sayfada gömülü (iframe) mü
+    videos: dict[str, bool] = field(default_factory=dict)
+    sd: SdSignals = field(default_factory=SdSignals)
 
 
 @dataclass(frozen=True)

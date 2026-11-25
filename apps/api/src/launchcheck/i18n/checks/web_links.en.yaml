@@ -1,0 +1,128 @@
+# Phase 2 link, meta and structured data check texts (English). Data: the site's pages opened
+# in a real browser, normal-visitor requests to links, YouTube oEmbed.
+
+web.links.broken_internal:
+  title: "Your site has {count} broken internal links"
+  passed_title: "No broken internal links found"
+  description: "We opened the links on your pages one by one ({checked} links checked). {count} of them return 'page not found' (404) or a server error. Which link is on which page is in the evidence."
+  why_it_matters: "A visitor who clicks a broken link doesn't find what they wanted and often leaves. If a menu link is broken, every visitor sees it. Search engines also treat broken links as a sign of a neglected site."
+  fix_steps:
+    - "Find the right address for each link in the evidence: if the page moved, update the link."
+    - "If the page no longer exists, remove the link or add a redirect (301) to the closest page."
+    - "For pages returning a server error (5xx), check your server/app logs."
+    - "Run the deep scan again after fixing."
+  fix_prompt: |
+    My site has broken internal links (addresses, status codes and the pages they're on are in the evidence). Please:
+    1. Find where these links appear in the project (menu, footer, content, components).
+    2. Suggest the right target for each: the new address if the page moved, removal or a 301 redirect if it was deleted.
+    3. Write the redirects for my hosting (e.g. vercel.json, _redirects, Next.js redirects).
+    4. For pages returning 5xx, list likely causes and which logs to check.
+
+web.links.broken_external:
+  title: "Your site has {count} broken external links"
+  passed_title: "No broken external links found"
+  description: "We opened {checked} of the links you give to other sites. {count} of them no longer exist (404), return an error, or their domain doesn't open at all."
+  why_it_matters: "Visitors can't reach the resource, partner or social profile you link to, and the site looks unmaintained. If a linked domain has expired completely, someone else can buy it and send your visitors to their own page."
+  fix_steps:
+    - "Open the links in the evidence in your browser to check them."
+    - "If the page moved, find the new address and update the link; if it's gone, remove the link."
+    - "Remove links whose domain doesn't open at all first."
+  fix_prompt: |
+    My site has broken links to other sites (addresses and the pages they're on are in the evidence). Please:
+    1. Find where these links appear in the project.
+    2. For each one: suggest an up-to-date address or remove the link.
+    3. Prioritise removing links whose domain no longer opens.
+
+web.links.http_target_no_https:
+  title: "Targets of unencrypted links were checked"
+  passed_title: "Targets of unencrypted links were checked"
+  description: "We tried connecting over HTTPS to the targets of the http:// links found in the quick scan. {summary}"
+  why_it_matters: "A visitor who clicks an http:// link connects without encryption; someone on the same network can see or change the traffic. If the target supports HTTPS, the fix is simply changing 'http' to 'https' in the link."
+  fix_steps:
+    - "For targets that support HTTPS, change http:// to https:// in the link."
+    - "For targets without HTTPS, let the site owner know or consider removing the link."
+  fix_prompt: |
+    My site has links starting with http://; which targets support HTTPS is in the evidence. Please:
+    1. Find the links to targets that support HTTPS in the project and change them to https://.
+    2. For targets without HTTPS, let's decide together whether to keep the link; remove it if not.
+  fragments:
+    all_support_https: "All targets ({fixable}) support HTTPS: just change http to https in the links."
+    some_without_ssl: "{fixable} targets support HTTPS (fixing the link is enough), but {no_https} have no or an invalid SSL certificate: fixing the link won't solve those."
+
+web.links.youtube_unavailable:
+  title: "{count} YouTube videos on your site don't play"
+  passed_title: "YouTube videos on your site play"
+  description: "We asked YouTube about the videos on your pages: {count} of them are deleted, private, or embedded on your page even though their owner disabled playback on other sites."
+  why_it_matters: "Visitors see 'Video unavailable' instead of the video. If it's a product demo or tutorial, they never see what you wanted to show."
+  fix_steps:
+    - "Check the videos in the evidence on YouTube (deleted, private, embedding disabled?)."
+    - "If it's your video, set visibility to 'Public' or 'Unlisted' in YouTube Studio and turn on 'Allow embedding'."
+    - "If it's someone else's video, replace it with a working one or remove it."
+  fix_prompt: |
+    My site has YouTube videos that don't play (video IDs, pages and states are in the evidence). Please:
+    1. Find where these videos are embedded or linked in the project.
+    2. If they're my videos, explain how to fix visibility and embedding settings in YouTube Studio.
+    3. Otherwise, make the code change to replace or remove the video.
+
+web.meta.og_image_unreachable:
+  title: "Your share image doesn't show properly"
+  passed_title: "Your share image loads properly"
+  description: "We downloaded the image shown when your link is shared on WhatsApp, LinkedIn, X or Facebook (og:image). Problem: {issues}."
+  why_it_matters: "Shared links with a missing or broken image get far fewer clicks. Share bots don't run your page's JavaScript; the image address must be correct and reachable in the HTML that comes from the server."
+  fix_steps:
+    - "Write the og:image value as a full address (starting with https://)."
+    - "Use a PNG, JPG or WebP image around 1200×630 pixels, ideally under 1 MB (SVG isn't supported)."
+    - "Open the image address in your browser and check that an image really loads."
+    - "Refresh the preview with Facebook Sharing Debugger and LinkedIn Post Inspector."
+  fix_prompt: |
+    My site's share image (og:image / twitter:image) has problems (address, size and issues are in the evidence). Please:
+    1. Find where the og:image and twitter:image tags are produced and make them use a full (https://) address.
+    2. Make sure the tags are in the HTML from the server (share bots don't see tags added later by JS).
+    3. Set it up to use a 1200×630, under-1 MB PNG/JPG/WebP share image.
+    4. If pages need different images, set up the structure that produces the right image per page.
+  fragments:
+    issue_unreachable: "the image address can't be reached"
+    issue_http_error: "the image address returns an error"
+    issue_not_image: "the address returns something other than an image"
+    issue_svg_unsupported: "the image is an SVG (share previews don't show SVG)"
+    issue_too_large: "the file is too large (over 5 MB; apps like WhatsApp may not show it)"
+    issue_relative_url: "the address isn't complete (doesn't start with https://)"
+    issue_too_small: "the image is too small (under 200 pixels)"
+    issue_bad_ratio: "the aspect ratio gets cropped badly in previews (recommended 1.91:1, e.g. 1200×630)"
+
+web.seo.structured_data_invalid:
+  title: "Your structured data has {count} errors"
+  passed_title: "No errors found in your structured data"
+  description: "The JSON-LD on your pages (code that tells search engines about products, the company, FAQs etc.) can't be parsed or is missing fields Google requires. Pages and missing fields are in the evidence."
+  why_it_matters: "Google doesn't use broken or incomplete structured data: rich results such as price, stars or stock don't appear in search results. JSON that can't be parsed counts as if it didn't exist."
+  fix_steps:
+    - "Check the pages in the evidence with Google's Rich Results Test (search.google.com/test/rich-results)."
+    - "Fix JSON syntax errors in blocks that can't be parsed (extra commas, unescaped quotes etc.)."
+    - "Add the missing required fields (e.g. name and offers for Product; price and priceCurrency for Offer)."
+  fix_prompt: |
+    My site's JSON-LD structured data has errors (pages, types and missing fields are in the evidence). Please:
+    1. Find where the JSON-LD is produced (component, template, plugin).
+    2. Fix the parsing errors; produce the JSON from an object with JSON.stringify instead of joining strings by hand.
+    3. Add Google's required fields for each type, filled from the real data on the page.
+    4. Explain how to verify the result with the Rich Results Test.
+
+web.seo.structured_data_opportunity:
+  title: "There's a chance to stand out in search results"
+  passed_title: "No structured data opportunity missed"
+  description: "Your site has this content but no structured data (JSON-LD) describing it to search engines: {kinds}. Which signals we saw on which page is in the evidence."
+  why_it_matters: "Structured data can make information such as price, stock, rating, address and opening hours appear in search results, which increases clicks. Since 2023 Google shows FAQ rich results for very few sites, but other search engines and AI assistants can still read this data."
+  fix_steps:
+    - "Add Product + Offer (name, image, price, currency, availability) to product pages."
+    - "Add FAQPage to the FAQ section (questions and answers exactly as on the page)."
+    - "If you're a physical business, add LocalBusiness (name, address, phone, opening hours)."
+    - "Verify what you added with the Rich Results Test."
+  fix_prompt: |
+    My site has content that could have structured data but has no JSON-LD (types and pages are in the evidence). Please:
+    1. Write code that produces the right schema.org JSON-LD for each type in the evidence (Product/Offer, FAQPage or LocalBusiness).
+    2. Fill the values from the real data on the page; don't add information that isn't visible on the page.
+    3. Make sure the JSON-LD is in the HTML from the server.
+    4. Explain how to verify it with the Rich Results Test.
+  fragments:
+    kind_product: "products with prices and an add-to-cart button"
+    kind_faq: "a frequently asked questions section"
+    kind_local_business: "a business with a map and contact details"

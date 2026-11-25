@@ -63,14 +63,16 @@ class RenderModule(DeepModule):
         return self._settings or get_settings()
 
     def budget_s(self, settings: Settings) -> float:
-        return settings.deep_budget_browser_s
+        return settings.deep_budget_render_s
 
     async def run(self, ctx: DeepContext, out: ModuleOutput) -> None:
         try:
             await self._run(ctx, out)
         finally:
-            # Hız şeridi kilit sayfayı bekliyorsa (bulunamadıysa ana sayfayla) devam etsin
+            # Hız şeridi kilit sayfayı bekliyorsa (bulunamadıysa ana sayfayla) devam etsin;
+            # link modülü render verisini bekliyorsa (yoksa Faz 1 sayfalarıyla) devam etsin
             ctx.key_urls_ready.set()
+            ctx.render_ready.set()
 
     async def _run(self, ctx: DeepContext, out: ModuleOutput) -> None:
         base = await self._base(ctx)

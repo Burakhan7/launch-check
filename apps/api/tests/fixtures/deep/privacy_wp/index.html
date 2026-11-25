@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Blog | WordPress</title>
+  <!-- WordPress benzeri: piksel onaysız yüklenir (hatalı), ama iki katmanlı banner'da
+       "Ayarlar → Tümünü reddet" sonrası takip durur (doğru). -->
+  <script>
+    if (!document.cookie.includes('wp_consent=rejected')) {
+      document.cookie = '_fbp=fb.1.555.666; path=/';
+      const img = new Image();
+      img.src = 'http://pixel.example-ads.test:' + location.port + '/tr?id=1&ev=PageView';
+    }
+  </script>
+  <style>
+    #wp-cookie-notice { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; color: #111; border-top: 2px solid #000; padding: 12px; }
+    #wp-cookie-settings { display: none; }
+    button { color: #fff; background: #333; border: 0; padding: 8px 12px; }
+  </style>
+</head>
+<body class="home blog wp-theme-twentytwentyfour">
+  <header><nav><a href="/">Ana sayfa</a></nav></header>
+  <main><h1>Son yazılar</h1><article><h2>Merhaba dünya</h2><p>İlk yazı.</p></article></main>
+  <div id="wp-cookie-notice">
+    <p>Bu site deneyiminizi iyileştirmek için çerezler kullanır. KVKK aydınlatma metni.</p>
+    <button onclick="accept()">Kabul et</button>
+    <button onclick="document.getElementById('wp-cookie-settings').style.display='block'">Çerez ayarları</button>
+    <div id="wp-cookie-settings">
+      <label><input type="checkbox" checked disabled> Zorunlu</label>
+      <button onclick="rejectAll()">Tümünü reddet</button>
+    </div>
+  </div>
+  <script>
+    function accept() { document.cookie = 'wp_consent=accepted; path=/'; document.getElementById('wp-cookie-notice').remove(); }
+    function rejectAll() { document.cookie = 'wp_consent=rejected; path=/'; document.getElementById('wp-cookie-notice').remove(); }
+    if (/wp_consent=/.test(document.cookie)) document.getElementById('wp-cookie-notice').remove();
+  </script>
+</body>
+</html>

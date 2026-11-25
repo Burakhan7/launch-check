@@ -1,0 +1,105 @@
+# Phase 2 privacy, supply chain and accessibility check texts (English). Data: network requests
+# and cookie names seen by a first-time visitor in a real browser; cookie values aren't read.
+# Tone: plain, non-blaming; no claim of legal certainty.
+
+web.privacy.trackers_before_consent:
+  title: "{count} tracking tools run before the visitor gives consent"
+  passed_title: "Tracking tools don't run before consent"
+  description: "Your site has a cookie consent mechanism, but these tracking tools start sending data or setting cookies before the visitor makes any choice: {names}. Details are in the evidence."
+  why_it_matters: "Under GDPR and KVKK, analytics and advertising cookies should only run after the visitor's explicit consent. Showing a banner but starting tracking beforehand is as if there were no banner; it creates a risk of complaints and fines and hurts visitor trust."
+  fix_steps:
+    - "Add tracking code (Analytics, Pixel, Hotjar etc.) through your consent tool's 'run after consent' feature, not directly on the page."
+    - "For Google tools, start Consent Mode v2 with 'denied' defaults."
+    - "Turn on your consent tool's auto-blocking feature and test it."
+    - "Open the site in a private window and check the Network tab in developer tools without clicking anything."
+  fix_prompt: |
+    My site has a cookie consent banner, but tracking tools (names, domains and cookie names are in the evidence) run before the visitor consents. Please:
+    1. Find where these tracking scripts are loaded in the project (index.html, layout, tag manager, plugins).
+    2. Make each of them load only after consent for its category (depending on my consent tool; ask me).
+    3. Set Consent Mode v2 defaults to 'denied' for Google Analytics/Ads.
+    4. Explain how to test that no tracking request is sent without consent.
+
+web.privacy.trackers_after_reject:
+  title: "{count} tracking tools keep running even after 'Reject'"
+  passed_title: "Tracking tools stop after 'Reject'"
+  description: "We clicked '{clicked}' in the cookie banner and reloaded the page. These tracking tools still kept sending data or setting cookies: {names}."
+  why_it_matters: "Continuing to track after the visitor clearly said no is more serious under GDPR and KVKK than tracking before consent: it shows the banner doesn't work and ignores the visitor's choice."
+  fix_steps:
+    - "In your consent tool, check that each tracking script is assigned to the right category (analytics, marketing)."
+    - "If you added tracking code by hand, connect it to the consent tool's blocking mechanism."
+    - "Check that the choice is saved after 'Reject' (does the banner ask again after a reload?)."
+    - "In a private window, click 'Reject' and reload; no tracking request should remain in the Network tab."
+  fix_prompt: |
+    On my site, tracking tools keep running even after 'Reject' is clicked in the cookie banner (names, domains and cookie names are in the evidence). Please:
+    1. Find how these tracking scripts are loaded and connect them to the consent tool's category/blocking setup.
+    2. Guarantee that no script in a rejected category loads or sets cookies.
+    3. Check that the consent choice is stored persistently.
+    4. Write a simple automated test (e.g. Playwright checking network requests) that verifies this.
+
+web.privacy.consent_banner_missing:
+  title: "Tracking tools run but no cookie consent is asked"
+  passed_title: "There's a consent mechanism for tracking tools (or no tracking tools)"
+  description: "Your site runs {count} tracking tools ({names}), but we couldn't find a banner or consent tool asking visitors for cookie consent."
+  why_it_matters: "GDPR and KVKK require the visitor's prior explicit consent for analytics and advertising cookies. Running these tools without a consent mechanism creates a risk of fines and complaints, and visitors can't know how their data is used."
+  fix_steps:
+    - "Decide whether you really need these tracking tools; remove them if not."
+    - "If you do, add a cookie consent tool (e.g. CookieYes, Cookiebot or Klaro, which have free plans, or your own component)."
+    - "Make the 'Reject' option as visible as 'Accept'."
+    - "Connect tracking code so it only runs after consent."
+    - "Describe which cookies you use and why in your cookie policy."
+  fix_prompt: |
+    My site has tracking tools (names and domains are in the evidence) but no cookie consent mechanism. Please:
+    1. Add a simple cookie consent banner suited to my site: 'Accept', 'Reject' and 'Settings' should be equally visible.
+    2. Load tracking scripts only after consent for their category; store the choice.
+    3. Set Consent Mode v2 defaults to 'denied' for Google tools.
+    4. Draft section headings for a cookie policy (which cookie, what for, how long).
+
+web.security.vulnerable_js_library:
+  title: "{count} JavaScript libraries with known vulnerabilities are in use"
+  passed_title: "No libraries with known vulnerabilities found"
+  description: "We found old library versions with known security vulnerabilities in the code your site loads: {names}. The vulnerabilities, their IDs (CVE) and the versions that fixed them are in the evidence."
+  why_it_matters: "These vulnerabilities are publicly documented and how to exploit many of them is known. The most common risk is an attacker running code on your site as the visitor (XSS): stealing session data or showing fake forms."
+  fix_steps:
+    - "Upgrade each library in the evidence to the 'fixed in' version or newer."
+    - "If the library comes from a plugin/theme (e.g. WordPress), update the plugin or theme."
+    - "If you load the library from a CDN address, update the version number in the address."
+    - "Test the site after updating; read the changelog for major version jumps."
+  fix_prompt: |
+    My site uses JavaScript libraries with known vulnerabilities (library, version, vulnerabilities and fixed versions are in the evidence). Please:
+    1. Find where these libraries come from in the project (package.json, CDN script tag, plugin/theme).
+    2. Upgrade each to the version that fixes the vulnerability or the current stable version.
+    3. List and fix usages that may break with a major version jump.
+    4. Suggest a way to check dependencies regularly, such as npm audit or Dependabot.
+
+web.security.risky_third_party_script:
+  title: "Code is loaded from a compromised source"
+  passed_title: "No code is loaded from risky third-party sources"
+  description: "Your site loads scripts from these domains, which are known from public incidents to have distributed malicious code or been abandoned: {domains}. Sources are in the evidence."
+  why_it_matters: "Code from these domains runs on your site with the same power as your own code: it can redirect visitors to scam sites or steal form data. In the 2024 polyfill.io incident, many sites were affected this way."
+  fix_steps:
+    - "Remove these script tags right away."
+    - "If you really need the library, add it to your project as a package (npm) or load a pinned version from a trusted CDN (e.g. cdnjs, jsDelivr)."
+    - "If you keep using an external CDN, add SRI (the integrity attribute)."
+    - "Check whether there have been complaints about your site redirecting visitors recently."
+  fix_prompt: |
+    My site loads scripts from a domain known to be compromised (addresses and sources are in the evidence). Please:
+    1. Find these script tags or imports in the project and remove them.
+    2. If the library is really needed, add it as an npm package; if not (e.g. polyfills for modern browsers), remove it entirely.
+    3. Add a pinned version and SRI (integrity) to all remaining external scripts.
+    4. Restrict allowed script sources with a Content-Security-Policy to prevent this kind of risk.
+
+web.a11y.axe_violations:
+  title: "There are {count} serious accessibility problems"
+  passed_title: "No serious accessibility problems found"
+  description: "The home page and key pages were measured on phone and desktop with axe-core (against the international WCAG rules). {count} rules have serious or critical violations; rules, example elements and explanation links are in the evidence."
+  why_it_matters: "Screen reader users, keyboard users and people with low vision may not be able to use your site or understand what buttons do because of these problems. You lose these visitors, and in some sectors accessibility is a legal requirement."
+  fix_steps:
+    - "Open the explanation link for each rule in the evidence and start with the example elements."
+    - "The most common ones: missing button/link name, low colour contrast, form field without a label."
+    - "After fixing, check again with the browser's accessibility audit (Lighthouse) or the axe DevTools extension."
+  fix_prompt: |
+    My site has accessibility (WCAG) violations (axe rule names, example elements and pages are in the evidence). Please:
+    1. Briefly explain what the problem is for each rule.
+    2. Find the relevant components in the project and fix them (accessible name, aria-label, label, contrast, focus order etc.).
+    3. Fix shared components (button, icon, form field) once so the fix applies to all pages.
+    4. Suggest a check such as eslint-plugin-jsx-a11y to prevent it from coming back.

@@ -16,16 +16,19 @@ from launchcheck.deep.orchestrator import OrchestratorConfig
 
 def default_modules() -> list[DeepModule]:
     from launchcheck.deep.external_module import ExternalModule
+    from launchcheck.deep.links_module import LinksModule
     from launchcheck.deep.perf_module import PerfModule
+    from launchcheck.deep.privacy_module import PrivacyModule
     from launchcheck.deep.render_module import RenderModule
 
-    return [RenderModule(), PerfModule(), ExternalModule()]
+    # Şerit içi sıra listedeki sıradır: tarayıcı render → gizlilik; ağ dış görünürlük → linkler
+    return [RenderModule(), PrivacyModule(), PerfModule(), ExternalModule(), LinksModule()]
 
 
 def default_verification_rules() -> Mapping[str, VerificationRule]:
-    from launchcheck.deep.verification import RENDER_RULES
+    from launchcheck.deep.verification import LINK_RULES, RENDER_RULES
 
-    return {**RENDER_RULES}
+    return {**RENDER_RULES, **LINK_RULES}
 
 
 def asset_store(settings: Settings) -> AssetStore:
