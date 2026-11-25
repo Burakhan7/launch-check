@@ -121,3 +121,37 @@ funnel:
   # Paid plan signal (for the price check; never a finding on its own)
   paid_words: [pricing, "price*", premium, "subscription*", subscribe, plans, "upgrade*", "buy*", paid]
   newsletter: ["newsletter*", subscribe, "updates"]
+
+# Phase 2 / P9 — benchmark: category detection (title, h1, h2, first screen; with meta flags)
+benchmark:
+  dev_ai_tools: ["developer*", ai, api, sdk, "code*", deploy, database, "integration*", cli, "open source"]
+  nonprofit_org: ["donat*", "charity", "nonprofit", "non-profit", "foundation", "volunteer*"]
+  ecommerce_brand: ["cart", "shipping", "shop now", "collection*", "new arrivals", "free returns"]
+  saas: ["team*", "workflow*", "dashboard*", "automat*", "free trial", "start free*"]
+  sections:
+    testimonials: ["testimonial*", "what our customers", "loved by", "reviews", "what people say"]
+    faq: [faq, faqs, "frequently asked*"]
+    pricing: ["pricing", "plans", "simple pricing"]
+    features: ["feature*", "why choose*", "everything you need"]
+    how_it_works: ["how it works", "in 3 steps", "get started in"]
+    integrations: ["integration*"]
+    final_cta: ["get started*", "start today", "start free*", "join*", "try it free"]
+    logos: ["trusted by", "used by", "our partners", "loved by teams"]
+  page_types:
+    pricing: [pricing, plans]
+    faq: [faq, help, support]
+    blog: [blog, news, articles]
+    about: [about, "about us", company]
+    contact: [contact, "contact us"]
+    customers: [customers, "case studies", stories]
+    careers: [careers, jobs]
+    compare: ["compare", "vs", "alternatives"]
+    integrations: [integrations, apps, marketplace]
+    status: [status]
+    changelog: [changelog, releases, "whats new"]
+    docs: [docs, documentation, developers]
+  trust_badges: ["soc 2", soc2, gdpr, "iso 27001", hipaa, "pci dss", "ssl secured"]
+  user_claims: ["user*", "customer*", "team*", "compan*", "people", "member*"]
+  company_info: ["inc.", "ltd", "gmbh", "llc", "registered in"]
+  discount: ["save*", "discount*", "%", "months free", "off"]
+  highlight: ["most popular", "recommended", "best value", "popular"]

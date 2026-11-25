@@ -772,12 +772,17 @@ def test_default_modules_lane_order() -> None:
     lanes: dict[Lane, list[str]] = {}
     for m in default_modules():
         lanes.setdefault(m.lane, []).append(m.name)
-    assert lanes[Lane.BROWSER] == ["render", "privacy", "funnel"]
+    assert lanes[Lane.BROWSER] == ["render", "privacy", "funnel", "benchmark"]
     assert lanes[Lane.NETWORK] == ["external", "links"]
     assert "web.links.insecure_http_links" in default_verification_rules()
     s = Settings()
     assert s.deep_budget_external_s + s.deep_budget_links_s <= s.deep_budget_network_s
-    browser = s.deep_budget_render_s + s.deep_budget_privacy_s + s.deep_budget_funnel_s
+    browser = (
+        s.deep_budget_render_s
+        + s.deep_budget_privacy_s
+        + s.deep_budget_funnel_s
+        + s.deep_budget_benchmark_s
+    )
     assert browser <= s.deep_budget_browser_s
 
 

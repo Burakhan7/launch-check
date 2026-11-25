@@ -1,0 +1,87 @@
+# Faz 2 kıyas check metinleri (Türkçe). Veri: kullanıcının rakipleri ve kategorisindeki referans
+# siteler; hepsi aynı yöntemle (aynı tarayıcı, aynı ölçüm) incelendi. Ton: "işe yarayanı uyarla",
+# rakip metni kopyalama önerisi yok.
+
+web.benchmark.common_pattern_missing:
+  title: "Örnek sitelerin çoğunda olan {count} şey sende yok"
+  passed_title: "Örnek sitelerin ortak desenleri sende de var"
+  description: "Rakiplerini ve kategorindeki başarılı siteleri aynı yöntemle inceledik. Çoğunda olup sende olmayanlar: {patterns}. Parantez içi: kaç örnekte var."
+  why_it_matters: "Bir desen benzer sitelerin çoğunda varsa, ziyaretçiler onu görmeye alışkındır: yoksa güven veya yön kaybı yaşar. Bu desenleri kendi içeriğinle uyarlamak, sıfırdan denemekten çok daha hızlı sonuç verir."
+  fix_steps:
+    - "Listedeki desenlerden en çok örnekte olanla başla."
+    - "Deseni kendi ürününle ve kendi sözlerinle uygula; örnek sitelerin metnini veya görselini kopyalama."
+    - "Değişiklikten sonra derin taramayı tekrar çalıştırıp farkı gör."
+  fix_prompt: |
+    Sitemi kendi kategorimdeki başarılı sitelerle karşılaştırdık; onların çoğunda olup bende olmayan desenler kanıtta. Lütfen:
+    1. Her desen için sayfamda nereye ve nasıl ekleneceğini öner (bölüm sırası dahil).
+    2. İçeriği benim ürünüm için yaz (bana ürünümü, hedef kitlemi ve kanıtlarımı sor); başka sitelerin metnini, sloganını veya görselini kullanma.
+    3. Sosyal kanıt, sayı veya güven rozeti için sadece gerçekten elimde olan verileri kullan; uydurma.
+    4. Değişiklikleri mevcut tasarım bileşenlerimle uygula.
+  fragments:
+    pattern_social_proof_early: "ilk 3 bölümde sosyal kanıt (logo veya yorum)"
+    pattern_testimonials: "müşteri yorumları"
+    pattern_logo_band: "müşteri/iş ortağı logoları"
+    pattern_user_count_claim: "kullanıcı/müşteri sayısı"
+    pattern_security_badges: "güvenlik/uyumluluk rozetleri"
+    pattern_case_studies: "başarı hikâyeleri sayfası"
+    pattern_contact: "iletişim bilgisi veya sayfası"
+    pattern_company_info: "şirket bilgileri (unvan, adres)"
+    pattern_hero_subheadline: "başlığın altında açıklayıcı alt başlık"
+    pattern_hero_cta: "ilk ekranda belirgin bir eylem düğmesi"
+    pattern_hero_media: "ilk ekranda ürün görseli veya video"
+    pattern_faq_section: "ana sayfada SSS bölümü"
+    pattern_how_it_works: "\"nasıl çalışır\" bölümü"
+    pattern_final_cta: "sayfa sonunda son çağrı (CTA) bölümü"
+    pattern_price_one_click: "fiyatın ana sayfadan en fazla 1 tıkla görülmesi"
+    pattern_free_tier: "ücretsiz plan"
+    pattern_annual_discount: "yıllık ödemede indirim"
+    pattern_highlighted_plan: "öne çıkarılmış (önerilen) plan"
+    pattern_social_login: "Google/Apple ile kayıt"
+    pattern_short_signup: "en fazla 3 alanlı kayıt formu"
+    pattern_no_card_signup: "kart istemeyen kayıt"
+    pattern_og_image: "paylaşım görseli (og:image)"
+
+web.benchmark.missing_page_types:
+  title: "Örnek sitelerde olan bazı sayfalar sende yok"
+  passed_title: "Örnek sitelerdeki temel sayfalar sende de var"
+  description: "Benzer sitelerin çoğunda olup sende bulamadığımız sayfalar: {pages}. Parantez içi: kaç örnekte var."
+  why_it_matters: "Ziyaretçiler karar vermeden önce bu sayfalarda soru cevabı, kanıt veya güven arar. Bulamazlarsa çoğu zaman sormaz, ayrılır. Bu sayfalar arama motorlarında da ayrı giriş kapılarıdır."
+  fix_steps:
+    - "Listedeki sayfalardan ürünün için anlamlı olanları seç."
+    - "Her sayfayı kendi bilginle yaz ve menü/footer'dan link ver."
+  fix_prompt: |
+    Sitemde benzer sitelerin çoğunda bulunan bazı sayfa türleri yok (kanıtta). Lütfen:
+    1. Ürünüm için hangilerinin gerçekten gerekli olduğunu birlikte belirleyelim (bana ürünümü sor).
+    2. Seçtiğimiz her sayfa için bölüm başlıklarını ve içerik taslağını kendi bilgilerimle hazırla.
+    3. Sayfaları oluştur ve menü/footer'dan linkle.
+  fragments:
+    page_pricing: "fiyatlar"
+    page_faq: "SSS / yardım"
+    page_blog: "blog"
+    page_about: "hakkımızda"
+    page_contact: "iletişim"
+    page_customers: "müşteriler / başarı hikâyeleri"
+    page_careers: "kariyer"
+    page_compare: "karşılaştırma"
+    page_integrations: "entegrasyonlar"
+    page_status: "durum (status) sayfası"
+    page_changelog: "yenilikler (changelog)"
+    page_docs: "dokümantasyon"
+
+web.benchmark.slower_than_peers:
+  title: "Siten benzer sitelerden belirgin şekilde yavaş"
+  passed_title: "Siten benzer sitelerden yavaş değil"
+  description: "Ana içeriğin görünme süresi (LCP) sende {user} sn, örnek sitelerin ortancası {median} sn: {ratio} kat daha yavaş. {method}"
+  why_it_matters: "Ziyaretçi seni rakiplerinle aynı gün, aynı telefonda karşılaştırır. Belirgin şekilde yavaş açılan site, aynı ürünü sunsa bile daha az güven verir ve daha çok ziyaretçi kaybeder."
+  fix_steps:
+    - "Hız bölümündeki LCP bulgusunun önerileriyle başla (en büyük görsel/yazı tipi, engelleyen script'ler)."
+    - "İlk ekrandaki büyük görseli sıkıştır, modern biçime (WebP/AVIF) çevir ve önceden yükle."
+    - "Değişiklikten sonra derin taramayı tekrar çalıştırıp örneklerle farkı yeniden gör."
+  fix_prompt: |
+    Sitem benzer sitelerden belirgin şekilde yavaş açılıyor (LCP değerleri kanıtta). Lütfen:
+    1. İlk ekranda en büyük öğeyi (görsel/başlık) bul ve onun daha hızlı görünmesi için ne yapılacağını listele.
+    2. İlk yüklemede gerekmeyen script'leri ertele, büyük görselleri sıkıştır ve doğru boyutta sun.
+    3. Yapılabilecek değişiklikleri etkisine göre sırala ve uygula.
+  fragments:
+    method_field: "Değerler Google'ın gerçek kullanıcı verisinden (CrUX)."
+    method_lab: "Değerler aynı tarayıcıda, aynı koşullarda bizim ölçümümüz."

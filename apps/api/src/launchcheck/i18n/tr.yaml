@@ -36,6 +36,7 @@ errors:
   invalid_competitor_url: "Rakip olarak girdiğin adreslerden biri geçerli, herkese açık bir web sitesi değil."
   competitor_same_origin: "Rakip olarak kendi siteni veya alt alan adını giremezsin."
   invalid_compare_to: "Karşılaştırmak istediğin önceki derin tarama bulunamadı veya başka bir siteye ait."
+  invalid_category: "Seçtiğin kıyas kategorisi tanınmadı. Listeden bir kategori seç."
   deep_rate_limited: "Bugün yapabileceğin derin tarama sayısına ulaştın. Yarın tekrar deneyebilirsin."
   queue_full: "Derin tarama sırası şu an dolu. Lütfen biraz sonra tekrar dene."
 
@@ -55,6 +56,7 @@ deep_events:
   deep.event.privacy_consent_checked: "Çerez banner'ı ve takip araçları kontrol edildi; erişilebilirlik ölçülüyor…"
   deep.event.links_checked: "{internal} iç ve {external} dış link kontrol edildi."
   deep.event.funnel_walked: "Kayıt ve fiyat yolu telefonda gezildi ({steps} adım)."
+  deep.event.benchmark_started: "Kıyas başladı: {competitors} rakip ve {references} örnek site."
   deep.event.module_done: "{module} bitti: {found} bulgu."
   deep.event.module_partial: "{module} süre sınırına ulaştı; bulunanlarla devam ediliyor ({found} bulgu)."
   deep.event.module_failed: "{module} tamamlanamadı; tarama diğer bölümlerle devam ediyor."

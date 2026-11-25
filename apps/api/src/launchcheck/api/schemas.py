@@ -27,6 +27,8 @@ class DeepScanRequest(BaseModel):
     competitors: list[str] = Field(default_factory=list, max_length=3)
     use_reference: bool = True
     compare_to: uuid.UUID | None = None
+    # Kıyas kategorisi (GET /api/benchmark/categories); boşsa kurallarla tespit edilir
+    category: str | None = Field(default=None, max_length=40)
 
 
 class DeepScanCreated(BaseModel):

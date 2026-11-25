@@ -85,12 +85,26 @@ class FakeRedis:
     def __init__(self, fail: bool = False) -> None:
         self.counts: dict[str, int] = {}
         self.ttls: dict[str, int] = {}
+        self.values: dict[str, str] = {}
         self.fail = fail
 
     def pipeline(self, transaction: bool = True) -> FakePipeline:
         if self.fail:
             raise ConnectionError("redis yok")
         return FakePipeline(self)
+
+    async def get(self, key: str) -> str | None:
+        if self.fail:
+            raise ConnectionError("redis yok")
+        return self.values.get(key)
+
+    async def set(self, key: str, value: str, ex: int | None = None) -> bool:
+        if self.fail:
+            raise ConnectionError("redis yok")
+        self.values[key] = value
+        if ex is not None:
+            self.ttls[key] = ex
+        return True
 
 
 @pytest.fixture

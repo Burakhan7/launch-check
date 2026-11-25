@@ -25,6 +25,14 @@ JOB_TIMEOUT_MARGIN_S = 120
 
 async def startup(ctx: dict[str, Any]) -> None:
     ctx["sessionmaker"] = get_sessionmaker()
+    from launchcheck.deep.benchmark.library import sync_reference_sites
+
+    try:
+        added = await sync_reference_sites(ctx["sessionmaker"])
+        if added:
+            logger.info("%d referans site eklendi", added)
+    except Exception as exc:  # DB hazır değilse worker yine başlasın
+        logger.warning("referans siteler senkronize edilemedi (%s)", type(exc).__name__)
 
 
 async def shutdown(ctx: dict[str, Any]) -> None:
@@ -63,12 +71,59 @@ async def refresh_retire_db(ctx: dict[str, Any]) -> bool:
         return False
 
 
+async def refresh_reference_library(ctx: dict[str, Any]) -> int:
+    """Kademeli referans yenilemesi (saatlik; her çalışmada en eski birkaç site)."""
+    from functools import partial
+
+    from launchcheck.deep.benchmark import jobs
+    from launchcheck.deep.benchmark.library import refresh_due_sites
+
+    s = get_settings()
+    try:
+        done = await refresh_due_sites(
+            ctx["sessionmaker"],
+            s,
+            partial(jobs.crawl_site, s),
+            partial(jobs.robots_policy, s),
+            partial(jobs.field_lcp, s),
+            jobs.shot_store(s),
+        )
+    except Exception as exc:
+        logger.warning("referans yenilemesi başarısız (%s)", type(exc).__name__)
+        return 0
+    return len(done)
+
+
+async def refresh_reference_popularity(ctx: dict[str, Any]) -> int:
+    from functools import partial
+
+    from launchcheck.deep.benchmark.library import refresh_popularity, stream_lines
+
+    try:
+        return await refresh_popularity(ctx["sessionmaker"], partial(stream_lines, get_settings()))
+    except Exception as exc:
+        logger.warning("popülerlik sıralaması alınamadı (%s)", type(exc).__name__)
+        return 0
+
+
+async def sweep_benchmark_cache(ctx: dict[str, Any]) -> int:
+    from launchcheck.deep.benchmark import jobs
+
+    s = get_settings()
+    weekly = (s.deep_reference_refresh_days + 1) * 86400
+    return jobs.shot_store(s).sweep(s.benchmark_cache_ttl_h * 3600, weekly)
+
+
 class DeepWorkerSettings:
     functions: ClassVar[list[Any]] = [run_deep_scan]
     cron_jobs: ClassVar[list[Any]] = [
         cron(sweep_orphan_assets, minute=30, run_at_startup=True),
         # Pazartesi 04:10 (UTC) + başlangıçta: güncel kopya tmpfs'te, yeniden başlayınca kaybolur
         cron(refresh_retire_db, weekday=0, hour=4, minute=10, run_at_startup=True),
+        # Referans kütüphanesi: saatte bir en eski site(ler); Majestic haftalık; önbellek saatlik
+        cron(refresh_reference_library, minute=45),
+        cron(refresh_reference_popularity, weekday=6, hour=3, minute=20),
+        cron(sweep_benchmark_cache, minute=15),
     ]
     on_startup = startup
     on_shutdown = shutdown

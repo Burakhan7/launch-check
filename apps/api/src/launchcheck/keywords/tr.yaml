@@ -151,3 +151,33 @@ funnel:
   # Ücretli plan sinyali (fiyat check'i için; tek başına bulgu değil)
   paid_words: ["fiyat*", premium, "abonelik*", "abone ol", "paket*", planlar, "satin al*", "yukselt*", "ucretli*"]
   newsletter: ["bulten*", "e-bulten*", "abone ol", "haber*"]
+
+# Faz 2 / P9 — kıyas: kategori tespiti (başlık, h1, h2, ilk ekran; meta bayraklarıyla birlikte)
+benchmark:
+  dev_ai_tools: ["gelistirici*", api, sdk, "yapay zeka*", "kod*", deploy, "veritaban*", "entegrasyon*", cli]
+  nonprofit_org: ["bagis*", "vakf*", "vakif*", "dernek*", "gonullu*", "sivil toplum*", "yardim kampanya*"]
+  ecommerce_brand: ["sepet*", "kargo*", "magaza*", "koleksiyon*", "yeni sezon", "indirim*"]
+  saas: ["ekip*", "is akisi*", "panel*", "otomasyon*", "ucretsiz dene*", "abonelik*"]
+  # Bölüm türleri (anatomi): başlık metninde aranır
+  sections:
+    testimonials: ["yorum*", "musterilerimiz*", "ne diyor*", "referans*", "kullanicilarimiz*"]
+    faq: [sss, "sikca sorulan*", "sik sorulan*", "merak edilen*"]
+    pricing: ["fiyat*", "planlar*", "paket*", "ucretlendirme*"]
+    features: ["ozellik*", "neler sunuyor*", "neden biz*", "avantaj*"]
+    how_it_works: ["nasil calisir*", "adim adim", "3 adim*", "nasil kullanilir*"]
+    integrations: ["entegrasyon*"]
+    final_cta: ["hemen basla*", "bugun basla*", "ucretsiz dene*", "katil*"]
+    logos: ["bize guvenen*", "guvenen*", "is ortaklari*", "markalar*"]
+  page_types:
+    pricing: ["fiyat*", "fiyatlandirma", "planlar", "paketler"]
+    faq: [sss, "sikca sorulan*", yardim]
+    blog: [blog, "yazilar", "haberler"]
+    about: [hakkimizda, hakkinda, "biz kimiz"]
+    contact: [iletisim, "bize ulasin"]
+    customers: [musteriler, referanslar, "basari hikayeleri"]
+    careers: [kariyer, "is ilanlari"]
+  trust_badges: [kvkk, "iso 27001", "iso27001", "ssl", "3d secure", "guvenli odeme", etbis]
+  user_claims: ["kullanici*", "musteri*", "uye*", "kisi*", "isletme*", "sirket*"]
+  company_info: [mersis, "vergi no*", "ticaret sicil*", "a.s.", "ltd. sti."]
+  discount: ["indirim*", "%", "2 ay bedava", "tasarruf*", "avantajli"]
+  highlight: ["en populer", "onerilen", "en cok tercih edilen*", "en iyi fiyat"]

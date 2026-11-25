@@ -374,3 +374,19 @@ Kaçırabilir: fiyatı görselde veya PDF'te gösteren siteler (yanlış pozitif
 ### web.funnel.vat_excluded_price
 Yakalar: fiyatın kendi kartında/kapsayıcısında (başka bir fiyatı içermeyen, en fazla 3 üst öğe) "+KDV", "KDV hariç", "KDV dahil değil", "KDV ödeme adımında", "excl. VAT" gibi ifadeler. Sayfanın başka yerindeki ifadeler (SSS, fatura bilgisi) sayılmaz. "KDV dahil" sorun değildir.
 Kaçırabilir: KDV'yi sadece ödeme adımında ekleyen ama fiyat sayfasında hiç belirtmeyen siteler (ödeme adımına gidilmez), sadece şirketlere satış yapan siteler (orada KDV hariç olağan; metin bunu açıkça söyler).
+
+## Faz 2 — kıyas modülü
+
+Tarayıcı şeridinde huniden sonra çalışır. Örnekler (en fazla 6) şöyle seçilir: önce kullanıcının rakipleri (en fazla 3; canlı taranır, 24 saat tüm kullanıcılar için ortak önbellek), sonra kategorinin referans siteleri. Referans siteler haftalık taranır ve Faz 2 sırasında ziyaret edilmez. Kategoriyi kullanıcı seçer (`options.category`, `GET /api/benchmark/categories`); seçmezse kural tabanlı tespit yapılır. Kategori belirsizse referans örnek kullanılmaz. Kullanıcının sitesi örneklerle aynı yöntemle taranır: aynı tarayıcı, mobil ana sayfa + fiyat + kayıt sayfası, aynı LCP ölçümü. Rakip ve referans sitelerde hiçbir güvenlik check'i çalışmaz, sadece sayfa açılır ve anatomi çıkarılır. robots.txt izin vermiyorsa site atlanır ve raporda söylenir. En az 2 geçerli örnek yoksa check'ler atlanır.
+
+### web.benchmark.common_pattern_missing
+Yakalar: örneklerin en az %60'ında (en az 2 örnek) olup kullanıcıda olmayan desenler (22 desen; ör. ilk 3 bölümde sosyal kanıt, müşteri yorumları, logo bandı, kullanıcı sayısı, SSS, son CTA, fiyatın 1 tıkla görülmesi, ücretsiz plan, yıllık indirim, Google ile kayıt, kısa kayıt formu), en fazla 8. Herhangi biri ≥ %80 ise medium, değilse low. Değeri bilinmeyen örnek (ör. kayıt formu bulunamadı) paydaya girmez. Kullanıcının değeri bilinmiyorsa "sende yok" denmez.
+Kaçırabilir: bölüm türü belirsiz kalan özgün tasarımlar (`unknown`), görsel içindeki metinler (logo bandı alt metni olmadan), giriş arkasındaki kayıt formları.
+
+### web.benchmark.missing_page_types
+Yakalar: örneklerin en az %60'ında olup kullanıcının iç linklerinde görülmeyen sayfa türleri (fiyat, SSS, blog, hakkımızda, iletişim, müşteriler, kariyer, karşılaştırma, entegrasyonlar, durum, değişiklik günlüğü, dokümantasyon). Türler adres yolundan TR/EN kelimelerle tanınır.
+Kaçırabilir: alışılmadık adlı sayfalar (`/biz` gibi), ana sayfadan link verilmeyen sayfalar, alt alan adındaki (`docs.site.com`) sayfalar.
+
+### web.benchmark.slower_than_peers
+Yakalar: ana içerik görünme süresi (LCP) örneklerin ortancasının 1,5 katından kötü. Kullanıcıda ve en az 2 örnekte CrUX origin verisi varsa saha verisi, yoksa aynı tarayıcıda aynı koşullarda ölçülmüş laboratuvar LCP'si kullanılır. İki yöntem karıştırılmaz.
+Kaçırabilir: laboratuvar ölçümü kısıtlamasız ağdadır ve tek ölçümdür (ağ dalgalanması); referans sitelerin ölçümü haftalıktır, kullanıcınınki tarama anındadır.

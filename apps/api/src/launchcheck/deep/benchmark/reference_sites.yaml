@@ -1,0 +1,29 @@
+# Referans kütüphanesi (PHASE2 §7.2, §7.6). Bu bir başlangıç listesidir: haftalık cron her siteyi
+# robots.txt, erişilebilirlik ve CrUX ile doğrular; geçemeyenler DB'de `status` ile işaretlenir.
+# Kategori başına en az 3 aktif site kalmazsa yeni öneriler docs/decisions.md'ye yazılır.
+# Liste uygulama (worker-deep) başlarken DB'ye senkronize edilir; çıkarılan siteler silinir.
+categories:
+  saas:
+    label: { tr: "SaaS / web uygulaması", en: "SaaS / web app" }
+    sites: [linear.app, notion.com, vercel.com, cal.com, framer.com, parasut.com]
+  dev_ai_tools:
+    label: { tr: "Geliştirici ve yapay zekâ araçları", en: "Developer & AI tools" }
+    sites: [cursor.com, supabase.com, replit.com, lovable.dev, bolt.new]
+  ecommerce_brand:
+    label: { tr: "E-ticaret / marka mağazası", en: "E-commerce / brand store" }
+    sites: [gymshark.com, allbirds.com, roguefitness.com, karaca.com, koton.com]
+  community_chat:
+    label: { tr: "Topluluk ve sohbet", en: "Community & chat" }
+    sites: [discord.com, slack.com, telegram.org, circle.so, skool.com]
+  dating_matching:
+    label: { tr: "Tanışma ve eşleşme", en: "Dating & matching" }
+    sites: [bumble.com, hinge.co, tinder.com, okcupid.com]
+  mobile_app_landing:
+    label: { tr: "Mobil uygulama tanıtım sayfası", en: "Mobile app landing" }
+    sites: [duolingo.com, headspace.com, strava.com, getir.com]
+  wellbeing_support:
+    label: { tr: "Ruh sağlığı ve destek", en: "Wellbeing & support" }
+    sites: [calm.com, headspace.com, 7cups.com]
+  nonprofit_org:
+    label: { tr: "Vakıf / dernek / kurum", en: "Nonprofit / organization" }
+    sites: [charitywater.org, tegv.org, tema.org.tr, losev.org.tr]

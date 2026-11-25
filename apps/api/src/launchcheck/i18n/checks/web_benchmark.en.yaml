@@ -1,0 +1,87 @@
+# Phase 2 benchmark check texts (English). Data: the user's competitors and reference sites in
+# their category, all inspected the same way (same browser, same measurement). Tone: "adapt what
+# works", never suggest copying a competitor's content.
+
+web.benchmark.common_pattern_missing:
+  title: "{count} things most example sites have are missing on yours"
+  passed_title: "Your site has the common patterns of the example sites"
+  description: "We inspected your competitors and successful sites in your category the same way. What most of them have and you don't: {patterns}. In brackets: how many examples have it."
+  why_it_matters: "If a pattern appears on most similar sites, visitors are used to seeing it: without it they lose trust or direction. Adapting these patterns with your own content gets results much faster than experimenting from scratch."
+  fix_steps:
+    - "Start with the pattern that appears in the most examples."
+    - "Apply the pattern with your own product and your own words; don't copy the example sites' text or images."
+    - "Run the deep scan again after the change to see the difference."
+  fix_prompt: |
+    We compared my site with successful sites in my category; the patterns most of them have and I don't are in the evidence. Please:
+    1. For each pattern, suggest where and how to add it on my page (including section order).
+    2. Write the content for my product (ask me about my product, audience and proof); don't use other sites' text, slogans or images.
+    3. For social proof, numbers or trust badges, only use data I really have; don't make anything up.
+    4. Implement the changes with my existing design components.
+  fragments:
+    pattern_social_proof_early: "social proof (logos or reviews) in the first 3 sections"
+    pattern_testimonials: "customer testimonials"
+    pattern_logo_band: "customer/partner logos"
+    pattern_user_count_claim: "user/customer count"
+    pattern_security_badges: "security/compliance badges"
+    pattern_case_studies: "case studies page"
+    pattern_contact: "contact details or page"
+    pattern_company_info: "company details (legal name, address)"
+    pattern_hero_subheadline: "an explanatory subheadline under the headline"
+    pattern_hero_cta: "a clear action button on the first screen"
+    pattern_hero_media: "a product image or video on the first screen"
+    pattern_faq_section: "an FAQ section on the home page"
+    pattern_how_it_works: "a \"how it works\" section"
+    pattern_final_cta: "a final call-to-action section at the end of the page"
+    pattern_price_one_click: "prices visible within 1 click from the home page"
+    pattern_free_tier: "a free plan"
+    pattern_annual_discount: "a discount for annual billing"
+    pattern_highlighted_plan: "a highlighted (recommended) plan"
+    pattern_social_login: "sign-up with Google/Apple"
+    pattern_short_signup: "a sign-up form with at most 3 fields"
+    pattern_no_card_signup: "sign-up without a card"
+    pattern_og_image: "a share image (og:image)"
+
+web.benchmark.missing_page_types:
+  title: "Some pages the example sites have are missing on yours"
+  passed_title: "Your site has the key pages the example sites have"
+  description: "Pages most similar sites have that we couldn't find on yours: {pages}. In brackets: how many examples have it."
+  why_it_matters: "Before deciding, visitors look for answers, proof or trust on these pages. If they can't find them, they usually don't ask; they leave. These pages are also separate entry points from search engines."
+  fix_steps:
+    - "Pick the pages from the list that make sense for your product."
+    - "Write each page with your own information and link it from the menu/footer."
+  fix_prompt: |
+    My site lacks some page types that most similar sites have (in the evidence). Please:
+    1. Let's decide together which ones my product really needs (ask me about my product).
+    2. For each chosen page, prepare section headings and a content draft with my own information.
+    3. Create the pages and link them from the menu/footer.
+  fragments:
+    page_pricing: "pricing"
+    page_faq: "FAQ / help"
+    page_blog: "blog"
+    page_about: "about"
+    page_contact: "contact"
+    page_customers: "customers / case studies"
+    page_careers: "careers"
+    page_compare: "comparison"
+    page_integrations: "integrations"
+    page_status: "status page"
+    page_changelog: "changelog"
+    page_docs: "documentation"
+
+web.benchmark.slower_than_peers:
+  title: "Your site is noticeably slower than similar sites"
+  passed_title: "Your site isn't slower than similar sites"
+  description: "Your main content appears (LCP) in {user} s; the example sites' median is {median} s: {ratio} times slower. {method}"
+  why_it_matters: "Visitors compare you with your competitors on the same day, on the same phone. A noticeably slower site earns less trust and loses more visitors, even if it offers the same product."
+  fix_steps:
+    - "Start with the suggestions in the LCP finding in the speed section (largest image/font, blocking scripts)."
+    - "Compress the large first-screen image, convert it to a modern format (WebP/AVIF) and preload it."
+    - "Run the deep scan again after the change to compare with the examples again."
+  fix_prompt: |
+    My site opens noticeably slower than similar sites (LCP values are in the evidence). Please:
+    1. Find the largest element on the first screen (image/heading) and list what to do so it appears faster.
+    2. Defer scripts not needed on first load, compress large images and serve them at the right size.
+    3. Rank the possible changes by impact and implement them.
+  fragments:
+    method_field: "Values come from Google's real-user data (CrUX)."
+    method_lab: "Values are our own measurement in the same browser, under the same conditions."

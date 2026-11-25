@@ -8,6 +8,7 @@ from typing import Any
 from launchcheck.checks.base import Category, ScanContext, Severity
 from launchcheck.collectors.web_collector import WebContext
 from launchcheck.deep.assets import AssetStore
+from launchcheck.deep.benchmark_data import BenchmarkData
 from launchcheck.deep.events import EventSink, MemoryEventSink
 from launchcheck.deep.external_data import ExternalData
 from launchcheck.deep.funnel_data import FunnelData
@@ -58,6 +59,8 @@ class DeepContext(ScanContext):
     privacy: PrivacyData | None = None
     # Huni yürüyüşünün topladığı veri (adımlar, kayıt formu, fiyat)
     funnel: FunnelData | None = None
+    # Kıyas modülünün verisi (örnekler, anatomiler, karşılaştırma)
+    benchmark: BenchmarkData | None = None
 
     def note_checks(self, key: str, check_ids: list[str]) -> None:
         """`checks_failed` / `checks_skipped` listelerine ekler (modüller paralel yazar).

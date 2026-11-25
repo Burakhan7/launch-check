@@ -15,6 +15,7 @@ from launchcheck.deep.orchestrator import OrchestratorConfig
 
 
 def default_modules() -> list[DeepModule]:
+    from launchcheck.deep.benchmark_module import BenchmarkModule
     from launchcheck.deep.external_module import ExternalModule
     from launchcheck.deep.funnel_module import FunnelModule
     from launchcheck.deep.links_module import LinksModule
@@ -22,12 +23,13 @@ def default_modules() -> list[DeepModule]:
     from launchcheck.deep.privacy_module import PrivacyModule
     from launchcheck.deep.render_module import RenderModule
 
-    # Şerit içi sıra listedeki sıradır: tarayıcı render → gizlilik → huni; ağ dış görünürlük →
-    # linkler
+    # Şerit içi sıra listedeki sıradır: tarayıcı render → gizlilik → huni → kıyas; ağ dış
+    # görünürlük → linkler
     return [
         RenderModule(),
         PrivacyModule(),
         FunnelModule(),
+        BenchmarkModule(),
         PerfModule(),
         ExternalModule(),
         LinksModule(),

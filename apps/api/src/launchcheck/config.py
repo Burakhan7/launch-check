@@ -419,7 +419,8 @@ class Settings(BaseSettings):
     deep_max_competitors: int = 3
     deep_competitor_max_pages: int = 6
     # Şerit bütçeleri: aşınca modül elindekiyle biter (meta.deep.partial_modules)
-    deep_budget_browser_s: float = 420
+    # Tarayıcı şeridi: render 240 + gizlilik 90 + huni 75 + kıyas 120 (P9'da 420'den yükseltildi)
+    deep_budget_browser_s: float = 540
     deep_budget_lighthouse_s: float = 240
     # Ağ şeridi: dış görünürlük (150) + linkler (120). P6'da 180'den yükseltildi (decisions).
     deep_budget_network_s: float = 300
@@ -755,6 +756,18 @@ class Settings(BaseSettings):
     # Kayıt formu: alan ve zorunlu alan sınırları (spec: > 6 alan, > 4 zorunlu alan)
     deep_funnel_max_fields: int = 6
     deep_funnel_max_required: int = 4
+    # --- Kıyas (P9, PHASE2 §7; tarayıcı şeridi, huniden sonra) ---
+    deep_budget_benchmark_s: float = 120
+    # Aynı anda taranan site (kullanıcının sitesi + rakipler)
+    deep_benchmark_concurrency: int = 2
+    # Referans kütüphanesi yenilemesi (worker-deep saatlik cron): her çalışmada en fazla bu kadar
+    # site, aralarında en az bu kadar sn; bir site bu kadar günde bir yeniden taranır.
+    deep_reference_sites_per_run: int = 1
+    deep_reference_gap_s: float = 30
+    deep_reference_refresh_days: int = 7
+    # Majestic Million (CC BY 3.0; decisions P0): haftalık popülerlik sıralaması. Boşsa atlanır.
+    deep_majestic_url: str = "https://downloads.majestic.com/majestic_million.csv"
+    deep_majestic_max_bytes: int = 200 * 1024 * 1024
 
 
 @lru_cache

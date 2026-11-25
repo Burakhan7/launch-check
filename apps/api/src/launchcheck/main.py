@@ -9,7 +9,7 @@ from redis.asyncio import Redis
 
 from launchcheck.api.errors import install_error_handlers
 from launchcheck.api.queue import build_queue
-from launchcheck.api.routes import deep, health, scans
+from launchcheck.api.routes import benchmark, deep, health, scans
 from launchcheck.checks.registry import load_builtin_checks
 from launchcheck.config import get_settings
 from launchcheck.security.ratelimit import RateLimiter
@@ -47,6 +47,7 @@ def create_app() -> FastAPI:
     app.include_router(health.router, prefix="/api")
     app.include_router(scans.router, prefix="/api")
     app.include_router(deep.router, prefix="/api")
+    app.include_router(benchmark.router, prefix="/api")
     return app
 
 

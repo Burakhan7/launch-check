@@ -20,6 +20,7 @@ from launchcheck.checks.shared.domains import registered_domain
 from launchcheck.config import get_settings
 from launchcheck.db.models import Scan, ScanAsset, ScanEvent, ScanStatus, utcnow
 from launchcheck.db.session import get_session
+from launchcheck.deep.benchmark.categories import category_keys
 from launchcheck.deep.setup import asset_store
 from launchcheck.i18n import event_text, normalize_lang
 from launchcheck.security.ssrf import UrlGuard
@@ -110,6 +111,8 @@ async def create_deep_scan(
     settings = get_settings()
     parent = await _parent(session, scan_id)
     competitors = await _competitors(body.competitors, parent, guard)
+    if body.category is not None and body.category not in category_keys():
+        raise ApiError("invalid_category", 400)
     compare_to = await _compare_to(session, body.compare_to, parent)
     if await waiting_count(session) >= settings.deep_queue_max:
         raise ApiError("queue_full", 503)
@@ -119,6 +122,8 @@ async def create_deep_scan(
     )
 
     options: dict[str, Any] = {"competitors": competitors, "use_reference": body.use_reference}
+    if body.category:
+        options["category"] = body.category
     scan = Scan(
         target_type=TargetType.WEB,
         target_label=parent.target_label,

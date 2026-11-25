@@ -80,6 +80,8 @@ class AssetStore:
         cutoff = time.time() - max_age_s
         deleted = 0
         for scan_dir in self.base_dir.iterdir():
+            if scan_dir.name.startswith("_"):
+                continue  # paylaşılan önbellekler (ör. _benchmark): kendi temizlikleri var
             try:
                 names = known.get(scan_dir.name)
                 if names is None:
