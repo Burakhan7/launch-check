@@ -765,19 +765,20 @@ def test_link_status_dataclass_defaults() -> None:
 
 
 def test_default_modules_lane_order() -> None:
-    """Şerit içi sıra: render → gizlilik (tarayıcı), dış görünürlük → linkler (ağ)."""
+    """Şerit içi sıra: render → gizlilik → huni (tarayıcı), dış görünürlük → linkler (ağ)."""
     from launchcheck.deep.modules import Lane
     from launchcheck.deep.setup import default_modules, default_verification_rules
 
     lanes: dict[Lane, list[str]] = {}
     for m in default_modules():
         lanes.setdefault(m.lane, []).append(m.name)
-    assert lanes[Lane.BROWSER] == ["render", "privacy"]
+    assert lanes[Lane.BROWSER] == ["render", "privacy", "funnel"]
     assert lanes[Lane.NETWORK] == ["external", "links"]
     assert "web.links.insecure_http_links" in default_verification_rules()
     s = Settings()
     assert s.deep_budget_external_s + s.deep_budget_links_s <= s.deep_budget_network_s
-    assert s.deep_budget_render_s + s.deep_budget_privacy_s <= s.deep_budget_browser_s
+    browser = s.deep_budget_render_s + s.deep_budget_privacy_s + s.deep_budget_funnel_s
+    assert browser <= s.deep_budget_browser_s
 
 
 async def test_render_module_marks_render_ready_even_on_failure() -> None:

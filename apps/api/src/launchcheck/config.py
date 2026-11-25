@@ -461,7 +461,7 @@ class Settings(BaseSettings):
     deep_render_max_wait_s: float = 10
     deep_render_concurrency: int = 3
     # Render modülünün payı (tarayıcı şeridi: render → gizlilik → [P7 huni] → [P9 kıyas])
-    deep_budget_render_s: float = 270
+    deep_budget_render_s: float = 240
     # Ana sayfa + en fazla bu kadar kilit sayfa (fiyat > kayıt > ürün > ilk menü linki):
     # 5 genişlikte ölçülür, ekran görüntüsü ve JS kapalı görüntü alınır
     deep_key_pages: int = 2
@@ -710,7 +710,7 @@ class Settings(BaseSettings):
     deep_og_image_ratio_max: float = 2.2
     deep_og_image_max_checks: int = 5
     # --- Gizlilik, tedarik zinciri, erişilebilirlik (P6, PHASE2 §6.5; tarayıcı şeridi) ---
-    deep_budget_privacy_s: float = 120
+    deep_budget_privacy_s: float = 90
     # Hiçbir şeye tıklamadan bekleme (spec: 5 sn) ve "Reddet"ten sonra
     deep_privacy_observe_s: float = 5
     deep_privacy_after_click_s: float = 2
@@ -747,6 +747,14 @@ class Settings(BaseSettings):
             "rawgit.com": "RawGit 2019'da kapatıldı (terk edilmiş CDN; içerik garanti değil)",
         }
     )
+    # --- Huni yürüyüşü (P7, PHASE2 §6.6; tarayıcı şeridi, gizlilikten sonra) ---
+    deep_budget_funnel_s: float = 75
+    # Ana sayfadan kayıt formuna en fazla tık; ara adımların en uzun yüklenme süresi (ms)
+    deep_funnel_max_clicks: int = 3
+    deep_funnel_slow_step_ms: int = 3000
+    # Kayıt formu: alan ve zorunlu alan sınırları (spec: > 6 alan, > 4 zorunlu alan)
+    deep_funnel_max_fields: int = 6
+    deep_funnel_max_required: int = 4
 
 
 @lru_cache

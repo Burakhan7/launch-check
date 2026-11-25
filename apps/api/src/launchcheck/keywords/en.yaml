@@ -105,3 +105,19 @@ consent:
   reject: ["reject*", "decline*", deny, "refuse*", "only necessary*", "necessary only", "only essential*", "essential only", "use necessary cookies only", "continue without accepting", "disagree*", "do not accept"]
   settings: ["settings", "cookie settings", "preferences", "customi*", "manage*", "more options"]
   accept: ["accept*", "agree*", "allow*", "got it", "ok"]
+
+# Phase 2 / P7 — funnel walk. Items starting with "/" or "+" are matched as plain text
+funnel:
+  signup_buttons: ["sign up", signup, "create account", "create an account", "create your account", register, "get started", "start free*", "try free*", "join now"]
+  login_buttons: ["log in", login, "sign in"]
+  # State-changing or payment-starting buttons: never clicked as CTA (passivity)
+  skip_cta: ["add to cart", "add to bag", "add to basket", "buy now", "buy it now", checkout, "order now", "log out", "delete*", "cancel*", unsubscribe]
+  vat_excluded: ["excl. vat", "excl vat", "excluding vat", "+ vat", "+vat", "plus vat", "vat not included"]
+  free_tier: [free, "free forever", "$0", "0 $"]
+  quote: ["contact sales", "request a quote", "get a quote", "talk to sales", "custom pricing", "contact us for pricing"]
+  monthly: [monthly, "/mo", "/month", "per month"]
+  yearly: [yearly, annually, annual, "/yr", "/year", "per year"]
+  consent: ["terms*", "privacy*", gdpr, "i agree*"]
+  # Paid plan signal (for the price check; never a finding on its own)
+  paid_words: [pricing, "price*", premium, "subscription*", subscribe, plans, "upgrade*", "buy*", paid]
+  newsletter: ["newsletter*", subscribe, "updates"]

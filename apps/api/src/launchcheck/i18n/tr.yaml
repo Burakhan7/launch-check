@@ -54,6 +54,7 @@ deep_events:
   deep.event.external_partial: "Bazı dış kaynaklara (sertifika kayıtları, arşiv, DNS) ulaşılamadı; ilgili kontroller atlandı."
   deep.event.privacy_consent_checked: "Çerez banner'ı ve takip araçları kontrol edildi; erişilebilirlik ölçülüyor…"
   deep.event.links_checked: "{internal} iç ve {external} dış link kontrol edildi."
+  deep.event.funnel_walked: "Kayıt ve fiyat yolu telefonda gezildi ({steps} adım)."
   deep.event.module_done: "{module} bitti: {found} bulgu."
   deep.event.module_partial: "{module} süre sınırına ulaştı; bulunanlarla devam ediliyor ({found} bulgu)."
   deep.event.module_failed: "{module} tamamlanamadı; tarama diğer bölümlerle devam ediyor."

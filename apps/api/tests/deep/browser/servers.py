@@ -15,6 +15,7 @@ class Route:
     content_type: str = "text/html; charset=utf-8"
     status: int = 200
     headers: dict[str, str] = field(default_factory=dict)
+    delay_s: float = 0  # yavaş sayfa benzetimi (huni testleri)
 
 
 class LocalHttpServer:
@@ -46,6 +47,8 @@ class LocalHttpServer:
             self.requests.append(head)
             path = head.split(b" ", 2)[1].decode()
             route = self.routes.get(path.split("?", 1)[0], self.fallback)
+            if route.delay_s:
+                await asyncio.sleep(route.delay_s)
             extra = "".join(f"{k}: {v}\r\n" for k, v in route.headers.items())
             writer.write(
                 f"HTTP/1.1 {route.status} X\r\nContent-Type: {route.content_type}\r\n"

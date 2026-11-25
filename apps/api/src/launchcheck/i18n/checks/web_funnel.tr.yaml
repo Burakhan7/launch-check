@@ -1,0 +1,88 @@
+# Faz 2 huni yürüyüşü check metinleri (Türkçe). Veri: siteyi telefonda açıp birincil düğmeden
+# kayıt formuna ve fiyat sayfasına giden yol. Formlara hiçbir şey yazılmadı, gönderilmedi.
+
+web.funnel.signup_friction:
+  title: "Kayıt formu ziyaretçiyi yoruyor"
+  passed_title: "Kayıt formu kısa ve kolay"
+  description: "Kayıt formunu ({page}) inceledik: {issues}. Hangi alanların olduğu kanıtta."
+  why_it_matters: "Kayıt formundaki her ek alan ve her zorunlu bilgi, formu yarıda bırakan ziyaretçi sayısını artırır. Kayıt sırasında kart istemek, ürünü denemek isteyen birçok kişiyi daha başlamadan vazgeçirir; tek tıkla Google/Apple ile giriş ise telefonda kaydı saniyelere indirir."
+  fix_steps:
+    - "Kayıtta sadece gerçekten gerekli alanları bırak (çoğu zaman e-posta ve şifre yeter); diğerlerini kayıttan sonra iste."
+    - "Zorunlu olmayan alanları isteğe bağlı yap ve öyle işaretle."
+    - "Deneme/ücretsiz plan varsa kartı kayıtta değil, ücretli plana geçerken iste."
+    - "Google ve (iOS kullanıcıların çoksa) Apple ile giriş ekle."
+  fix_prompt: |
+    Sitemin kayıt formu çok uzun veya zor (sorunlar, alan sayısı ve alan türleri kanıtta). Lütfen:
+    1. Kayıt formunu en az alana indir: kayıt için gerekmeyen alanları (telefon, adres, doğum tarihi vb.) kayıt sonrası profil adımına taşı.
+    2. Zorunlu alanları gözden geçir; gerçekten gerekmeyenleri isteğe bağlı yap.
+    3. Kart bilgisini kayıttan çıkar ve ücretli plana geçiş adımına taşı.
+    4. Kullandığım kimlik doğrulama altyapısına göre (bana sor; ör. Supabase Auth, Firebase, Clerk) Google ile girişi ekle.
+  fragments:
+    issue_too_many_fields: "{fields} alan var (6'dan fazlası çoğu ziyaretçiye uzun gelir)"
+    issue_too_many_required: "{required} alan zorunlu"
+    issue_card_required: "kayıt sırasında kart bilgisi isteniyor"
+    issue_no_social_login: "Google/Apple gibi tek tıkla giriş seçeneği yok"
+
+web.funnel.too_many_steps:
+  title: "Kayıt formuna ulaşmak uzun sürüyor"
+  passed_title: "Kayıt formuna kısa yoldan ulaşılıyor"
+  description: "Telefonda ana sayfadaki ana düğmeden kayıt formuna kadar yürüdük: {issues}. Adımlar ve süreleri kanıtta."
+  why_it_matters: "Ziyaretçi her ek tıkta ve her yavaş açılan sayfada biraz daha vazgeçer. Kayıt formu ana sayfadaki ana düğmeden bir, en fazla iki tık uzakta olmalı ve her adım hızlı açılmalı."
+  fix_steps:
+    - "Ana sayfadaki ana düğmeyi doğrudan kayıt formuna bağla (ara bir tanıtım veya giriş sayfası yerine)."
+    - "Giriş sayfasına yönlendiriyorsan orada 'Hesabın yok mu? Kayıt ol' yerine doğrudan kayıt formunu göster."
+    - "Yavaş adımın sayfasını hafiflet (büyük görseller, ağır script'ler) veya formu ana sayfada bir pencerede aç."
+  fix_prompt: |
+    Sitemde ana sayfadan kayıt formuna giden yol uzun veya yavaş (adımlar, tık sayısı ve süreler kanıtta). Lütfen:
+    1. Ana sayfadaki birincil düğmenin doğrudan kayıt formunu açmasını sağla.
+    2. Giriş ve kayıt aynı sayfadaysa varsayılan sekmeyi kayıt yap (?mode=signup gibi bir parametreyle).
+    3. Yavaş açılan adımın sayfasında yüklemeyi geciktiren görsel ve script'leri bul, ertele veya küçült.
+
+web.funnel.mobile_input_types:
+  title: "Kayıt formunda {count} alan telefonda zor dolduruluyor"
+  passed_title: "Kayıt formu alanları telefona uygun"
+  description: "Kayıt formundaki ({page}) bazı alanlar doğru klavyeyi açmıyor veya tarayıcının otomatik doldurmasına izin vermiyor. Alanlar ve eksikleri kanıtta."
+  why_it_matters: "E-posta alanı 'email' türünde değilse telefon @ işaretli klavyeyi açmaz; telefon alanı 'tel' değilse rakam klavyesi gelmez. 'autocomplete' olmayınca tarayıcı ve şifre yöneticisi alanları dolduramaz, ziyaretçi her şeyi elle yazar."
+  fix_steps:
+    - "E-posta alanına type=\"email\", telefon alanına type=\"tel\" ver."
+    - "Alanlara uygun autocomplete değeri ekle: email, tel, name, given-name, family-name, new-password."
+    - "Değişikliği telefonda deneyip doğru klavyenin açıldığını kontrol et."
+  fix_prompt: |
+    Sitemin kayıt formundaki bazı alanların türü veya autocomplete değeri eksik (alanlar kanıtta). Lütfen:
+    1. E-posta alanlarına type="email", telefon alanlarına type="tel" (gerekirse inputmode="tel") ekle.
+    2. Her alana doğru autocomplete değerini ver (email, tel, name, given-name, family-name, new-password).
+    3. Form bileşeni ortak kullanılıyorsa düzeltmeyi bileşende yap ki tüm formlara yansısın.
+
+web.funnel.price_hidden:
+  title: "Fiyatlar kolay bulunmuyor"
+  passed_title: "Fiyatlar kolayca görülüyor"
+  description: "Sitende ücretli bir ürün veya plan olduğuna dair işaretler var, ama {situation}"
+  why_it_matters: "Fiyatı göremeyen ziyaretçi ya pahalı olduğunu varsayar ya da rakibin sitesine geçer. Fiyat sayfası ana sayfadan tek tıkla açılmalı ve fiyatlar sayfa açılınca görünmeli."
+  fix_steps:
+    - "Menüye 'Fiyatlar' linki ekle ve fiyat sayfasını ana sayfadan tek tıkla ulaşılır yap."
+    - "Fiyatların sayfa açılınca göründüğünden emin ol (giriş, form veya ek tık arkasında olmasın)."
+    - "Fiyatı kişiye göre belirliyorsan en azından 'başlangıç fiyatı' veya örnek bir paket göster."
+  fix_prompt: |
+    Sitemde ücretli plan/ürün var ama fiyatlar kolay bulunmuyor (kanıtta hangi işaretleri gördüğümüz ve fiyat sayfasının uzaklığı var). Lütfen:
+    1. Menüye ve ana sayfaya bir 'Fiyatlar' linki/bölümü ekle.
+    2. Fiyat sayfasında planları, fiyatları ve neyin dahil olduğunu tek bakışta gösteren bir tablo/kart yapısı kur.
+    3. Fiyatlar bir API'den geliyorsa yüklenmezse bile varsayılan fiyatların görünmesini sağla.
+  fragments:
+    situation_not_found: "baktığımız sayfaların hiçbirinde fiyat görünmüyor."
+    situation_far: "en yakın fiyat ana sayfadan {clicks} tık uzakta."
+
+web.funnel.vat_excluded_price:
+  title: "Fiyatlar KDV hariç gösteriliyor"
+  passed_title: "Fiyatlarda KDV hariç ifadesi yok"
+  description: "Fiyatların yanında şu ifadeler var: {phrases}. Ziyaretçi ödeme adımında gördüğü tutarın sayfadakinden yüksek olduğunu fark ediyor."
+  why_it_matters: "Tüketiciye satışta fiyatların vergiler dahil gösterilmesi Türkiye'de (Fiyat Etiketi Yönetmeliği) ve AB'de zorunlu. Ayrıca ödeme adımında tutarın birden %20 artması sepeti terk etmenin en sık nedenlerinden biridir. Sadece şirketlere satış yapıyorsan KDV hariç göstermek olağandır, ama bunu açıkça belirt."
+  fix_steps:
+    - "Tüketiciye satış yapıyorsan fiyatları KDV dahil göster."
+    - "Sadece şirketlere satış yapıyorsan fiyatın yanına 'KDV hariç' ve KDV dahil tutarı birlikte yaz."
+    - "Ödeme adımındaki tutarla sayfadaki tutarın aynı olduğunu kontrol et."
+  fix_prompt: |
+    Sitemde fiyatlar KDV hariç gösteriliyor (ifadeler ve sayfalar kanıtta). Lütfen:
+    1. Fiyatların gösterildiği bileşenleri bul.
+    2. Fiyatları KDV dahil göstermek için hesaplamayı ve metni güncelle (KDV oranını tek bir yapılandırmadan al).
+    3. Kurumsal müşteriler için istenirse 'KDV hariç' tutarı ikinci satırda küçük göster.
+    4. Ödeme adımındaki toplamla sayfadaki fiyatın tutarlı olduğunu kontrol eden bir test ekle.

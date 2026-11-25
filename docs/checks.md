@@ -350,3 +350,27 @@ Kaçırabilir: listede olmayan yeni olaylar ve şu an temiz görünen ama sonrad
 ### web.a11y.axe_violations
 Yakalar: axe-core (WCAG 2.0–2.2 A/AA etiketleri) ana sayfa + en fazla 4 kilit/menü sayfasında, mobil ve masaüstünde; `serious` → medium, `critical` → high, kural bazında tek bulgu. Faz 1'in aynı konudaki bulgusu varsa (`image-alt` ↔ `img_missing_alt`, `meta-viewport` ↔ `viewport_missing`) kural tekrar sayılmaz.
 Kaçırabilir: otomatik araçların göremediği sorunlar (anlamlı alt metin, klavye tuzakları, odak sırası mantığı), `moderate`/`minor` ihlaller, giriş arkasındaki sayfalar.
+
+## Faz 2 — huni yürüyüşü modülü
+
+Tarayıcı şeridinde gizlilikten sonra, yeni bir **mobil** context'te çalışır. Ana sayfadaki birincil CTA'ya tıklanır (menü dışı, form içinde/`submit` olmayan, "sepete ekle / satın al / çıkış" gibi durum değiştirmeyen; `keywords` → `funnel.skip_cta`). Açılan sayfa kayıt formu değilse ve bir giriş sayfasıysa kayıt linkine geçilir. Bulunamazsa render'ın link grafiğindeki kayıt adresleri denenir. Fiyat sayfası da açılır. Her adımda tık sayısı (render'ın iç link grafiğinde BFS), yüklenme süresi (Navigation Timing; SPA geçişinde tıklamadan `load`'a), adres ve mobil ekran görüntüsü kaydedilir. Huni haritası `meta.funnel`'a yazılır: adımlar, her adımdaki bulgular, form özeti, fiyat özeti. **Hiçbir alana yazılmaz, form gönderilmez**; bu, tarayıcı testlerinde sunucu kayıtlarıyla doğrulanır. Kayıt formu bulunamazsa form ve adım check'leri atlanır ("geçti" sayılmaz). Ücretli plan sinyali ve fiyat yoksa fiyat check'leri geçer.
+
+### web.funnel.signup_friction
+Yakalar: kayıt formunda 6'dan fazla alan, 4'ten fazla zorunlu alan (`required`, `aria-required` veya `*` ile biten etiket), kart alanı (`cc-*`, kart/cvc adlı alanlar, Stripe/iyzico/PayTR iframe'i), sosyal giriş yok (Google/Apple/GitHub... düğme metni, görsel alt metni veya OAuth adresi). Sadece sosyal giriş eksikse low, diğerleri medium. Kayıt formu; iki şifre alanı, şifre + 2 alan, ya da e-posta + kayıt düğmesi/kayıt adresiyle tanınır. Giriş, arama ve bülten formları elenir.
+Kaçırabilir: çok adımlı kayıt sihirbazlarının sonraki adımları (sadece ilk ekran görülür), kapalı shadow DOM'daki formlar, sosyal girişi sadece simgeyle (etiketsiz SVG) gösteren düğmeler.
+
+### web.funnel.too_many_steps
+Yakalar: ana sayfadan kayıt formuna 3'ten fazla tık veya yoldaki bir adımın (CTA sayfası, giriş sayfası, kayıt sayfası) 3 sn'den uzun yüklenmesi.
+Kaçırabilir: yüklenme süreleri kısıtlamasız ağda ölçülür (gerçek mobil ağda daha yavaş olabilir; hız check'leri Lighthouse ile ayrıca bakar); CTA'nın açtığı modal içindeki ek adımlar.
+
+### web.funnel.mobile_input_types
+Yakalar: kayıt formunda türü `email` olmayan e-posta alanları, `tel` olmayan telefon alanları (uygun `inputmode` varsa sorun yok) ve `autocomplete` değeri olmayan e-posta/telefon/ad/şifre alanları.
+Kaçırabilir: alan türünü adından/etiketinden çıkaramadığımız alanlar ("Kullanıcı bilgisi" gibi genel etiketler), JS ile maskelenmiş özel giriş bileşenleri.
+
+### web.funnel.price_hidden
+Yakalar: ücretli plan sinyali (fiyat sayfası adresi, "premium/abonelik/satın al/pricing/upgrade" kelimeleri veya sitede fiyat) var ama fiyat görünen en yakın sayfa ana sayfadan 2+ tık uzakta ya da hiçbir sayfada fiyat yok. Fiyat yerine "teklif alın / satış ekibiyle görüşün" diyen sayfalarda low.
+Kaçırabilir: fiyatı görselde veya PDF'te gösteren siteler (yanlış pozitif olabilir), render'ın açmadığı derin sayfalardaki fiyatlar.
+
+### web.funnel.vat_excluded_price
+Yakalar: fiyatın kendi kartında/kapsayıcısında (başka bir fiyatı içermeyen, en fazla 3 üst öğe) "+KDV", "KDV hariç", "KDV dahil değil", "KDV ödeme adımında", "excl. VAT" gibi ifadeler. Sayfanın başka yerindeki ifadeler (SSS, fatura bilgisi) sayılmaz. "KDV dahil" sorun değildir.
+Kaçırabilir: KDV'yi sadece ödeme adımında ekleyen ama fiyat sayfasında hiç belirtmeyen siteler (ödeme adımına gidilmez), sadece şirketlere satış yapan siteler (orada KDV hariç olağan; metin bunu açıkça söyler).

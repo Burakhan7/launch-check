@@ -54,6 +54,7 @@ deep_events:
   deep.event.external_partial: "Some external sources (certificate logs, archive, DNS) couldn't be reached; related checks were skipped."
   deep.event.privacy_consent_checked: "Cookie banner and tracking tools checked; measuring accessibility…"
   deep.event.links_checked: "{internal} internal and {external} external links checked."
+  deep.event.funnel_walked: "Walked the sign-up and pricing path on a phone ({steps} steps)."
   deep.event.module_done: "{module} finished: {found} findings."
   deep.event.module_partial: "{module} hit its time limit; continuing with what it found ({found} findings)."
   deep.event.module_failed: "{module} couldn't be completed; the scan continues with the other parts."

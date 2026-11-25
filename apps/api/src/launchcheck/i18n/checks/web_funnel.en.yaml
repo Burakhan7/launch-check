@@ -1,0 +1,91 @@
+# Phase 2 funnel walk check texts (English). Data: the path from the main button to the sign-up
+# form and the pricing page, opened on a phone. Nothing was typed into or submitted in forms.
+
+web.funnel.signup_friction:
+  title: "The sign-up form is tiring for visitors"
+  passed_title: "The sign-up form is short and easy"
+  description: "We inspected the sign-up form ({page}): {issues}. Which fields it has is in the evidence."
+  why_it_matters: "Every extra field and every required detail in a sign-up form increases the number of visitors who abandon it. Asking for a card at sign-up puts off many people before they even try the product; one-tap sign-in with Google/Apple cuts sign-up on phones down to seconds."
+  fix_steps:
+    - "Keep only the fields you truly need at sign-up (email and password are usually enough); ask for the rest afterwards."
+    - "Make non-essential fields optional and label them as such."
+    - "If there's a trial/free plan, ask for the card when upgrading to a paid plan, not at sign-up."
+    - "Add sign-in with Google and (if many of your users are on iOS) Apple."
+  fix_prompt: |
+    My site's sign-up form is too long or hard (issues, field count and field types are in the evidence). Please:
+    1. Reduce the sign-up form to the minimum: move fields not needed for sign-up (phone, address, birth date etc.) to a post-sign-up profile step.
+    2. Review required fields; make the ones that aren't really needed optional.
+    3. Remove card details from sign-up and move them to the paid-plan upgrade step.
+    4. Add Google sign-in using my auth setup (ask me; e.g. Supabase Auth, Firebase, Clerk).
+  fragments:
+    issue_too_many_fields: "it has {fields} fields (more than 6 feels long to most visitors)"
+    issue_too_many_required: "{required} fields are required"
+    issue_card_required: "card details are requested at sign-up"
+    issue_no_social_login: "there's no one-tap sign-in option such as Google/Apple"
+
+web.funnel.too_many_steps:
+  title: "Reaching the sign-up form takes too long"
+  passed_title: "The sign-up form is reached quickly"
+  description: "On a phone, we walked from the main button on the home page to the sign-up form: {issues}. Steps and their timings are in the evidence."
+  why_it_matters: "Visitors give up a little more with every extra tap and every slow page. The sign-up form should be one, at most two taps from the main button on the home page, and every step should open quickly."
+  fix_steps:
+    - "Link the main home page button directly to the sign-up form (instead of an intermediate intro or login page)."
+    - "If you send people to the login page, show the sign-up form there directly instead of 'No account? Sign up'."
+    - "Lighten the slow step's page (large images, heavy scripts) or open the form in a dialog on the home page."
+  fix_prompt: |
+    On my site, the path from the home page to the sign-up form is long or slow (steps, tap count and timings are in the evidence). Please:
+    1. Make the primary home page button open the sign-up form directly.
+    2. If login and sign-up share a page, make sign-up the default tab (with a parameter like ?mode=signup).
+    3. On the slow step's page, find the images and scripts delaying the load and defer or shrink them.
+  fragments:
+    issue_too_many_clicks: "it takes {clicks} taps"
+    issue_slow_step: "one step takes {seconds} seconds to load"
+
+web.funnel.mobile_input_types:
+  title: "{count} sign-up fields are hard to fill in on a phone"
+  passed_title: "Sign-up form fields suit phones"
+  description: "Some fields in the sign-up form ({page}) don't open the right keyboard or don't let the browser autofill them. Fields and what they're missing are in the evidence."
+  why_it_matters: "If the email field isn't of type 'email', the phone doesn't show the keyboard with @; if the phone field isn't 'tel', the number pad doesn't appear. Without 'autocomplete', the browser and password manager can't fill in fields and visitors have to type everything."
+  fix_steps:
+    - "Give the email field type=\"email\" and the phone field type=\"tel\"."
+    - "Add a suitable autocomplete value: email, tel, name, given-name, family-name, new-password."
+    - "Try it on a phone and check that the right keyboard opens."
+  fix_prompt: |
+    Some fields in my site's sign-up form are missing their type or autocomplete value (fields are in the evidence). Please:
+    1. Add type="email" to email fields and type="tel" (inputmode="tel" if needed) to phone fields.
+    2. Give each field the right autocomplete value (email, tel, name, given-name, family-name, new-password).
+    3. If a shared form component is used, fix it in the component so all forms get it.
+
+web.funnel.price_hidden:
+  title: "Prices are hard to find"
+  passed_title: "Prices are easy to see"
+  description: "There are signs that your site has a paid product or plan, but {situation}"
+  why_it_matters: "Visitors who can't see the price either assume it's expensive or move on to a competitor. The pricing page should be one tap from the home page and prices should be visible as soon as it opens."
+  fix_steps:
+    - "Add a 'Pricing' link to the menu and make the pricing page reachable in one tap from the home page."
+    - "Make sure prices are visible when the page opens (not behind a login, a form or an extra tap)."
+    - "If pricing is per customer, at least show a 'starting from' price or an example package."
+  fix_prompt: |
+    My site has paid plans/products but prices are hard to find (the evidence shows which signs we saw and how far the pricing page is). Please:
+    1. Add a 'Pricing' link/section to the menu and the home page.
+    2. Build a table/card layout on the pricing page that shows plans, prices and what's included at a glance.
+    3. If prices come from an API, make default prices show even if it fails to load.
+  fragments:
+    situation_not_found: "none of the pages we looked at show a price."
+    situation_far: "the nearest price is {clicks} taps away from the home page."
+
+web.funnel.vat_excluded_price:
+  title: "Prices are shown excluding VAT"
+  passed_title: "Prices don't say they exclude VAT"
+  description: "Next to the prices it says: {phrases}. Visitors notice at checkout that the amount is higher than on the page."
+  why_it_matters: "When selling to consumers, prices must include taxes in Turkey (Price Tag Regulation) and in the EU. A sudden 20% increase at checkout is also one of the most common reasons for abandoned carts. If you only sell to businesses, showing prices excluding VAT is normal, but say so clearly."
+  fix_steps:
+    - "If you sell to consumers, show prices including VAT."
+    - "If you only sell to businesses, show 'excl. VAT' together with the VAT-inclusive amount."
+    - "Check that the amount at checkout matches the price on the page."
+  fix_prompt: |
+    My site shows prices excluding VAT (phrases and pages are in the evidence). Please:
+    1. Find the components where prices are shown.
+    2. Update the calculation and text to show VAT-inclusive prices (take the VAT rate from a single config).
+    3. Optionally show the 'excl. VAT' amount smaller on a second line for business customers.
+    4. Add a test checking that the checkout total and the page price are consistent.

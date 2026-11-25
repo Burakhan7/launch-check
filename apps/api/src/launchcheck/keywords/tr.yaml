@@ -135,3 +135,19 @@ consent:
   reject: ["reddet*", "tumunu reddet*", "hepsini reddet*", "sadece gerekli*", "yalnizca gerekli*", "sadece zorunlu*", "yalnizca zorunlu*", "zorunlu olanlar*", "gerekli olanlar*", "kabul etmiyorum", "izin vermiyorum", "onaylamiyorum"]
   settings: ["ayarlar*", "cerez ayar*", "tercih*", "ozellestir*", "yonet*"]
   accept: ["kabul*", "tumunu kabul*", "onayla*", "izin ver*", "anladim", "tamam"]
+
+# Faz 2 / P7 — huni yürüyüşü. "/" veya "+" ile başlayan öğeler düz metin olarak aranır
+funnel:
+  signup_buttons: ["kayit ol", kaydol, "uye ol", "hesap olustur*", "hesabini olustur*", "ucretsiz dene*", "hemen basla*", "kayit"]
+  login_buttons: ["giris yap", giris, "oturum ac"]
+  # Durum değiştiren veya ödeme başlatan düğmeler: CTA olarak tıklanmaz (pasiflik)
+  skip_cta: ["sepete ekle*", "sepete at", "satin al*", "siparis*", "odeme*", "cikis*", sil, "iptal*", "abonelikten cik*"]
+  vat_excluded: ["+kdv", "+ kdv", "kdv haric", "kdv dahil degil*", "kdv odeme adim*", "kdv ayrica*", "vergiler haric"]
+  free_tier: [ucretsiz, bedava, "0 tl", "0₺", "₺0"]
+  quote: ["teklif al*", "teklif iste*", "fiyat teklifi*", "bize ulasin", "satis ekib*", "iletisime gec*"]
+  monthly: [aylik, "/ay", "ay basina", "aylik odeme*"]
+  yearly: [yillik, "/yil", "yil basina", "yillik odeme*"]
+  consent: [kvkk, "aydinlatma*", "acik riza*", "kullanim kosul*", "gizlilik*", "sozlesme*", "sartlar*"]
+  # Ücretli plan sinyali (fiyat check'i için; tek başına bulgu değil)
+  paid_words: ["fiyat*", premium, "abonelik*", "abone ol", "paket*", planlar, "satin al*", "yukselt*", "ucretli*"]
+  newsletter: ["bulten*", "e-bulten*", "abone ol", "haber*"]

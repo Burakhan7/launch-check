@@ -16,13 +16,22 @@ from launchcheck.deep.orchestrator import OrchestratorConfig
 
 def default_modules() -> list[DeepModule]:
     from launchcheck.deep.external_module import ExternalModule
+    from launchcheck.deep.funnel_module import FunnelModule
     from launchcheck.deep.links_module import LinksModule
     from launchcheck.deep.perf_module import PerfModule
     from launchcheck.deep.privacy_module import PrivacyModule
     from launchcheck.deep.render_module import RenderModule
 
-    # Şerit içi sıra listedeki sıradır: tarayıcı render → gizlilik; ağ dış görünürlük → linkler
-    return [RenderModule(), PrivacyModule(), PerfModule(), ExternalModule(), LinksModule()]
+    # Şerit içi sıra listedeki sıradır: tarayıcı render → gizlilik → huni; ağ dış görünürlük →
+    # linkler
+    return [
+        RenderModule(),
+        PrivacyModule(),
+        FunnelModule(),
+        PerfModule(),
+        ExternalModule(),
+        LinksModule(),
+    ]
 
 
 def default_verification_rules() -> Mapping[str, VerificationRule]:
