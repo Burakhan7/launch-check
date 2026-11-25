@@ -1,0 +1,95 @@
+# Etki kartları (PHASE2 §8.4, §11) — Faz 1'in critical/high web check'leri, Türkçe.
+# Faz 2 raporunda Faz 1 bulgularının kopyaları da etki kartıyla gösterilir.
+
+web.secrets.leaked_key:
+  who: "Sitenin kodunu açan herkes, kod tarayan botlar dahil"
+  ease: easy
+  consequence: "Anahtarı bulan kişi onu senin adına kullanabilir: yapay zekâ/ödeme/e-posta servislerinde fatura çıkarabilir veya verilere erişebilir."
+  legal: "Anahtar kişisel verilere erişim sağlıyorsa KVKK kapsamında veri ihlali bildirimi gerekebilir."
+  timeline: {today: "Anahtar şu an siteni ziyaret eden herkese açık.", week: "Kod tarayan botlar sızan anahtarları düzenli olarak arar.", month: "Anahtar yenilenmedikçe kötüye kullanım ve fatura riski sürer."}
+  fix_minutes: 30
+web.secrets.service_role:
+  who: "Sitenin kodunu açan herkes"
+  ease: easy
+  consequence: "Bu anahtarla tüm güvenlik kuralları atlanır: tüm kullanıcı verileri okunabilir, değiştirilebilir, silinebilir."
+  legal: "Kişisel veriler açığa çıkarsa KVKK kapsamında veri ihlali bildirim yükümlülüğü doğabilir."
+  timeline: {today: "Veritabanının tamamı şu an tek bir anahtarla erişilebilir.", week: "Botlar bu tür anahtarları düzenli olarak tarar.", month: "Anahtar yenilenmedikçe veri kaybı ve sızıntı riski sürer."}
+  fix_minutes: 30
+web.secrets.db_connection_string:
+  who: "Sitenin kodunu açan herkes"
+  ease: easy
+  consequence: "Veritabanı bağlantı bilgisiyle verilere doğrudan bağlanılabilir."
+  legal: "Kişisel veriler açığa çıkarsa KVKK kapsamında veri ihlali bildirim yükümlülüğü doğabilir."
+  timeline: {today: "Bağlantı bilgisi şu an herkese açık.", week: "Otomatik araçlar bu tür bilgileri hızla dener.", month: "Şifre değiştirilmedikçe risk sürer."}
+  fix_minutes: 30
+web.files.env_exposed:
+  who: "Otomatik tarayan botlar ve teknik bilgisi az olan biri bile"
+  ease: easy
+  consequence: "Ortam dosyasındaki şifre ve anahtarlarla veritabanına ve servislerine erişilebilir."
+  legal: "Kişisel veriler açığa çıkarsa KVKK kapsamında veri ihlali bildirim yükümlülüğü doğabilir."
+  timeline: {today: "Dosya tarayıcıya adres yazınca açılıyor.", week: "Botlar .env dosyalarını sürekli arar.", month: "İçindeki anahtarlar yenilenmedikçe risk sürer."}
+  fix_minutes: 15
+web.files.git_exposed:
+  who: "Otomatik tarayan botlar"
+  ease: easy
+  consequence: "Kaynak kodunun ve geçmişinin tamamı, içindeki şifrelerle birlikte indirilebilir."
+  timeline: {today: ".git klasörü şu an erişilebilir.", week: "Botlar açık .git klasörlerini düzenli tarar.", month: "Geçmişteki anahtarlar da kullanılabilir hâlde kalır."}
+  fix_minutes: 15
+web.files.backup_exposed:
+  who: "Otomatik tarayan botlar"
+  ease: easy
+  consequence: "Veritabanı veya site yedeği indirilip içindeki tüm veriler okunabilir."
+  legal: "Yedekte kişisel veri varsa KVKK kapsamında veri ihlali bildirimi gerekebilir."
+  timeline: {today: "Yedek dosyası şu an indirilebilir.", week: "Botlar bilinen yedek adlarını düzenli dener.", month: "İndirilen yedek geri alınamaz."}
+  fix_minutes: 10
+web.files.sourcemap_exposed:
+  who: "Sitenin kaynak kodunu merak eden herkes"
+  ease: easy
+  consequence: "Uygulamanın okunabilir kaynak kodu indirilebiliyor; açık aramak kolaylaşıyor."
+  timeline: {today: "Kaynak haritaları şu an açık.", week: "Koddaki iç adresler ve mantık hataları incelenebilir.", month: "Her yeni sürümle birlikte açık kalmaya devam eder."}
+  fix_minutes: 15
+web.bundle.localhost_urls:
+  who: "Siteni kullanan ziyaretçiler"
+  ease: easy
+  consequence: "Uygulama ziyaretçinin bilgisayarındaki 'localhost' adresine bağlanmaya çalışıyor; ilgili özellikler çalışmıyor."
+  timeline: {today: "Bu adrese bağlı özellikler şu an çalışmıyor.", week: "Ziyaretçiler hatalarla karşılaşıp ayrılır.", month: "Sorun yeni sürümlere taşınmaya devam eder."}
+  fix_minutes: 30
+web.https.missing:
+  who: "Aynı ağdaki herkes (kafe, otel Wi-Fi'ı)"
+  ease: easy
+  consequence: "Bağlantı şifrelenmediği için girilen şifreler ve form bilgileri okunabilir; tarayıcılar 'güvenli değil' uyarısı gösterir."
+  timeline: {today: "Site şu an şifresiz açılıyor.", week: "Ziyaretçiler uyarıyı görüp ayrılır.", month: "Arama motorları ve tarayıcılar şifresiz sitelere daha sert davranıyor."}
+  fix_minutes: 30
+web.seo.noindex_left:
+  who: "Arama motorları"
+  ease: easy
+  consequence: "Site arama sonuçlarında hiç görünmüyor; aramadan gelecek ziyaretçiler kayboluyor."
+  timeline: {today: "Google siteni dizine eklemiyor.", week: "Var olan sıralamalar düşmeye başlar.", month: "Aramadan gelen trafik sıfıra yaklaşır."}
+  fix_minutes: 10
+web.seo.robots_disallow_all:
+  who: "Arama motorları"
+  ease: easy
+  consequence: "robots.txt arama motorlarının siteni taramasını engelliyor; sayfaların aramada görünmüyor."
+  timeline: {today: "Arama motorları sitene giremiyor.", week: "Yeni sayfalar dizine eklenmiyor.", month: "Aramadan gelen trafik sıfıra yaklaşır."}
+  fix_minutes: 10
+web.privacy.exif_in_uploads:
+  who: "Yüklenen görselleri indiren herkes"
+  ease: easy
+  consequence: "Kullanıcıların yüklediği fotoğraflardaki konum ve cihaz bilgileri herkes tarafından okunabilir."
+  legal: "Konum bilgisi kişisel veridir; KVKK kapsamında veri ihlali sayılabilir."
+  timeline: {today: "Fotoğraflardaki konum bilgisi şu an açık.", week: "Kullanıcıların evi/işyeri tespit edilebilir.", month: "Yeni yüklemelerle açığa çıkan veri artar."}
+  fix_minutes: 60
+web.privacy.special_category_without_consent:
+  who: "Ziyaretçilerin ve veri koruma otoritesi"
+  ease: easy
+  consequence: "Sağlık, inanç gibi özel nitelikli veriler açık rıza alınmadan toplanıyor."
+  legal: "KVKK'da özel nitelikli kişisel veriler için açık rıza zorunludur; ihlal ağır idari para cezası riski taşır."
+  timeline: {today: "Form şu an rızasız veri topluyor.", week: "Her yeni kayıt yasal dayanaktan yoksun veri demek.", month: "Bir şikâyet incelemeye ve cezaya yol açabilir."}
+  fix_minutes: 60
+web.safety.age_gate_missing:
+  who: "Siteye giren çocuklar ve onların aileleri"
+  ease: easy
+  consequence: "Yaş kontrolü olmadan çocuklar yetişkinlere yönelik canlı sohbet/içerikle karşılaşabilir."
+  legal: "Çocukların korunmasına ilişkin düzenlemeler ve platform politikaları (uygulama mağazaları) yaş kontrolü isteyebilir."
+  timeline: {today: "Yaş kontrolü şu an yok.", week: "Bir olay platform ve itibar sorununa dönüşebilir.", month: "Uygulama mağazaları ve ödeme sağlayıcıları hesabını askıya alabilir."}
+  fix_minutes: 120

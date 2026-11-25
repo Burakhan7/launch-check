@@ -17,7 +17,7 @@ from launchcheck.api.schemas import ScanCreated, ScanReport, WebScanRequest
 from launchcheck.checks.base import TargetType
 from launchcheck.checks.registry import load_builtin_checks
 from launchcheck.config import get_settings
-from launchcheck.db.models import FindingRow, Scan, ScanStatus
+from launchcheck.db.models import FindingRow, Scan, ScanAsset, ScanStatus
 from launchcheck.db.session import get_session
 from launchcheck.i18n import normalize_lang
 from launchcheck.security.ssrf import UrlGuard
@@ -142,6 +142,20 @@ async def get_scan(
     )
     settings = get_settings()
     parent = await session.get(Scan, scan.parent_scan_id) if scan.parent_scan_id else None
+    assets: list[ScanAsset] = []
+    previous = None
+    if scan.phase == 2:
+        assets = list(
+            (await session.scalars(select(ScanAsset).where(ScanAsset.scan_id == scan.id))).all()
+        )
+        before = await session.get(Scan, scan.compare_to_id) if scan.compare_to_id else None
+        if before is not None:
+            before_rows = list(
+                (
+                    await session.scalars(select(FindingRow).where(FindingRow.scan_id == before.id))
+                ).all()
+            )
+            previous = (before, before_rows)
     return build_report(
         scan,
         rows,
@@ -150,4 +164,6 @@ async def get_scan(
         retention_days=settings.report_retention_days,
         parent=parent,
         queue=await queue_info(session, scan, settings.deep_default_duration_s),
+        assets=assets,
+        previous=previous,
     )

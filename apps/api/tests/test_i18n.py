@@ -83,3 +83,69 @@ def test_passed_titles_have_no_placeholders(lang: str) -> None:
 
     for cid in CHECK_IDS:
         assert "{" not in passed_title(cid, lang), cid
+
+
+# --- etki kartları (PHASE2 §11): Faz 2 check'leri + Faz 1'in critical/high web check'leri
+
+
+def _impact_required() -> list[str]:
+    from launchcheck.checks.base import Severity, TargetType
+
+    return [
+        c.id
+        for c in load_builtin_checks().all()
+        if c.target == TargetType.WEB
+        and (c.phase == 2 or c.default_severity in (Severity.CRITICAL, Severity.HIGH))
+    ]
+
+
+@pytest.mark.parametrize("lang", SUPPORTED_LANGS)
+def test_impact_blocks_complete(lang: str) -> None:
+    from launchcheck.i18n import load_impacts
+    from launchcheck.i18n.loader import IMPACT_EASE, IMPACT_WHEN, REQUIRED_IMPACT_FIELDS
+
+    impacts = load_impacts(lang)
+    problems = []
+    for cid in _impact_required():
+        entry = impacts.get(cid)
+        if not entry:
+            problems.append(f"{lang}: {cid} etki kartı eksik")
+            continue
+        for field in REQUIRED_IMPACT_FIELDS:
+            if not entry.get(field):
+                problems.append(f"{lang}: {cid}.{field} eksik")
+        if entry.get("ease") not in IMPACT_EASE:
+            problems.append(f"{lang}: {cid}.ease geçersiz")
+        if not isinstance(entry.get("fix_minutes"), int) or entry["fix_minutes"] <= 0:
+            problems.append(f"{lang}: {cid}.fix_minutes geçersiz")
+        timeline = entry.get("timeline") or {}
+        if set(timeline) != set(IMPACT_WHEN) or not all(timeline.values()):
+            problems.append(f"{lang}: {cid}.timeline 3 madde olmalı")
+    assert not problems, "\n".join(problems)
+
+
+def test_impact_blocks_same_in_all_langs_and_no_orphans() -> None:
+    from launchcheck.i18n import load_impacts
+
+    ids = set(CHECK_IDS)
+    keys = {lang: set(load_impacts(lang)) for lang in SUPPORTED_LANGS}
+    assert keys["tr"] == keys["en"]
+    assert keys["tr"] <= ids, sorted(keys["tr"] - ids)
+
+
+def test_impact_texts_have_no_made_up_numbers() -> None:
+    """Uydurma istatistik yok: etki metinlerinde rakam yalnızca yasal metin adı veya {param}
+    olabilir (fix_minutes hariç)."""
+    import re
+
+    from launchcheck.i18n import load_impacts
+
+    for lang in SUPPORTED_LANGS:
+        for cid, entry in load_impacts(lang).items():
+            texts = [
+                entry.get("who"),
+                entry.get("consequence"),
+                *(entry.get("timeline") or {}).values(),
+            ]
+            for text in texts:
+                assert not re.search(r"\d", str(text or "")), (lang, cid, text)

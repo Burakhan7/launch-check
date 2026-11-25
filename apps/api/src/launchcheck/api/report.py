@@ -3,10 +3,25 @@
 from datetime import datetime, timedelta
 
 from launchcheck.api.deep_queue import QueueInfo
-from launchcheck.api.schemas import ErrorInfo, FindingOut, PassedCheckOut, ScanReport
+from launchcheck.api.deep_report import deep_sections
+from launchcheck.api.schemas import (
+    ErrorInfo,
+    FindingOut,
+    ImpactOut,
+    PassedCheckOut,
+    ScanReport,
+    TimelineItem,
+)
+from launchcheck.checks.base import Severity
 from launchcheck.checks.registry import Registry
-from launchcheck.db.models import FindingRow, Scan, ScanStatus
-from launchcheck.i18n import error_message, finding_text, fragment_fn, passed_title
+from launchcheck.db.models import FindingRow, Scan, ScanAsset, ScanStatus
+from launchcheck.i18n import (
+    error_message,
+    finding_text,
+    fragment_fn,
+    impact_text,
+    passed_title,
+)
 from launchcheck.scoring import label_for
 
 INTERNAL_META_KEYS = ("checks_failed",)
@@ -31,10 +46,42 @@ def _text_params(row: FindingRow, registry: Registry, lang: str) -> dict[str, st
         return {}
 
 
-def _finding_out(row: FindingRow, registry: Registry, lang: str) -> FindingOut:
+IMPACT_MIN_SEVERITY = Severity.MEDIUM
+
+
+def _impact(check_id: str, row: FindingRow, lang: str, params: dict[str, str]) -> ImpactOut | None:
+    """Etki kartı sadece önemi medium ve üstü bulgularda (PHASE2 §8.4)."""
+    if row.severity.rank > IMPACT_MIN_SEVERITY.rank:
+        return None
+    impact = impact_text(check_id, lang, params)
+    if impact is None:
+        return None
+    return ImpactOut(
+        who=impact.who,
+        ease=impact.ease,
+        consequence=impact.consequence,
+        legal=impact.legal,
+        timeline=[TimelineItem(**item) for item in impact.timeline],
+        fix_minutes=impact.fix_minutes,
+    )
+
+
+def _fingerprint(check_id: str, row: FindingRow, registry: Registry) -> str:
+    check = registry.get(check_id)
+    try:
+        return check.fingerprint(row.evidence or {}) if check else check_id
+    except Exception:
+        return check_id
+
+
+def _finding_out(
+    row: FindingRow, registry: Registry, lang: str, with_impact: bool = False
+) -> FindingOut:
     check_id = canonical_check_id(row.check_id)
-    text = finding_text(check_id, lang, _text_params(row, registry, lang))
+    params = _text_params(row, registry, lang)
+    text = finding_text(check_id, lang, params)
     return FindingOut(
+        id=row.id,
         check_id=check_id,
         severity=row.severity,
         category=row.category,
@@ -47,6 +94,8 @@ def _finding_out(row: FindingRow, registry: Registry, lang: str) -> FindingOut:
         source_phase=row.source_phase or 1,
         verification=row.verification,
         module=row.module,
+        impact=_impact(check_id, row, lang, params) if with_impact else None,
+        fingerprint=_fingerprint(check_id, row, registry),
     )
 
 
@@ -92,8 +141,24 @@ def build_report(
     retention_days: int,
     parent: Scan | None = None,
     queue: QueueInfo | None = None,
+    assets: list[ScanAsset] | None = None,
+    previous: tuple[Scan, list[FindingRow]] | None = None,
 ) -> ScanReport:
     ordered = sorted(rows, key=lambda r: (r.severity.rank, r.check_id))
+    deep = scan.phase == 2
+    findings = [_finding_out(r, registry, lang, with_impact=deep) for r in ordered]
+    sections = None
+    if deep and scan.status == ScanStatus.DONE:
+        before, before_rows = previous if previous else (None, [])
+        sections = deep_sections(
+            scan,
+            parent,
+            rows,
+            findings,
+            assets or [],
+            [_finding_out(r, registry, lang) for r in before_rows],
+            before,
+        )
     meta = {k: v for k, v in (scan.meta or {}).items() if k not in INTERNAL_META_KEYS}
     error = (
         ErrorInfo(code=scan.error_code, message=error_message(scan.error_code, lang))
@@ -111,7 +176,7 @@ def build_report(
         category_scores=scan.category_scores,
         meta=meta,
         error=error,
-        findings=[_finding_out(r, registry, lang) for r in ordered],
+        findings=findings,
         passed=_passed(scan, rows, registry, lang),
         created_at=scan.created_at,
         finished_at=scan.finished_at,
@@ -120,4 +185,5 @@ def build_report(
         progress=scan.progress,
         queue_position=queue.position if queue else None,
         eta_s=queue.eta_s if queue else None,
+        sections=sections,
     )

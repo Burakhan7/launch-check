@@ -143,3 +143,61 @@ def event_text(key: str, lang: str, params: dict[str, Any] | None = None) -> str
 def error_message(code: str, lang: str) -> str:
     errors = load_catalog(normalize_lang(lang))["errors"]
     return str(errors.get(code) or errors.get(FALLBACK_ERROR_CODE) or code)
+
+
+# --- etki kartları (PHASE2 §8.4, §11): i18n/impact/*.{lang}.yaml
+
+IMPACT_EASE = ("easy", "moderate", "hard")
+IMPACT_WHEN = ("today", "week", "month")
+REQUIRED_IMPACT_FIELDS = ("who", "ease", "consequence", "timeline", "fix_minutes")
+
+
+@dataclass(frozen=True)
+class ImpactText:
+    who: str
+    ease: str
+    consequence: str
+    legal: str | None
+    timeline: list[dict[str, str]]  # [{when: today|week|month, text}]
+    fix_minutes: int
+
+
+@lru_cache
+def load_impacts(lang: str) -> dict[str, Any]:
+    if lang not in SUPPORTED_LANGS:
+        raise ValueError(f"desteklenmeyen dil: {lang}")
+    out: dict[str, Any] = {}
+    package = "launchcheck.i18n.impact"
+    for entry in sorted(resources.files(package).iterdir(), key=lambda e: e.name):
+        if entry.name.endswith(f".{lang}.yaml"):
+            group = _read_yaml(package, entry.name)
+            duplicates = set(group) & set(out)
+            if duplicates:
+                raise ValueError(f"tekrarlanan etki metni: {sorted(duplicates)}")
+            out.update(group)
+    return out
+
+
+def impact_text(
+    check_id: str, lang: str, params: dict[str, str] | None = None
+) -> ImpactText | None:
+    """Etki kartı; check için tanımlı değilse None. Metinlerde `{param}` kanıttan doldurulur."""
+    lang = normalize_lang(lang)
+    entry = load_impacts(lang).get(check_id) or load_impacts(DEFAULT_LANG).get(check_id)
+    if not entry:
+        return None
+    values = params or {}
+    timeline = entry.get("timeline") or {}
+    legal = entry.get("legal")
+    return ImpactText(
+        who=_render(str(entry.get("who", "")), values),
+        ease=str(entry.get("ease", "moderate")),
+        consequence=_render(str(entry.get("consequence", "")), values),
+        legal=_render(str(legal), values) if legal else None,
+        timeline=[
+            {"when": when, "text": _render(str(timeline[when]), values)}
+            for when in IMPACT_WHEN
+            if timeline.get(when)
+        ],
+        fix_minutes=int(entry.get("fix_minutes") or 0),
+    )

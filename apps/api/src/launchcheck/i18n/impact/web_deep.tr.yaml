@@ -1,0 +1,335 @@
+# Etki kartları (PHASE2 §8.4, §11) — Faz 2 check'leri, Türkçe. Uydurma sayı/istatistik yok;
+# ton sakin ve gerçekçi. ease: easy | moderate | hard. fix_minutes: tipik düzeltme süresi
+# (dakika, kaba tahmin; öncelik planında kullanılır). legal: yoksa boş bırakılır.
+
+# --- render
+web.render.js_runtime_errors:
+  who: "Siteni açan her ziyaretçi"
+  ease: easy
+  consequence: "Hatanın olduğu yerde düğmeler, formlar veya içerik çalışmayabilir; ziyaretçi ne olduğunu anlamadan ayrılır."
+  timeline: {today: "Hata her sayfa açılışında tekrar ediyor.", week: "Etkilenen sayfalardan gelen kayıt ve satışlar sessizce düşer.", month: "Sorun fark edilmediği sürece kayıp birikir; destek talepleri artar."}
+  fix_minutes: 60
+web.render.failed_requests:
+  who: "Siteni açan her ziyaretçi"
+  ease: easy
+  consequence: "Sayfanın ihtiyaç duyduğu veri veya dosya gelmediği için bölümler boş ya da yarım görünür."
+  timeline: {today: "Etkilenen bölümler şu an eksik görünüyor.", week: "Ziyaretçiler siteyi bozuk sanıp geri dönmeyebilir.", month: "Arama motorları eksik içerikli sayfaları daha az gösterebilir."}
+  fix_minutes: 45
+web.render.spa_deep_link_404:
+  who: "Paylaşılan bir linke tıklayan veya Google'dan gelen herkes"
+  ease: easy
+  consequence: "Ana sayfa dışındaki sayfalar doğrudan açılınca 'bulunamadı' gösteriyor; paylaşılan linkler ve aramadan gelen ziyaretçiler kayboluyor."
+  timeline: {today: "Doğrudan açılan iç sayfalar şu an hata veriyor.", week: "Paylaşılan linkler çalışmadığı için tavsiye trafiği boşa gider.", month: "Google bu sayfaları dizinden çıkarabilir."}
+  fix_minutes: 20
+web.render.visible_junk_text:
+  who: "Sayfayı gören her ziyaretçi"
+  ease: easy
+  consequence: "Ekranda 'undefined', 'NaN' gibi teknik değerler görünüyor; site yarım veya güvenilmez görünür."
+  timeline: {today: "Teknik değerler şu an ekranda.", week: "Ziyaretçiler ürünün hazır olmadığını düşünebilir.", month: "İlk izlenim kaybı geri dönüşleri azaltır."}
+  fix_minutes: 30
+web.render.broken_images:
+  who: "Sayfayı gören her ziyaretçi"
+  ease: easy
+  consequence: "Görsellerin yerinde boş kutu veya kırık simge görünüyor."
+  timeline: {today: "Kırık görseller şu an görünüyor.", week: "Ürün/hizmet anlatımı eksik kalır.", month: "Site bakımsız görünür; güven azalır."}
+  fix_minutes: 20
+web.mobile.horizontal_overflow:
+  who: "Telefondan gelen ziyaretçiler"
+  ease: easy
+  consequence: "Sayfa telefonda yana kayıyor; metinler kesiliyor, okumak ve düğmelere basmak zorlaşıyor."
+  timeline: {today: "Telefon ziyaretçileri şu an yana kayan bir sayfa görüyor.", week: "Mobil ziyaretçilerin bir kısmı sayfayı bitirmeden ayrılır.", month: "Google mobil uyumluluk sorunlarını sıralamada dikkate alır."}
+  fix_minutes: 30
+web.mobile.overlapping_elements:
+  who: "Telefondan gelen ziyaretçiler"
+  ease: easy
+  consequence: "Yazılar ve düğmeler üst üste biniyor; okunamıyor veya yanlış öğeye basılıyor."
+  timeline: {today: "Üst üste binen öğeler şu an görünüyor.", week: "Yanlış tıklamalar ve vazgeçmeler artar.", month: "Mobil dönüşüm masaüstünden belirgin şekilde geride kalır."}
+  fix_minutes: 30
+web.mobile.cta_below_fold:
+  who: "Telefondan gelen ziyaretçiler"
+  ease: easy
+  consequence: "Ana düğme ilk ekranda görünmüyor; ziyaretçi ne yapacağını görmeden ayrılabilir."
+  timeline: {today: "Telefonda ana düğme kaydırmadan görünmüyor.", week: "Kaydırmayan ziyaretçiler hiç eyleme geçmez.", month: "Reklam veya içerikle getirilen trafik daha az sonuç verir."}
+  fix_minutes: 30
+web.mobile.tap_targets_small:
+  who: "Telefondan gelen ziyaretçiler"
+  ease: easy
+  consequence: "Küçük linklere ve düğmelere parmakla basmak zor; yanlış yere basılıyor."
+  timeline: {today: "Küçük hedefler şu an zor kullanılıyor.", week: "Menü ve formlarda vazgeçmeler artar.", month: "Erişilebilirlik ve mobil kullanılabilirlik puanların düşük kalır."}
+  fix_minutes: 30
+web.ux.custom_404_missing:
+  who: "Yanlış veya eski bir linke tıklayan ziyaretçiler"
+  ease: easy
+  consequence: "Ziyaretçi sitenin tasarımından kopuk bir hata sayfası görüyor ve geri dönmenin yolunu bulamıyor."
+  timeline: {today: "Kırık linkler ziyaretçiyi boş bir sayfaya bırakıyor.", week: "Bu ziyaretçilerin çoğu siteden çıkar.", month: "Eski linklerden gelen trafik boşa gider."}
+  fix_minutes: 20
+web.ux.offline_breaks_page:
+  who: "Bağlantısı zayıf veya kopan telefon ziyaretçileri"
+  ease: moderate
+  consequence: "Bağlantı kopunca sayfa boş kalıyor veya sonsuza kadar yükleniyor; ziyaretçi ne olduğunu anlamıyor."
+  timeline: {today: "Zayıf bağlantıda sayfa boş ekran gösterebilir.", week: "Toplu taşımada/yolda gelen ziyaretçiler vazgeçer.", month: "Uygulamanın güvenilmez olduğu izlenimi oluşur."}
+  fix_minutes: 60
+web.security.token_in_web_storage:
+  who: "Sitende çalışan herhangi bir script (örneğin ele geçirilmiş bir üçüncü taraf kodu)"
+  ease: moderate
+  consequence: "Tarayıcıda saklanan oturum anahtarı bir XSS açığıyla okunursa saldırgan kullanıcının hesabına girebilir."
+  legal: "Hesap ele geçirilirse KVKK kapsamında veri ihlali bildirimi gerekebilir."
+  timeline: {today: "Anahtar şu an sayfadaki her scriptin erişebileceği yerde.", week: "Tek bir XSS açığı veya kötü niyetli eklenti yeterli olur.", month: "Risk siteye eklenen her yeni üçüncü taraf kodla büyür."}
+  fix_minutes: 120
+web.security.insecure_cookie_flags:
+  who: "Aynı ağdaki biri veya sitende çalışan bir script"
+  ease: moderate
+  consequence: "Oturum çerezi güvenlik bayrakları eksik olduğu için çalınması veya başka sitelerden kötüye kullanılması kolaylaşıyor."
+  timeline: {today: "Çerezler şu an eksik korumayla gönderiliyor.", week: "Halka açık Wi-Fi'da veya bir XSS'te oturum çalınabilir.", month: "Hesap ele geçirme şikâyetleri gelebilir."}
+  fix_minutes: 30
+web.security.client_only_admin_route:
+  who: "Yönetim adresini tahmin eden veya koddan okuyan herkes"
+  ease: easy
+  consequence: "Yönetim ekranı sadece tarayıcıda gizleniyor; verileri sunan servis korunmuyorsa herkes yönetici işlemleri yapabilir."
+  legal: "Kişisel veriler görülebiliyorsa KVKK kapsamında veri ihlali bildirimi gerekebilir."
+  timeline: {today: "Yönetim sayfası şu an girişsiz açılıyor.", week: "Adresi bulan biri verileri görebilir veya değiştirebilir.", month: "Botlar bilinen yönetim yollarını düzenli tarar; bulunma ihtimali artar."}
+  fix_minutes: 120
+web.security.sourcemap_tree_exposed:
+  who: "Sitenin kaynak kodunu merak eden herkes"
+  ease: easy
+  consequence: "Uygulamanın kaynak kodu dosya ağacıyla birlikte okunabiliyor; açık aramak ve iş mantığını kopyalamak kolaylaşıyor."
+  timeline: {today: "Kaynak dosyaları şu an indirilebiliyor.", week: "Koddaki anahtar, iç adres veya mantık hataları bulunabilir.", month: "Rakipler ve saldırganlar kodu inceleyebilir."}
+  fix_minutes: 15
+
+# --- hız
+web.perf.lcp_slow:
+  who: "Telefondan gelen ziyaretçiler"
+  ease: easy
+  consequence: "Sayfanın ana içeriği geç görünüyor; ziyaretçilerin bir kısmı içerik gelmeden ayrılır."
+  timeline: {today: "Ana içerik şu an yavaş açılıyor.", week: "Reklam ve aramadan gelen ziyaretçilerin bir kısmı kaybolur.", month: "Google sayfa deneyimi sinyallerinde geride kalırsın."}
+  fix_minutes: 120
+web.perf.cls_high:
+  who: "Sayfayı açan her ziyaretçi"
+  ease: easy
+  consequence: "Sayfa yüklenirken öğeler kayıyor; ziyaretçi okuduğu yeri kaybediyor veya yanlış düğmeye basıyor."
+  timeline: {today: "Yükleme sırasında içerik kayıyor.", week: "Yanlış tıklamalar ve vazgeçmeler artar.", month: "Google sayfa deneyimi sinyallerinde geride kalırsın."}
+  fix_minutes: 60
+web.perf.inp_slow:
+  who: "Sayfada bir şeye tıklayan veya yazan ziyaretçiler"
+  ease: easy
+  consequence: "Tıklamalara geç tepki veriliyor; site donmuş gibi hissettiriyor."
+  timeline: {today: "Etkileşimler şu an gecikmeli.", week: "Ziyaretçiler düğmelere tekrar tekrar basar, formları yarıda bırakır.", month: "Google sayfa deneyimi sinyallerinde geride kalırsın."}
+  fix_minutes: 120
+web.perf.blank_screen_long:
+  who: "Telefondan gelen ziyaretçiler"
+  ease: easy
+  consequence: "İlk saniyelerde ekran bomboş kalıyor; ziyaretçi sitenin çalışmadığını düşünüp geri dönüyor."
+  timeline: {today: "Açılışta boş ekran süresi uzun.", week: "Yavaş bağlantıdaki ziyaretçilerin önemli bir kısmı hiçbir şey görmeden ayrılır.", month: "Reklam harcamasının bir kısmı boşa gider."}
+  fix_minutes: 90
+web.perf.unused_js:
+  who: "Telefondan gelen ziyaretçiler"
+  ease: easy
+  consequence: "Kullanılmayan kod indirilip çalıştırıldığı için sayfa yavaşlıyor ve mobil veri harcanıyor."
+  timeline: {today: "Gereksiz kod her açılışta indiriliyor.", week: "Yavaş cihazlarda sayfa geç tepki verir.", month: "Yeni özellik ekledikçe sorun büyür."}
+  fix_minutes: 120
+web.perf.oversized_images:
+  who: "Telefondan gelen ziyaretçiler"
+  ease: easy
+  consequence: "Görseller gerekenden büyük indiriliyor; sayfa yavaş açılıyor ve mobil veri harcanıyor."
+  timeline: {today: "Büyük görseller her açılışta indiriliyor.", week: "Yavaş bağlantıda görseller geç geliyor.", month: "Hız sinyallerinde geride kalırsın."}
+  fix_minutes: 45
+web.perf.no_compression_or_cache:
+  who: "Siteyi açan ve tekrar ziyaret eden herkes"
+  ease: easy
+  consequence: "Dosyalar sıkıştırılmadan veya her seferinde baştan indiriliyor; sayfa gereksiz yavaş."
+  timeline: {today: "Her açılışta gereğinden fazla veri gidiyor.", week: "Tekrar gelen ziyaretçiler de bekliyor.", month: "Sunucu/CDN maliyetin gereksiz yüksek kalır."}
+  fix_minutes: 30
+web.perf.heavy_third_party:
+  who: "Siteni açan her ziyaretçi"
+  ease: easy
+  consequence: "Üçüncü taraf kodlar (sohbet, takip, reklam) sayfayı yavaşlatıyor."
+  timeline: {today: "Üçüncü taraf kodlar açılışı geciktiriyor.", week: "Yavaş cihazlarda sayfa geç tepki verir.", month: "Her yeni araçla sorun büyür."}
+  fix_minutes: 60
+
+# --- dış görünürlük
+web.external.forgotten_subdomain:
+  who: "Sertifika kayıtlarını tarayan botlar ve saldırganlar"
+  ease: easy
+  consequence: "Unutulmuş alt alan adındaki açık dosya veya anahtar ana sitene ve verilerine ulaşmak için kullanılabilir."
+  legal: "Kişisel veriler açığa çıktıysa KVKK kapsamında veri ihlali bildirimi gerekebilir."
+  timeline: {today: "Alt alan adı herkese açık ve sorunlu.", week: "Botlar sertifika kayıtlarından yeni adresleri sürekli tarar.", month: "Bulunan bir anahtar ana sistemlerine erişim için kullanılabilir."}
+  fix_minutes: 45
+web.external.subdomain_takeover_risk:
+  who: "Boşta kalmış servis adlarını arayan kişiler"
+  ease: moderate
+  consequence: "Biri bu alt alan adında kendi sayfasını yayınlayıp senin adınla sahte giriş sayfası açabilir."
+  timeline: {today: "DNS kaydı şu an boşta kalan bir servise yönleniyor.", week: "Bu tür kayıtlar otomatik araçlarla aranıyor.", month: "Ele geçirilirse dolandırıcılık senin alan adın üzerinden yapılır."}
+  fix_minutes: 10
+web.external.email_spoofing:
+  who: "Kimlik avı yapan dolandırıcılar"
+  ease: easy
+  consequence: "Senin alan adından 'şifreni sıfırla' veya 'fatura' gibi sahte e-postalar gönderilebilir; müşterilerin bunları gerçek sanar."
+  timeline: {today: "Alan adın şu an sahte gönderime açık.", week: "Sahte e-postalar müşterilerinin gelen kutusuna düşebilir.", month: "Gerçek e-postaların da spam'e düşmeye başlayabilir."}
+  fix_minutes: 30
+web.external.archived_sensitive_paths:
+  who: "İnternet arşivinde eski dosyalara bakan herkes"
+  ease: easy
+  consequence: "Geçmişte açık kalmış dosyalardaki anahtarlar ve şifreler hâlâ geçerliyse sistemlerine girilebilir."
+  legal: "Kişisel veriler açığa çıktıysa KVKK kapsamında veri ihlali bildirimi gerekebilir."
+  timeline: {today: "Arşiv kayıtları herkese açık ve silinmiyor.", week: "Değiştirilmemiş anahtarlar kullanılabilir durumda.", month: "Anahtarlar yenilenmedikçe risk sürer."}
+  fix_minutes: 60
+web.external.domain_expiry_soon:
+  who: "Süresi dolan alan adlarını takip edip satın alanlar"
+  ease: easy
+  consequence: "Alan adı süresi dolarsa site ve e-posta durur; bir süre sonra başkası alan adını satın alabilir."
+  timeline: {today: "Bitiş tarihi yaklaşıyor.", week: "Otomatik yenileme kapalıysa süre dolabilir.", month: "Alan adı kaybedilirse geri almak zor ve pahalı olabilir."}
+  fix_minutes: 10
+web.external.cert_expiry_soon:
+  who: "Siteni açan her ziyaretçi"
+  ease: easy
+  consequence: "Sertifika süresi dolunca tarayıcılar 'bağlantı güvenli değil' uyarısı gösterir ve çoğu ziyaretçi ayrılır."
+  timeline: {today: "Sertifika yakında bitiyor ve yenilenmemiş görünüyor.", week: "Süre dolarsa site uyarı ekranının arkasında kalır.", month: "Uygulamaların API bağlantıları da kopar."}
+  fix_minutes: 20
+
+# --- linkler, meta, yapılandırılmış veri
+web.links.broken_internal:
+  who: "Sitende gezinen ziyaretçiler"
+  ease: easy
+  consequence: "Ziyaretçi tıkladığı sayfayı bulamıyor; menüdeki kırık link herkesin gözüne çarpar."
+  timeline: {today: "Kırık linkler şu an hata veriyor.", week: "Ziyaretçiler aradığını bulamadan ayrılır.", month: "Arama motorları siteyi bakımsız sayabilir."}
+  fix_minutes: 30
+web.links.broken_external:
+  who: "Verdiğin linklere tıklayan ziyaretçiler"
+  ease: easy
+  consequence: "Ziyaretçi kaynağa veya iş ortağına ulaşamıyor; site bakımsız görünüyor."
+  timeline: {today: "Bazı dış linkler açılmıyor.", week: "Güven veren referanslar işe yaramaz.", month: "Kapanmış alan adları başkası tarafından alınabilir."}
+  fix_minutes: 20
+web.links.http_target_no_https:
+  who: "Şifresiz linklere tıklayan ziyaretçiler"
+  ease: moderate
+  consequence: "Bağlantı şifresiz gittiği için aynı ağdaki biri trafiği görebilir veya değiştirebilir."
+  timeline: {today: "Linkler şifresiz hedeflere gidiyor.", week: "Halka açık ağlarda trafik izlenebilir.", month: "Tarayıcılar şifresiz bağlantılara daha sert uyarı gösteriyor."}
+  fix_minutes: 15
+web.links.youtube_unavailable:
+  who: "Sayfadaki videoyu izlemek isteyen ziyaretçiler"
+  ease: easy
+  consequence: "Ziyaretçi videonun yerinde 'Video kullanılamıyor' görüyor; anlatmak istediğin şey eksik kalıyor."
+  timeline: {today: "Video şu an oynatılamıyor.", week: "Tanıtım/eğitim içeriği işe yaramıyor.", month: "Sayfa bakımsız görünür."}
+  fix_minutes: 10
+web.meta.og_image_unreachable:
+  who: "Linkini WhatsApp, LinkedIn veya X'te paylaşan herkes"
+  ease: easy
+  consequence: "Paylaşılan link görselsiz veya bozuk önizlemeyle görünüyor; tıklanma düşüyor."
+  timeline: {today: "Paylaşımlar şu an görselsiz görünüyor.", week: "Tavsiye ve sosyal medya trafiği daha az tıklanır.", month: "Platformlar eski önizlemeyi önbellekte tutabilir; düzeltince yenilemen gerekir."}
+  fix_minutes: 20
+web.seo.structured_data_invalid:
+  who: "Arama motorları"
+  ease: easy
+  consequence: "Hatalı yapılandırılmış veri yok sayılıyor; fiyat, puan gibi zengin sonuçlar görünmüyor."
+  timeline: {today: "Yapılandırılmış veri şu an kullanılmıyor.", week: "Arama sonuçlarında rakiplerin zengin kartlarla öne çıkar.", month: "Hata düzeltilene kadar fırsat kaçar."}
+  fix_minutes: 30
+web.seo.structured_data_opportunity:
+  who: "Arama motorları ve yapay zekâ asistanları"
+  ease: easy
+  consequence: "Ürün, SSS veya işletme bilgilerin arama sonuçlarında zengin biçimde gösterilemiyor."
+  timeline: {today: "Bu bilgiler arama motorlarına yapılandırılmış olarak anlatılmıyor.", week: "Rakipler zengin sonuçlarla daha görünür kalabilir.", month: "Fırsat sürüyor; eklemek kısa iş."}
+  fix_minutes: 45
+
+# --- gizlilik, tedarik zinciri, erişilebilirlik
+web.privacy.trackers_before_consent:
+  who: "Ziyaretçilerin ve veri koruma otoritesi"
+  ease: easy
+  consequence: "Ziyaretçi onay vermeden verisi takip araçlarına gidiyor; onay banner'ı işlevini yitiriyor."
+  legal: "KVKK ve GDPR'a göre açık rıza olmadan analiz/reklam çerezi kullanımı idari para cezası ve şikâyet riski taşır."
+  timeline: {today: "Her yeni ziyaretçinin verisi onaysız gidiyor.", week: "Bir ziyaretçi şikâyeti incelemeye yol açabilir.", month: "Toplanan veri yasal dayanaktan yoksun kalır."}
+  fix_minutes: 60
+web.privacy.trackers_after_reject:
+  who: "Ziyaretçilerin ve veri koruma otoritesi"
+  ease: easy
+  consequence: "Ziyaretçi açıkça reddettiği hâlde takip sürüyor; tercihi yok sayılıyor."
+  legal: "Reddedilen onaya rağmen veri işlemek KVKK ve GDPR açısından ciddi bir ihlaldir; şikâyet ve idari para cezası riski taşır."
+  timeline: {today: "Reddeden her ziyaretçi yine takip ediliyor.", week: "Bunu fark eden bir ziyaretçi şikâyet edebilir.", month: "Toplanan veri yasal dayanaktan yoksun kalır."}
+  fix_minutes: 60
+web.privacy.consent_banner_missing:
+  who: "Ziyaretçilerin ve veri koruma otoritesi"
+  ease: easy
+  consequence: "Takip araçları hiçbir onay alınmadan çalışıyor; ziyaretçi verisinin nereye gittiğini bilmiyor."
+  legal: "KVKK ve GDPR'a göre analiz/reklam çerezleri için önceden açık rıza gerekir; yoksa idari para cezası riski vardır."
+  timeline: {today: "Her ziyaretçinin verisi onaysız gidiyor.", week: "Bir şikâyet incelemeye yol açabilir.", month: "Toplanan veri yasal dayanaktan yoksun kalır."}
+  fix_minutes: 90
+web.security.vulnerable_js_library:
+  who: "Bilinen açıkları tarayan otomatik araçlar"
+  ease: moderate
+  consequence: "Yayımlanmış bir açık kullanılarak sitende ziyaretçi adına kod çalıştırılabilir (oturum çalma, sahte form)."
+  timeline: {today: "Açıklı sürümler şu an yüklü.", week: "Bu açıkları arayan otomatik taramalar her gün çalışır.", month: "Kütüphane güncellenmedikçe risk sürer."}
+  fix_minutes: 60
+web.security.risky_third_party_script:
+  who: "Ele geçirilmiş CDN'i kontrol eden kişiler"
+  ease: easy
+  consequence: "Bu kaynaktan gelen kod sitende senin kodun gibi çalışır: ziyaretçileri dolandırıcılık sitelerine yönlendirebilir, form verilerini çalabilir."
+  legal: "Ziyaretçi verisi çalınırsa KVKK kapsamında veri ihlali bildirimi gerekebilir."
+  timeline: {today: "Kod şu an her ziyaretçide çalışıyor.", week: "Kötü niyetli kod herhangi bir anda devreye alınabilir.", month: "Arama motorları ve tarayıcılar siteni zararlı olarak işaretleyebilir."}
+  fix_minutes: 15
+web.a11y.axe_violations:
+  who: "Ekran okuyucu ve klavye kullanan, az gören ziyaretçiler"
+  ease: easy
+  consequence: "Bu ziyaretçiler düğmelerin ne yaptığını anlayamıyor veya formları dolduramıyor."
+  legal: "Bazı sektörlerde ve kamu hizmetlerinde erişilebilirlik yasal bir gerekliliktir."
+  timeline: {today: "Bu ziyaretçiler siteyi şu an tam kullanamıyor.", week: "Kayıt ve satın alma adımlarında takılırlar.", month: "Yeni sayfalar aynı bileşenleri kullandıkça sorun yayılır."}
+  fix_minutes: 120
+
+# --- huni
+web.funnel.signup_friction:
+  who: "Kayıt olmaya çalışan ziyaretçiler"
+  ease: easy
+  consequence: "Uzun veya kart isteyen form, kayıt olacak kişilerin bir kısmını yarıda vazgeçiriyor."
+  timeline: {today: "Kayıt formu şu an gereğinden uzun.", week: "Getirdiğin ziyaretçilerin bir kısmı kayıt olmadan ayrılır.", month: "Büyüme harcaması daha az sonuç verir."}
+  fix_minutes: 60
+web.funnel.too_many_steps:
+  who: "Kayıt olmaya çalışan ziyaretçiler"
+  ease: easy
+  consequence: "Kayıt formuna ulaşmak uzun veya yavaş; her ek adımda ziyaretçi kaybediliyor."
+  timeline: {today: "Kayıt yolu şu an uzun.", week: "Ana düğmeye basanların bir kısmı formu hiç görmez.", month: "Kayıt oranı düşük kalır."}
+  fix_minutes: 45
+web.funnel.mobile_input_types:
+  who: "Telefondan kayıt olmaya çalışan ziyaretçiler"
+  ease: easy
+  consequence: "Yanlış klavye açılıyor ve otomatik doldurma çalışmıyor; form telefonda zahmetli."
+  timeline: {today: "Form telefonda zor dolduruluyor.", week: "Mobil kayıtlar masaüstünden daha çok yarıda kalır.", month: "Küçük bir düzeltmeyle kazanılabilecek kayıtlar kaçar."}
+  fix_minutes: 15
+web.funnel.price_hidden:
+  who: "Fiyatı merak eden ziyaretçiler"
+  ease: easy
+  consequence: "Fiyatı göremeyen ziyaretçi pahalı olduğunu varsayabilir veya rakibe geçebilir."
+  timeline: {today: "Fiyatlar şu an kolay bulunmuyor.", week: "Fiyat arayan ziyaretçilerin bir kısmı ayrılır.", month: "Satış ekibine düşen gereksiz sorular artar."}
+  fix_minutes: 60
+web.funnel.vat_excluded_price:
+  who: "Tüketiciler ve tüketici hakları denetimi"
+  ease: easy
+  consequence: "Ziyaretçi ödeme adımında tutarın arttığını görüp vazgeçebilir; güven sarsılır."
+  legal: "Tüketiciye satışta fiyatların vergiler dahil gösterilmesi Türkiye'de (Fiyat Etiketi Yönetmeliği) ve AB'de zorunludur."
+  timeline: {today: "Fiyatlar şu an KDV hariç görünüyor.", week: "Ödeme adımında vazgeçmeler artar.", month: "Şikâyet veya denetim riski sürer."}
+  fix_minutes: 45
+
+# --- kıyas
+web.benchmark.common_pattern_missing:
+  who: "Seni benzer sitelerle karşılaştıran ziyaretçiler"
+  ease: easy
+  consequence: "Benzer sitelerde alışık oldukları güven ve yön işaretlerini bulamayan ziyaretçiler tereddüt eder."
+  timeline: {today: "Bu desenler şu an sitende yok.", week: "Karşılaştırma yapan ziyaretçiler rakibe kayabilir.", month: "Desenler eklendikçe fark kapanır."}
+  fix_minutes: 180
+web.benchmark.missing_page_types:
+  who: "Karar vermeden önce araştıran ziyaretçiler"
+  ease: easy
+  consequence: "Aradıkları cevabı (fiyat, SSS, iletişim...) bulamayan ziyaretçiler sormadan ayrılır."
+  timeline: {today: "Bu sayfalar şu an yok.", week: "Soru soran ziyaretçiler cevap bulamaz.", month: "Arama motorlarından gelebilecek ek trafik kaçar."}
+  fix_minutes: 120
+web.benchmark.slower_than_peers:
+  who: "Seni rakiplerle aynı telefonda karşılaştıran ziyaretçiler"
+  ease: easy
+  consequence: "Belirgin şekilde yavaş açılan site aynı ürünü sunsa bile daha az güven verir."
+  timeline: {today: "Siten şu an benzerlerinden yavaş açılıyor.", week: "Karşılaştıran ziyaretçilerin bir kısmı rakibe gider.", month: "Hız sinyallerinde geride kalırsın."}
+  fix_minutes: 120
+
+# --- LLM (P8)
+web.conversion.value_proposition:
+  who: "Siteni ilk kez açan ziyaretçiler"
+  ease: easy
+  consequence: "Ziyaretçi ilk ekranda ne sunduğunu ve neden önemli olduğunu anlayamazsa ayrılır."
+  timeline: {today: "İlk ekran mesajı şu an belirsiz.", week: "Getirdiğin trafiğin bir kısmı hiç kaydırmadan ayrılır.", month: "Mesaj netleştikçe diğer iyileştirmeler daha çok işe yarar."}
+  fix_minutes: 90

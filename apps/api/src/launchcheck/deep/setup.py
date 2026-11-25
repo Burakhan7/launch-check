@@ -10,6 +10,7 @@ from pathlib import Path
 from launchcheck.checks.registry import load_builtin_checks
 from launchcheck.config import Settings
 from launchcheck.deep.assets import AssetStore
+from launchcheck.deep.gates import finalize
 from launchcheck.deep.modules import DeepModule, VerificationRule
 from launchcheck.deep.orchestrator import OrchestratorConfig
 
@@ -54,4 +55,5 @@ def orchestrator_config(settings: Settings) -> OrchestratorConfig:
         verification_rules=default_verification_rules(),
         special_data_aware=[c.id for c in registry.all() if c.considers_special_data],
         assets=asset_store(settings),
+        finalizers=[finalize],
     )

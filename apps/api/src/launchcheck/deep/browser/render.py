@@ -96,6 +96,7 @@ HOME_LINK_JS = """() => [...document.querySelectorAll('a[href]')].some((a) => {
 })"""
 MAX_SOURCEMAP_PATHS = 50
 MAX_SOURCEMAPS = 5
+MAX_API_CALLS = 60
 WEBP_QUALITY = 70
 
 
@@ -127,6 +128,9 @@ class PageRecorder:
     def __init__(self, page: "Page") -> None:
         self.console: list[ConsoleError] = []
         self.failures: list[NetworkFailure] = []
+        # Sayfanın kendi attığı API istekleri (yöntem, sorgu dizesiz adres): "test edilmemiş
+        # kapılar" listesi için; bu adreslere biz istek atmayız
+        self.api_calls: list[tuple[str, str]] = []
         self._cors_origins: set[str] = set()
         self._inflight = 0
         self._last_activity = time.monotonic()
@@ -143,6 +147,10 @@ class PageRecorder:
     def _on_request(self, request: "Request") -> None:
         self._inflight += 1
         self._touch()
+        if request.resource_type in ("fetch", "xhr") and len(self.api_calls) < MAX_API_CALLS:
+            call = (request.method, _strip_query(request.url))
+            if call not in self.api_calls:
+                self.api_calls.append(call)
 
     def _on_done(self, request: "Request") -> None:
         self._inflight = max(0, self._inflight - 1)
@@ -416,6 +424,7 @@ class RenderCollector:
                 },
                 console_errors=dedupe_console(d_rec.console + m_rec.console),
                 failures=list(dict.fromkeys(d_rec.failures + m_rec.failures)),
+                api_calls=list(dict.fromkeys(d_rec.api_calls + m_rec.api_calls)),
                 broken_images=parse_broken_images(d_raw),
                 junk=parse_junk(d_raw),
                 desktop=parse_metrics(d_raw, vd.get("width", 1440), vd.get("height", 900)),

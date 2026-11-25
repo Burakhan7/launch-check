@@ -1,0 +1,335 @@
+# Impact cards (PHASE2 §8.4, §11) — phase 2 checks, English. No made-up numbers or statistics;
+# calm, realistic tone. ease: easy | moderate | hard. fix_minutes: typical fix time (rough
+# estimate in minutes; used by the priority plan). legal: omitted when not applicable.
+
+# --- render
+web.render.js_runtime_errors:
+  who: "Every visitor who opens your site"
+  ease: easy
+  consequence: "Where the error happens, buttons, forms or content may not work; visitors leave without knowing why."
+  timeline: {today: "The error repeats on every page load.", week: "Sign-ups and sales from affected pages quietly drop.", month: "As long as nobody notices, the loss adds up and support requests grow."}
+  fix_minutes: 60
+web.render.failed_requests:
+  who: "Every visitor who opens your site"
+  ease: easy
+  consequence: "Data or files the page needs don't arrive, so sections look empty or half-finished."
+  timeline: {today: "Affected sections look incomplete right now.", week: "Visitors may think the site is broken and not return.", month: "Search engines may show pages with missing content less often."}
+  fix_minutes: 45
+web.render.spa_deep_link_404:
+  who: "Anyone clicking a shared link or coming from Google"
+  ease: easy
+  consequence: "Pages other than the home page show 'not found' when opened directly; shared links and search visitors are lost."
+  timeline: {today: "Inner pages opened directly return an error right now.", week: "Shared links don't work, so word-of-mouth traffic is wasted.", month: "Google may drop these pages from its index."}
+  fix_minutes: 20
+web.render.visible_junk_text:
+  who: "Every visitor who sees the page"
+  ease: easy
+  consequence: "Technical values such as 'undefined' or 'NaN' show on screen; the site looks unfinished or unreliable."
+  timeline: {today: "Technical values are on screen right now.", week: "Visitors may think the product isn't ready.", month: "A poor first impression reduces return visits."}
+  fix_minutes: 30
+web.render.broken_images:
+  who: "Every visitor who sees the page"
+  ease: easy
+  consequence: "Empty boxes or broken icons appear where images should be."
+  timeline: {today: "Broken images are visible right now.", week: "Your product/service story is incomplete.", month: "The site looks neglected and trust drops."}
+  fix_minutes: 20
+web.mobile.horizontal_overflow:
+  who: "Visitors on phones"
+  ease: easy
+  consequence: "The page scrolls sideways on phones; text gets cut off and reading or tapping buttons is harder."
+  timeline: {today: "Phone visitors see a sideways-scrolling page right now.", week: "Some mobile visitors leave before finishing the page.", month: "Google takes mobile usability problems into account in rankings."}
+  fix_minutes: 30
+web.mobile.overlapping_elements:
+  who: "Visitors on phones"
+  ease: easy
+  consequence: "Text and buttons overlap; they can't be read or the wrong thing gets tapped."
+  timeline: {today: "Overlapping elements are visible right now.", week: "Mis-taps and drop-offs increase.", month: "Mobile conversion lags noticeably behind desktop."}
+  fix_minutes: 30
+web.mobile.cta_below_fold:
+  who: "Visitors on phones"
+  ease: easy
+  consequence: "The main button isn't on the first screen; visitors may leave without seeing what to do."
+  timeline: {today: "On phones the main button isn't visible without scrolling.", week: "Visitors who don't scroll never take action.", month: "Traffic from ads or content brings fewer results."}
+  fix_minutes: 30
+web.mobile.tap_targets_small:
+  who: "Visitors on phones"
+  ease: easy
+  consequence: "Small links and buttons are hard to tap with a finger; the wrong thing gets tapped."
+  timeline: {today: "Small targets are hard to use right now.", week: "Drop-offs in menus and forms increase.", month: "Accessibility and mobile usability scores stay low."}
+  fix_minutes: 30
+web.ux.custom_404_missing:
+  who: "Visitors who follow a wrong or old link"
+  ease: easy
+  consequence: "Visitors see an error page disconnected from your design and can't find their way back."
+  timeline: {today: "Broken links leave visitors on an empty page.", week: "Most of these visitors leave the site.", month: "Traffic from old links is wasted."}
+  fix_minutes: 20
+web.ux.offline_breaks_page:
+  who: "Phone visitors with a weak or dropping connection"
+  ease: moderate
+  consequence: "When the connection drops, the page goes blank or loads forever; visitors don't understand what happened."
+  timeline: {today: "On a weak connection the page may show a blank screen.", week: "Visitors on the move give up.", month: "The app gets a reputation for being unreliable."}
+  fix_minutes: 60
+web.security.token_in_web_storage:
+  who: "Any script running on your site (for example compromised third-party code)"
+  ease: moderate
+  consequence: "If the session key stored in the browser is read through an XSS flaw, an attacker can get into the user's account."
+  legal: "If accounts are taken over, a data breach notification may be required under GDPR/KVKK."
+  timeline: {today: "The key is stored where every script on the page can read it.", week: "A single XSS flaw or malicious extension would be enough.", month: "The risk grows with every new third-party script."}
+  fix_minutes: 120
+web.security.insecure_cookie_flags:
+  who: "Someone on the same network or a script running on your site"
+  ease: moderate
+  consequence: "Missing security flags make the session cookie easier to steal or abuse from other sites."
+  timeline: {today: "Cookies are sent with missing protection right now.", week: "Sessions could be stolen on public Wi-Fi or through an XSS.", month: "Account takeover complaints may come in."}
+  fix_minutes: 30
+web.security.client_only_admin_route:
+  who: "Anyone who guesses the admin address or reads it from the code"
+  ease: easy
+  consequence: "The admin screen is only hidden in the browser; if the service serving the data isn't protected, anyone can perform admin actions."
+  legal: "If personal data is visible, a data breach notification may be required under GDPR/KVKK."
+  timeline: {today: "The admin page opens without login right now.", week: "Anyone who finds the address could view or change data.", month: "Bots scan well-known admin paths regularly; the chance of discovery grows."}
+  fix_minutes: 120
+web.security.sourcemap_tree_exposed:
+  who: "Anyone curious about your site's source code"
+  ease: easy
+  consequence: "The app's source code can be read along with its file tree; finding weaknesses and copying business logic gets easier."
+  timeline: {today: "Source files can be downloaded right now.", week: "Keys, internal addresses or logic bugs in the code may be found.", month: "Competitors and attackers can study the code."}
+  fix_minutes: 15
+
+# --- speed
+web.perf.lcp_slow:
+  who: "Visitors on phones"
+  ease: easy
+  consequence: "The main content appears late; some visitors leave before it arrives."
+  timeline: {today: "The main content opens slowly right now.", week: "Some visitors from ads and search are lost.", month: "You fall behind on Google's page experience signals."}
+  fix_minutes: 120
+web.perf.cls_high:
+  who: "Every visitor who opens the page"
+  ease: easy
+  consequence: "Elements shift while the page loads; visitors lose their place or tap the wrong button."
+  timeline: {today: "Content shifts while loading.", week: "Mis-taps and drop-offs increase.", month: "You fall behind on Google's page experience signals."}
+  fix_minutes: 60
+web.perf.inp_slow:
+  who: "Visitors who click or type on the page"
+  ease: easy
+  consequence: "Clicks get a late response; the site feels frozen."
+  timeline: {today: "Interactions are delayed right now.", week: "Visitors tap buttons repeatedly and abandon forms.", month: "You fall behind on Google's page experience signals."}
+  fix_minutes: 120
+web.perf.blank_screen_long:
+  who: "Visitors on phones"
+  ease: easy
+  consequence: "The screen stays blank for the first seconds; visitors think the site doesn't work and go back."
+  timeline: {today: "The blank screen at start is long.", week: "Many visitors on slow connections leave without seeing anything.", month: "Part of your ad spend is wasted."}
+  fix_minutes: 90
+web.perf.unused_js:
+  who: "Visitors on phones"
+  ease: easy
+  consequence: "Unused code is downloaded and run, slowing the page and using mobile data."
+  timeline: {today: "Unneeded code is downloaded on every visit.", week: "On slow devices the page responds late.", month: "The problem grows as you add features."}
+  fix_minutes: 120
+web.perf.oversized_images:
+  who: "Visitors on phones"
+  ease: easy
+  consequence: "Images are larger than needed; the page opens slowly and uses mobile data."
+  timeline: {today: "Large images are downloaded on every visit.", week: "On slow connections images arrive late.", month: "You fall behind on speed signals."}
+  fix_minutes: 45
+web.perf.no_compression_or_cache:
+  who: "Everyone who opens and revisits the site"
+  ease: easy
+  consequence: "Files are sent uncompressed or downloaded from scratch every time; the page is needlessly slow."
+  timeline: {today: "More data than needed is sent on every visit.", week: "Returning visitors wait too.", month: "Your server/CDN costs stay needlessly high."}
+  fix_minutes: 30
+web.perf.heavy_third_party:
+  who: "Every visitor who opens your site"
+  ease: easy
+  consequence: "Third-party code (chat, tracking, ads) slows the page down."
+  timeline: {today: "Third-party code delays loading.", week: "On slow devices the page responds late.", month: "The problem grows with every new tool."}
+  fix_minutes: 60
+
+# --- external visibility
+web.external.forgotten_subdomain:
+  who: "Bots and attackers scanning certificate logs"
+  ease: easy
+  consequence: "An exposed file or key on a forgotten subdomain can be used to reach your main site and data."
+  legal: "If personal data was exposed, a data breach notification may be required under GDPR/KVKK."
+  timeline: {today: "The subdomain is public and has problems.", week: "Bots constantly scan certificate logs for new addresses.", month: "A key found there could be used to access your main systems."}
+  fix_minutes: 45
+web.external.subdomain_takeover_risk:
+  who: "People looking for unclaimed service names"
+  ease: moderate
+  consequence: "Someone could publish their own page on this subdomain and run a fake login page under your name."
+  timeline: {today: "The DNS record points to an unclaimed service right now.", week: "Records like this are searched for with automated tools.", month: "If taken over, fraud is carried out through your domain."}
+  fix_minutes: 10
+web.external.email_spoofing:
+  who: "Phishing scammers"
+  ease: easy
+  consequence: "Fake emails such as 'reset your password' or 'invoice' can be sent from your domain; your customers believe they're real."
+  timeline: {today: "Your domain is open to spoofed sending right now.", week: "Fake emails could land in your customers' inboxes.", month: "Your real emails may start going to spam too."}
+  fix_minutes: 30
+web.external.archived_sensitive_paths:
+  who: "Anyone browsing old files in the internet archive"
+  ease: easy
+  consequence: "If keys and passwords from files that were public in the past are still valid, your systems can be accessed."
+  legal: "If personal data was exposed, a data breach notification may be required under GDPR/KVKK."
+  timeline: {today: "The archive records are public and aren't deleted.", week: "Keys that weren't changed remain usable.", month: "Until the keys are rotated, the risk remains."}
+  fix_minutes: 60
+web.external.domain_expiry_soon:
+  who: "People who track and buy expiring domains"
+  ease: easy
+  consequence: "If the domain expires, the site and email stop; after a while someone else can buy the domain."
+  timeline: {today: "The expiry date is close.", week: "If auto-renew is off, it may expire.", month: "Getting a lost domain back can be hard and expensive."}
+  fix_minutes: 10
+web.external.cert_expiry_soon:
+  who: "Every visitor who opens your site"
+  ease: easy
+  consequence: "When the certificate expires, browsers show a 'connection not secure' warning and most visitors leave."
+  timeline: {today: "The certificate ends soon and doesn't seem renewed.", week: "If it expires, the site sits behind a warning screen.", month: "Apps' API connections break too."}
+  fix_minutes: 20
+
+# --- links, meta, structured data
+web.links.broken_internal:
+  who: "Visitors browsing your site"
+  ease: easy
+  consequence: "Visitors can't find the page they clicked; a broken menu link is seen by everyone."
+  timeline: {today: "Broken links return errors right now.", week: "Visitors leave without finding what they wanted.", month: "Search engines may treat the site as neglected."}
+  fix_minutes: 30
+web.links.broken_external:
+  who: "Visitors clicking the links you give"
+  ease: easy
+  consequence: "Visitors can't reach the resource or partner; the site looks unmaintained."
+  timeline: {today: "Some external links don't open.", week: "References meant to build trust don't work.", month: "Expired domains can be bought by someone else."}
+  fix_minutes: 20
+web.links.http_target_no_https:
+  who: "Visitors clicking unencrypted links"
+  ease: moderate
+  consequence: "The connection isn't encrypted, so someone on the same network can see or change the traffic."
+  timeline: {today: "Links go to unencrypted targets.", week: "Traffic can be watched on public networks.", month: "Browsers warn more strongly about unencrypted connections."}
+  fix_minutes: 15
+web.links.youtube_unavailable:
+  who: "Visitors who want to watch the video on the page"
+  ease: easy
+  consequence: "Visitors see 'Video unavailable' instead of the video; what you wanted to show is missing."
+  timeline: {today: "The video can't be played right now.", week: "Demo/tutorial content doesn't work.", month: "The page looks unmaintained."}
+  fix_minutes: 10
+web.meta.og_image_unreachable:
+  who: "Anyone sharing your link on WhatsApp, LinkedIn or X"
+  ease: easy
+  consequence: "Shared links appear without an image or with a broken preview; fewer people click."
+  timeline: {today: "Shares look image-less right now.", week: "Referral and social traffic gets fewer clicks.", month: "Platforms may cache the old preview; you'll need to refresh it after fixing."}
+  fix_minutes: 20
+web.seo.structured_data_invalid:
+  who: "Search engines"
+  ease: easy
+  consequence: "Broken structured data is ignored; rich results like prices or ratings don't appear."
+  timeline: {today: "The structured data isn't used right now.", week: "Competitors stand out in search with rich cards.", month: "The opportunity is missed until the error is fixed."}
+  fix_minutes: 30
+web.seo.structured_data_opportunity:
+  who: "Search engines and AI assistants"
+  ease: easy
+  consequence: "Your product, FAQ or business details can't be shown richly in search results."
+  timeline: {today: "This information isn't described to search engines in structured form.", week: "Competitors may stay more visible with rich results.", month: "The opportunity remains; adding it is a short job."}
+  fix_minutes: 45
+
+# --- privacy, supply chain, accessibility
+web.privacy.trackers_before_consent:
+  who: "Your visitors and the data protection authority"
+  ease: easy
+  consequence: "Visitor data goes to tracking tools before consent; the consent banner loses its purpose."
+  legal: "Under GDPR and KVKK, using analytics/advertising cookies without explicit consent carries a risk of fines and complaints."
+  timeline: {today: "Every new visitor's data is sent without consent.", week: "A single visitor complaint could trigger an investigation.", month: "The collected data lacks a legal basis."}
+  fix_minutes: 60
+web.privacy.trackers_after_reject:
+  who: "Your visitors and the data protection authority"
+  ease: easy
+  consequence: "Tracking continues even though the visitor clearly rejected it; their choice is ignored."
+  legal: "Processing data despite a rejected consent is a serious violation under GDPR and KVKK, with a risk of complaints and fines."
+  timeline: {today: "Every visitor who rejects is still tracked.", week: "A visitor who notices may file a complaint.", month: "The collected data lacks a legal basis."}
+  fix_minutes: 60
+web.privacy.consent_banner_missing:
+  who: "Your visitors and the data protection authority"
+  ease: easy
+  consequence: "Tracking tools run without any consent; visitors don't know where their data goes."
+  legal: "GDPR and KVKK require prior explicit consent for analytics/advertising cookies; otherwise there's a risk of fines."
+  timeline: {today: "Every visitor's data is sent without consent.", week: "A complaint could trigger an investigation.", month: "The collected data lacks a legal basis."}
+  fix_minutes: 90
+web.security.vulnerable_js_library:
+  who: "Automated tools scanning for known vulnerabilities"
+  ease: moderate
+  consequence: "A published vulnerability can be used to run code on your site as the visitor (session theft, fake forms)."
+  timeline: {today: "Vulnerable versions are loaded right now.", week: "Automated scans looking for these flaws run every day.", month: "Until the library is updated, the risk remains."}
+  fix_minutes: 60
+web.security.risky_third_party_script:
+  who: "Whoever controls the compromised CDN"
+  ease: easy
+  consequence: "Code from this source runs on your site like your own: it can redirect visitors to scam sites or steal form data."
+  legal: "If visitor data is stolen, a data breach notification may be required under GDPR/KVKK."
+  timeline: {today: "The code runs for every visitor right now.", week: "Malicious code could be switched on at any moment.", month: "Search engines and browsers may flag your site as harmful."}
+  fix_minutes: 15
+web.a11y.axe_violations:
+  who: "Visitors using screen readers or keyboards, and people with low vision"
+  ease: easy
+  consequence: "These visitors can't tell what buttons do or can't fill in forms."
+  legal: "In some sectors and public services, accessibility is a legal requirement."
+  timeline: {today: "These visitors can't fully use the site right now.", week: "They get stuck in sign-up and purchase steps.", month: "The problem spreads as new pages reuse the same components."}
+  fix_minutes: 120
+
+# --- funnel
+web.funnel.signup_friction:
+  who: "Visitors trying to sign up"
+  ease: easy
+  consequence: "A long form, or one asking for a card, makes some would-be users give up halfway."
+  timeline: {today: "The sign-up form is longer than needed right now.", week: "Some of the visitors you bring in leave without signing up.", month: "Growth spending brings fewer results."}
+  fix_minutes: 60
+web.funnel.too_many_steps:
+  who: "Visitors trying to sign up"
+  ease: easy
+  consequence: "Reaching the sign-up form is long or slow; visitors are lost at every extra step."
+  timeline: {today: "The sign-up path is long right now.", week: "Some people who tap the main button never see the form.", month: "The sign-up rate stays low."}
+  fix_minutes: 45
+web.funnel.mobile_input_types:
+  who: "Visitors signing up on phones"
+  ease: easy
+  consequence: "The wrong keyboard opens and autofill doesn't work; the form is tedious on phones."
+  timeline: {today: "The form is hard to fill in on phones.", week: "More mobile sign-ups are abandoned than on desktop.", month: "Sign-ups a small fix could win keep slipping away."}
+  fix_minutes: 15
+web.funnel.price_hidden:
+  who: "Visitors wondering about the price"
+  ease: easy
+  consequence: "Visitors who can't see the price may assume it's expensive or move to a competitor."
+  timeline: {today: "Prices are hard to find right now.", week: "Some visitors looking for prices leave.", month: "Unnecessary questions to your sales team increase."}
+  fix_minutes: 60
+web.funnel.vat_excluded_price:
+  who: "Consumers and consumer protection authorities"
+  ease: easy
+  consequence: "Visitors may give up when they see the amount rise at checkout; trust is shaken."
+  legal: "When selling to consumers, prices must include taxes in Turkey (Price Tag Regulation) and in the EU."
+  timeline: {today: "Prices are shown excluding VAT right now.", week: "Drop-offs at checkout increase.", month: "The risk of complaints or inspections remains."}
+  fix_minutes: 45
+
+# --- benchmark
+web.benchmark.common_pattern_missing:
+  who: "Visitors comparing you with similar sites"
+  ease: easy
+  consequence: "Visitors who don't find the trust and direction cues they're used to on similar sites hesitate."
+  timeline: {today: "These patterns are missing on your site right now.", week: "Visitors who compare may move to a competitor.", month: "The gap closes as you add the patterns."}
+  fix_minutes: 180
+web.benchmark.missing_page_types:
+  who: "Visitors researching before deciding"
+  ease: easy
+  consequence: "Visitors who can't find answers (pricing, FAQ, contact...) leave without asking."
+  timeline: {today: "These pages don't exist right now.", week: "Visitors with questions find no answers.", month: "Extra traffic from search engines is missed."}
+  fix_minutes: 120
+web.benchmark.slower_than_peers:
+  who: "Visitors comparing you with competitors on the same phone"
+  ease: easy
+  consequence: "A noticeably slower site earns less trust even if it offers the same product."
+  timeline: {today: "Your site opens slower than similar sites right now.", week: "Some visitors who compare go to a competitor.", month: "You fall behind on speed signals."}
+  fix_minutes: 120
+
+# --- LLM (P8)
+web.conversion.value_proposition:
+  who: "Visitors opening your site for the first time"
+  ease: easy
+  consequence: "If visitors can't tell on the first screen what you offer and why it matters, they leave."
+  timeline: {today: "The first-screen message is unclear right now.", week: "Some of your traffic leaves without scrolling.", month: "Once the message is clear, other improvements pay off more."}
+  fix_minutes: 90

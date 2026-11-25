@@ -94,6 +94,15 @@ class Check(ABC):
     @abstractmethod
     async def run(self, ctx: ScanContext) -> list[Finding]: ...
 
+    def fingerprint(self, evidence: dict[str, Any]) -> str:
+        """Yeniden tarama farkı için kararlı kimlik (PHASE2 §8.10): aynı sorun iki taramada aynı
+        parmak izini üretir. Varsayılan: check_id + kanıttaki host/sayfa (çoğu check tek bulgu
+        üretir; birden fazla üretenler host/sayfa ile ayrışır)."""
+        key = next(
+            (str(evidence[k]) for k in ("host", "page", "url", "path") if evidence.get(k)), ""
+        )
+        return f"{self.id}|{key}"
+
     def text_params(self, evidence: dict[str, Any], fragment: "FragmentFn") -> dict[str, str]:
         """i18n metinlerindeki `{yer_tutucu}`lar için değerler (rapor üretilirken çağrılır).
         `fragment(ad, **değerler)` check'in i18n `fragments` alanından dile özgü parça üretir.

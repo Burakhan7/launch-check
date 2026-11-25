@@ -1,0 +1,94 @@
+# Impact cards (PHASE2 §8.4, §11) — phase 1 critical/high web checks, English.
+
+web.secrets.leaked_key:
+  who: "Anyone who opens your site's code, including code-scanning bots"
+  ease: easy
+  consequence: "Whoever finds the key can use it in your name: run up bills on AI/payment/email services or reach your data."
+  legal: "If the key gives access to personal data, a data breach notification may be required under GDPR/KVKK."
+  timeline: {today: "The key is visible to everyone who visits your site right now.", week: "Code-scanning bots look for leaked keys all the time.", month: "Until the key is rotated, the risk of abuse and unexpected bills remains."}
+  fix_minutes: 30
+web.secrets.service_role:
+  who: "Anyone who opens your site's code"
+  ease: easy
+  consequence: "This key bypasses every security rule: all user data can be read, changed and deleted."
+  legal: "If personal data is exposed, a data breach notification may be required under GDPR/KVKK."
+  timeline: {today: "Your whole database is reachable with a single key right now.", week: "Bots scan for keys like this regularly.", month: "Until the key is rotated, the risk of data loss and leaks remains."}
+  fix_minutes: 30
+web.secrets.db_connection_string:
+  who: "Anyone who opens your site's code"
+  ease: easy
+  consequence: "With the connection details, someone can connect to your database directly."
+  legal: "If personal data is exposed, a data breach notification may be required under GDPR/KVKK."
+  timeline: {today: "The connection details are public right now.", week: "Automated tools try details like these quickly.", month: "Until the password is changed, the risk remains."}
+  fix_minutes: 30
+web.files.env_exposed:
+  who: "Automated bots, and even someone with little technical knowledge"
+  ease: easy
+  consequence: "The passwords and keys in the environment file give access to your database and services."
+  legal: "If personal data is exposed, a data breach notification may be required under GDPR/KVKK."
+  timeline: {today: "The file opens when its address is typed into a browser.", week: "Bots constantly look for .env files.", month: "Until the keys inside are rotated, the risk remains."}
+  fix_minutes: 15
+web.files.git_exposed:
+  who: "Automated bots"
+  ease: easy
+  consequence: "Your entire source code and its history, including passwords in it, can be downloaded."
+  timeline: {today: "The .git folder is reachable right now.", week: "Bots scan for open .git folders regularly.", month: "Keys from the history also remain usable."}
+  fix_minutes: 15
+web.files.backup_exposed:
+  who: "Automated bots"
+  ease: easy
+  consequence: "A database or site backup can be downloaded and all data in it read."
+  legal: "If the backup contains personal data, a data breach notification may be required under GDPR/KVKK."
+  timeline: {today: "The backup file can be downloaded right now.", week: "Bots regularly try well-known backup names.", month: "A downloaded backup can't be taken back."}
+  fix_minutes: 10
+web.files.sourcemap_exposed:
+  who: "Anyone curious about your site's source code"
+  ease: easy
+  consequence: "The readable source code of your app can be downloaded, which makes looking for weaknesses easier."
+  timeline: {today: "Source maps are public right now.", week: "Internal addresses and logic mistakes in the code can be studied.", month: "They stay public with every new release."}
+  fix_minutes: 15
+web.bundle.localhost_urls:
+  who: "Visitors using your site"
+  ease: easy
+  consequence: "The app tries to connect to 'localhost' on the visitor's own computer; those features don't work."
+  timeline: {today: "Features relying on this address don't work right now.", week: "Visitors hit errors and leave.", month: "The problem keeps shipping in new releases."}
+  fix_minutes: 30
+web.https.missing:
+  who: "Anyone on the same network (café or hotel Wi-Fi)"
+  ease: easy
+  consequence: "Without encryption, passwords and form data can be read; browsers show a 'not secure' warning."
+  timeline: {today: "The site opens without encryption right now.", week: "Visitors see the warning and leave.", month: "Search engines and browsers are getting stricter with unencrypted sites."}
+  fix_minutes: 30
+web.seo.noindex_left:
+  who: "Search engines"
+  ease: easy
+  consequence: "The site doesn't appear in search results at all; visitors from search are lost."
+  timeline: {today: "Google doesn't index your site.", week: "Existing rankings start to drop.", month: "Search traffic approaches zero."}
+  fix_minutes: 10
+web.seo.robots_disallow_all:
+  who: "Search engines"
+  ease: easy
+  consequence: "robots.txt blocks search engines from crawling your site; your pages don't show up in search."
+  timeline: {today: "Search engines can't enter your site.", week: "New pages aren't indexed.", month: "Search traffic approaches zero."}
+  fix_minutes: 10
+web.privacy.exif_in_uploads:
+  who: "Anyone who downloads uploaded images"
+  ease: easy
+  consequence: "Location and device data in users' photos can be read by anyone."
+  legal: "Location is personal data; this may count as a data breach under GDPR/KVKK."
+  timeline: {today: "Location data in photos is public right now.", week: "Users' homes or workplaces could be identified.", month: "Exposed data grows with every new upload."}
+  fix_minutes: 60
+web.privacy.special_category_without_consent:
+  who: "Your visitors and the data protection authority"
+  ease: easy
+  consequence: "Special category data such as health or beliefs is collected without explicit consent."
+  legal: "Explicit consent is mandatory for special category personal data (GDPR/KVKK); violations carry a risk of heavy fines."
+  timeline: {today: "The form is collecting data without consent right now.", week: "Every new sign-up adds data without a legal basis.", month: "A complaint could lead to an investigation and a fine."}
+  fix_minutes: 60
+web.safety.age_gate_missing:
+  who: "Children visiting the site and their families"
+  ease: easy
+  consequence: "Without an age check, children may encounter adult live chat/content."
+  legal: "Child protection rules and platform policies (app stores) may require age checks."
+  timeline: {today: "There's no age check right now.", week: "A single incident can become a platform and reputation problem.", month: "App stores and payment providers may suspend your account."}
+  fix_minutes: 120

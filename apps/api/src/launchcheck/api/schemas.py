@@ -49,7 +49,22 @@ class EventsResponse(BaseModel):
     status: ScanStatus
 
 
+class TimelineItem(BaseModel):
+    when: str  # today | week | month
+    text: str
+
+
+class ImpactOut(BaseModel):
+    who: str
+    ease: str  # easy | moderate | hard
+    consequence: str
+    legal: str | None
+    timeline: list[TimelineItem]
+    fix_minutes: int
+
+
 class FindingOut(BaseModel):
+    id: uuid.UUID | None = None
     check_id: str
     severity: Severity
     category: Category
@@ -63,6 +78,9 @@ class FindingOut(BaseModel):
     source_phase: int = 1
     verification: Verification | None = None
     module: str | None = None
+    # Etki kartı (Faz 2 raporu, önem ≥ medium) ve yeniden tarama eşleştirmesi
+    impact: ImpactOut | None = None
+    fingerprint: str = ""
 
 
 class PassedCheckOut(BaseModel):
@@ -92,3 +110,5 @@ class ScanReport(BaseModel):
     progress: dict[str, Any] | None = None
     queue_position: int | None = None
     eta_s: int | None = None
+    # Faz 2 rapor bölümleri (fark paneli, öncelik planı, kapılar, yeniden tarama farkı, asset'ler)
+    sections: dict[str, Any] | None = None

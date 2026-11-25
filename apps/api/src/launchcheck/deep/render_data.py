@@ -158,6 +158,7 @@ class RenderedPage:
     external_links: dict[str, str] = field(default_factory=dict)
     console_errors: list[ConsoleError] = field(default_factory=list)
     failures: list[NetworkFailure] = field(default_factory=list)
+    api_calls: list[tuple[str, str]] = field(default_factory=list)  # (yöntem, sorgu dizesiz URL)
     broken_images: list[BrokenImage] = field(default_factory=list)
     junk: list[JunkText] = field(default_factory=list)
     mobile: ViewportMetrics | None = None

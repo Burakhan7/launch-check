@@ -49,6 +49,8 @@ class OrchestratorConfig:
     special_data_aware: Sequence[str] = ()
     assets: AssetStore | None = None
     events_factory: Callable[[uuid.UUID], EventSink] | None = None
+    # Modüller bitince çalışan özetleyiciler (rapor verisi: test edilmemiş kapılar, önizleme)
+    finalizers: Sequence[Callable[[DeepContext], None]] = ()
 
 
 @dataclass
@@ -97,6 +99,7 @@ class DeepOrchestrator:
             except TimeoutError:
                 self._mark_unfinished_partial(state)
             await self._verify(ctx)
+            self._finalize(ctx)
             status = await self._finish(scan_id, ctx, state, time.monotonic() - started)
             await events.emit(CORE, "deep.event.done")
             return status
@@ -304,6 +307,13 @@ class DeepOrchestrator:
                 if result is not None:
                     row.verification = result
             await session.commit()
+
+    def _finalize(self, ctx: DeepContext) -> None:
+        for finalizer in self._cfg.finalizers:
+            try:
+                finalizer(ctx)
+            except Exception as exc:
+                logger.warning("tarama özeti üretilemedi (%s)", type(exc).__name__)
 
     async def _finish(
         self, scan_id: uuid.UUID, ctx: DeepContext, state: _RunState, duration_s: float
