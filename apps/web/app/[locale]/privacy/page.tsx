@@ -10,6 +10,16 @@ export async function generateMetadata(): Promise<Metadata> {
 
 const STORED = ["report", "evidence", "rate"] as const;
 const NOT_STORED = ["apk", "filename", "account", "secrets"] as const;
+const DEEP = [
+  "screenshots",
+  "visitors",
+  "competitors",
+  "google",
+  "services",
+  "ai",
+  "values",
+] as const;
+const CREDITS = ["easyprivacy", "retire", "axe", "takeover", "majestic", "playwright"] as const;
 
 export default async function PrivacyPage() {
   const t = await getTranslations("Privacy");
@@ -35,6 +45,22 @@ export default async function PrivacyPage() {
 
       <Block title={t("retentionTitle")} text={t("retention")} />
       <Block title={t("scanTitle")} text={t("scan")} />
+      <section className="flex flex-col gap-2">
+        <h2 className="text-xl font-semibold">{t("deepTitle")}</h2>
+        <ul className="flex list-disc flex-col gap-2 pl-5 text-muted">
+          {DEEP.map((key) => (
+            <li key={key}>{t(`deep.${key}`)}</li>
+          ))}
+        </ul>
+      </section>
+      <section className="flex flex-col gap-2">
+        <h2 className="text-xl font-semibold">{t("creditsTitle")}</h2>
+        <ul className="flex list-disc flex-col gap-1 pl-5 text-sm text-muted">
+          {CREDITS.map((key) => (
+            <li key={key}>{t(`credits.${key}`)}</li>
+          ))}
+        </ul>
+      </section>
       <section className="flex flex-col gap-2">
         <h2 className="text-xl font-semibold">{t("contactTitle")}</h2>
         <p className="text-muted">

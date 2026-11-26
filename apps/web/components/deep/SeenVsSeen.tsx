@@ -48,7 +48,7 @@ export function SeenVsSeen({ report }: { report: ScanReport }) {
                   width={asset.width}
                   height={asset.height}
                   loading="lazy"
-                  className="h-auto w-full"
+                  className="max-h-96 w-full object-cover object-top"
                 />
               ) : (
                 <p className="p-6 text-center text-xs text-muted">{t("noShot")}</p>

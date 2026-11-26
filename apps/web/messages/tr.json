@@ -3,7 +3,8 @@
     "title": "Launch Check — Yayına çıkmadan önce kontrol et",
     "description": "Vibe coding ile yaptığın web sitesini veya Android uygulamanı ücretsiz tara. Sızan anahtarları, açık dosyaları ve yayın hatalarını dakikalar içinde bul.",
     "reportTitle": "Tarama raporu — Launch Check",
-    "privacyTitle": "Gizlilik — Launch Check"
+    "privacyTitle": "Gizlilik — Launch Check",
+    "botTitle": "LaunchCheckBot — Launch Check"
   },
   "Nav": {
     "home": "Ana sayfa",
@@ -311,7 +312,8 @@
   "Footer": {
     "tagline": "Vibe coding ile yapılmış uygulamalar için yayın öncesi kontrol.",
     "privacy": "Gizlilik",
-    "contact": "İletişim"
+    "contact": "İletişim",
+    "bot": "Bot"
   },
   "Privacy": {
     "title": "Gizlilik",
@@ -320,7 +322,7 @@
     "stored": {
       "report": "Tarama raporu: taranan sitenin ana adresi (ör. https://siten.com) veya uygulamanın paket adı, skor ve bulgular.",
       "evidence": "Bulgu kanıtları: dosya yolu, header adı gibi bilgiler. Bulunan anahtarlar sadece maskeli hâlde (ilk 6 ve son 4 karakter) saklanır.",
-      "rate": "Kötüye kullanımı önlemek için IP adresinin tek yönlü özeti (hash) en fazla 1 saat tutulur, sonra kendiliğinden silinir."
+      "rate": "Kötüye kullanımı önlemek için IP adresinin tek yönlü özeti (hash) sadece Redis'te, süreli olarak tutulur: hızlı tarama için en fazla 1 saat, derin tarama için en fazla 24 saat. Sonra kendiliğinden silinir."
     },
     "notStoredTitle": "Ne saklamıyoruz?",
     "notStored": {
@@ -334,7 +336,26 @@
     "scanTitle": "Taramayı nasıl yapıyoruz?",
     "scan": "Sadece herkese açık dosyalara bakarız. Sitenin veya uygulamanın arka ucuna (Supabase, Firebase, API) yazma veya okuma denemesi yapmayız. Botumuz kendini LaunchCheckBot olarak tanıtır.",
     "contactTitle": "İletişim",
-    "contact": "Sorun veya silme talebi için bize yazabilirsin."
+    "contact": "Sorun veya silme talebi için bize yazabilirsin.",
+    "deepTitle": "Derin taramada (Faz 2) ek olarak",
+    "deep": {
+      "screenshots": "Siteni gerçek bir tarayıcıda açar ve ekran görüntüleri alırız. Görüntüler raporla birlikte 7 gün sonra silinir.",
+      "visitors": "Siteni ilk kez gelen bir ziyaretçi gibi gezeriz: sayfaları açar, çerez banner'ında \"Reddet\"e tıklarız. Hiçbir forma yazmaz, form göndermez, giriş denemeyiz.",
+      "competitors": "Rakip olarak girdiğin sitelerin ve kategorindeki örnek sitelerin herkese açık sayfalarını açarız (robots.txt'e uyarak). Onlarda güvenlik kontrolü yapmayız; sonuçları 24 saat boyunca tüm kullanıcılar için önbellekte tutarız.",
+      "google": "Gerçek kullanıcı hız verisi (CrUX) için Google'a sadece sitenin adresi gönderilir.",
+      "services": "Alt alan adları ve arşiv kontrolü için crt.sh, Cert Spotter, Internet Archive ve RDAP'a; video kontrolü için YouTube'a sadece alan adı veya video kimliği gönderilir.",
+      "ai": "Sayfa içeriği üçüncü taraf bir yapay zekâ servisine gönderilmez. İçerik yorumu (açıldığında) kendi sunucumuzda çalışan yerel bir modelle yapılır.",
+      "values": "Çerez ve tarayıcı depolama DEĞERLERİNİ okumayız; sadece adlarını ve güvenlik ayarlarını kaydederiz."
+    },
+    "creditsTitle": "Kullandığımız açık veriler ve araçlar",
+    "credits": {
+      "easyprivacy": "EasyPrivacy takipçi listesi (easylist.to), CC BY-SA 3.0",
+      "retire": "retire.js açıklı kütüphane veritabanı, Apache-2.0",
+      "axe": "axe-core erişilebilirlik motoru (Deque), MPL-2.0",
+      "takeover": "can-i-take-over-xyz (EdOverflow), CC BY 4.0",
+      "majestic": "Majestic Million popülerlik listesi, CC BY 3.0",
+      "playwright": "Playwright ve Lighthouse, Apache-2.0"
+    }
   },
   "NotFound": {
     "title": "Sayfa bulunamadı",
@@ -599,6 +620,31 @@
       "admin": "Doğrulanamayan yönetim sayfaları",
       "phase3": "Faz 3: sitenin sahibi olduğunu doğrula, bu kapıları içeriden test edelim. (Yakında)",
       "phase3Cta": "Bize yaz"
-    }
+    },
+    "rescanButton": "Düzelttin mi? Derin taramayı tekrar çalıştır"
+  },
+  "Bot": {
+    "title": "LaunchCheckBot",
+    "intro": "LaunchCheckBot, Launch Check'in tarama botudur. Siteni bir kullanıcı taramayı başlattığında, rakip olarak girildiğinde veya kategorisindeki örnek sitelerden biri olarak ziyaret eder.",
+    "uaTitle": "Kendini nasıl tanıtır?",
+    "ua": "Kullanıcı ajanında her zaman \"LaunchCheckBot/1.0\" ve bu sayfanın adresi bulunur. Gerçek tarayıcıyla açtığımız sayfalarda tarayıcı bilgisinin sonuna aynı kimlik eklenir.",
+    "doesTitle": "Ne yapar?",
+    "does": {
+      "pages": "Herkese açık sayfaları, görselleri ve script'leri normal bir ziyaretçi gibi açar.",
+      "banner": "Çerez banner'ında sadece \"Reddet / Sadece gerekli\" düğmesine tıklar.",
+      "files": "Sitenin sahibi taramayı başlattıysa, sık unutulan herkese açık dosyalara (ör. /.env, /.git/config) bakar."
+    },
+    "doesNotTitle": "Ne yapmaz?",
+    "doesNot": {
+      "forms": "Formlara yazmaz, form göndermez, giriş veya kayıt denemez.",
+      "apis": "Sitenin API'lerine kendi isteğini atmaz; bulduğu anahtar veya token'ları kullanmaz.",
+      "competitors": "Rakip ve örnek sitelerde güvenlik kontrolü yapmaz; sadece sayfa yapısına bakar.",
+      "load": "Site başına en fazla birkaç sayfa açar ve aynı siteye istekleri aralıklı gönderir."
+    },
+    "blockTitle": "Nasıl engellenir?",
+    "block": "robots.txt dosyana aşağıdaki satırları eklersen rakip ve örnek site taramalarında siteni ziyaret etmeyiz:",
+    "blockNote": "Sitenin sahibi kendi sitesini taramayı başlattığında robots.txt'e bakılmaz; bu tarama sahibin isteğidir.",
+    "contactTitle": "Bir sorun mu var?",
+    "contact": "Botumuzla ilgili bir sorun veya kaldırma talebin için bize yazabilirsin."
   }
 }

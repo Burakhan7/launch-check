@@ -52,11 +52,13 @@ export function FunnelMap({ report }: { report: ScanReport }) {
             <span className="text-xs text-muted">
               {t("meta", { seconds: seconds(step.load_ms), clicks: step.clicks })}
             </span>
-            {step.issues.length > 0 && (
+            {step.issues.some((id) => titles.has(id)) && (
               <ul className="flex flex-col gap-1 text-xs text-sev-high">
-                {step.issues.map((id) => (
-                  <li key={id}>• {titles.get(id) ?? id}</li>
-                ))}
+                {step.issues
+                  .filter((id) => titles.has(id))
+                  .map((id) => (
+                    <li key={id}>• {titles.get(id)}</li>
+                  ))}
               </ul>
             )}
           </li>

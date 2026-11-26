@@ -322,7 +322,7 @@ function DeepActions({ report }: { report: ScanReport }) {
         disabled={busy || !report.parent_scan_id}
         className="rounded-xl bg-brand px-4 py-2 text-sm font-semibold text-brand-contrast hover:bg-brand-strong disabled:opacity-70"
       >
-        {t("rescan")}
+        {t("rescanButton")}
       </button>
       {error && <p className="w-full text-sm text-sev-critical">{error}</p>}
     </div>

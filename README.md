@@ -49,3 +49,14 @@ docker run --rm -v "$PWD/apps/api/tests/fixtures/apk:/out" lc-apk-fixtures
 ```
 
 apktool/jadx gerektiren testler (`pytest -m tools`) worker imajında çalışır; CI'daki `apk-tools` job'una bak.
+
+## Credits
+
+Launch Check aşağıdaki açık veri ve araçları kullanır (lisans kararları: `docs/decisions.md`, P0 ve P6/P9):
+
+- [EasyPrivacy](https://easylist.to) takipçi listesi — CC BY-SA 3.0 (sadece eşleştirme verisi olarak, değiştirilmeden)
+- [retire.js](https://github.com/RetireJS/retire.js) açıklı kütüphane veritabanı — Apache-2.0
+- [axe-core](https://github.com/dequelabs/axe-core) — MPL-2.0 (değiştirilmeden)
+- [can-i-take-over-xyz](https://github.com/EdOverflow/can-i-take-over-xyz) — CC BY 4.0
+- [Majestic Million](https://majestic.com/reports/majestic-million) — CC BY 3.0
+- [Playwright](https://playwright.dev) ve [Lighthouse](https://github.com/GoogleChrome/lighthouse) — Apache-2.0

@@ -3,7 +3,8 @@
     "title": "Launch Check — Check before you launch",
     "description": "Scan the website or Android app you built with vibe coding for free. Find leaked keys, exposed files and launch mistakes in minutes.",
     "reportTitle": "Scan report — Launch Check",
-    "privacyTitle": "Privacy — Launch Check"
+    "privacyTitle": "Privacy — Launch Check",
+    "botTitle": "LaunchCheckBot — Launch Check"
   },
   "Nav": {
     "home": "Home",
@@ -311,7 +312,8 @@
   "Footer": {
     "tagline": "Pre-launch checks for apps built with vibe coding.",
     "privacy": "Privacy",
-    "contact": "Contact"
+    "contact": "Contact",
+    "bot": "Bot"
   },
   "Privacy": {
     "title": "Privacy",
@@ -320,7 +322,7 @@
     "stored": {
       "report": "The scan report: the scanned site's base address (e.g. https://yoursite.com) or the app's package name, the score and the findings.",
       "evidence": "Finding evidence: things like file paths and header names. Keys we find are stored only in masked form (first 6 and last 4 characters).",
-      "rate": "To prevent abuse, a one-way hash of your IP address is kept for at most 1 hour and then deleted automatically."
+      "rate": "To prevent abuse, a one-way hash of the IP address is kept only in Redis, with an expiry: up to 1 hour for quick scans and up to 24 hours for deep scans. It is then deleted automatically."
     },
     "notStoredTitle": "What don't we store?",
     "notStored": {
@@ -334,7 +336,26 @@
     "scanTitle": "How do we scan?",
     "scan": "We only look at public files. We never try to read from or write to your site's or app's backend (Supabase, Firebase, APIs). Our bot identifies itself as LaunchCheckBot.",
     "contactTitle": "Contact",
-    "contact": "Write to us with questions or deletion requests."
+    "contact": "Write to us with questions or deletion requests.",
+    "deepTitle": "In addition, for deep scans (Phase 2)",
+    "deep": {
+      "screenshots": "We open your site in a real browser and take screenshots. They're deleted together with the report after 7 days.",
+      "visitors": "We browse your site like a first-time visitor: we open pages and click \"Reject\" in the cookie banner. We never type into or submit forms or try to log in.",
+      "competitors": "We open public pages of the sites you enter as competitors and of example sites in your category (respecting robots.txt). We don't run security checks on them; results are cached for all users for 24 hours.",
+      "google": "For real-user speed data (CrUX), only the site's address is sent to Google.",
+      "services": "For subdomain and archive checks only the domain is sent to crt.sh, Cert Spotter, the Internet Archive and RDAP; for video checks only the video ID is sent to YouTube.",
+      "ai": "Page content isn't sent to any third-party AI service. Content commentary (when enabled) is done by a local model running on our own server.",
+      "values": "We don't read cookie or browser storage VALUES; we only record their names and security settings."
+    },
+    "creditsTitle": "Open data and tools we use",
+    "credits": {
+      "easyprivacy": "EasyPrivacy tracker list (easylist.to), CC BY-SA 3.0",
+      "retire": "retire.js vulnerable library database, Apache-2.0",
+      "axe": "axe-core accessibility engine (Deque), MPL-2.0",
+      "takeover": "can-i-take-over-xyz (EdOverflow), CC BY 4.0",
+      "majestic": "Majestic Million popularity list, CC BY 3.0",
+      "playwright": "Playwright and Lighthouse, Apache-2.0"
+    }
   },
   "NotFound": {
     "title": "Page not found",
@@ -599,6 +620,31 @@
       "admin": "Admin pages we couldn't verify",
       "phase3": "Phase 3: verify that you own the site and we'll test these gates from the inside. (Coming soon)",
       "phase3Cta": "Contact us"
-    }
+    },
+    "rescanButton": "Fixed it? Run the deep scan again"
+  },
+  "Bot": {
+    "title": "LaunchCheckBot",
+    "intro": "LaunchCheckBot is Launch Check's scanning bot. It visits your site when a user starts a scan, when it's entered as a competitor, or as one of the example sites in its category.",
+    "uaTitle": "How does it identify itself?",
+    "ua": "Its user agent always contains \"LaunchCheckBot/1.0\" and the address of this page. On pages opened in a real browser, the same identity is appended to the browser information.",
+    "doesTitle": "What does it do?",
+    "does": {
+      "pages": "Opens public pages, images and scripts like a normal visitor.",
+      "banner": "Only clicks \"Reject / Necessary only\" in cookie banners.",
+      "files": "When the site owner starts the scan, checks commonly forgotten public files (e.g. /.env, /.git/config)."
+    },
+    "doesNotTitle": "What doesn't it do?",
+    "doesNot": {
+      "forms": "Doesn't type into or submit forms, or try to log in or sign up.",
+      "apis": "Doesn't send its own requests to the site's APIs; never uses keys or tokens it finds.",
+      "competitors": "Doesn't run security checks on competitor or example sites; only looks at page structure.",
+      "load": "Opens at most a few pages per site and spaces out requests to the same site."
+    },
+    "blockTitle": "How can I block it?",
+    "block": "Add these lines to your robots.txt and we won't visit your site in competitor and example site scans:",
+    "blockNote": "When site owners scan their own site, robots.txt isn't consulted; that scan is the owner's request.",
+    "contactTitle": "Something wrong?",
+    "contact": "Write to us about a problem with our bot or a removal request."
   }
 }
