@@ -1,5 +1,11 @@
 # Production compose. Başlat: docker compose up -d --build
 # .env yoksa aşağıdaki varsayılanlarla çalışır (sadece yerel deneme için güvenli).
+# Sunucuya çıkmadan önce: sh deploy/check-env.sh (yer tutucu değer kaldıysa durdurur). README → Dağıtım.
+
+# Docker logları sınırsız büyür ve küçük diski doldurur: servis başına en fazla 3 × 10 MB
+x-logging: &default-logging
+  driver: json-file
+  options: { max-size: "10m", max-file: "3" }
 x-backend-env: &backend-env
   env_file:
     - path: .env
@@ -10,13 +16,19 @@ x-backend-env: &backend-env
 
 services:
   web:
-    build: ./apps/web
+    logging: *default-logging
+    build:
+      context: ./apps/web
+      args:
+        # Derleme sırasında sayfalara gömülür (iletişim linki)
+        NEXT_PUBLIC_CONTACT_URL: ${NEXT_PUBLIC_CONTACT_URL:-}
     restart: unless-stopped
     environment:
       API_INTERNAL_URL: http://api:8000
     depends_on: [api]
 
   api:
+    logging: *default-logging
     build:
       context: ./apps/api
       dockerfile: Dockerfile.api
@@ -35,6 +47,7 @@ services:
       retries: 5
 
   worker:
+    logging: *default-logging
     build:
       context: ./apps/api
       dockerfile: Dockerfile.worker
@@ -60,6 +73,7 @@ services:
   # Chromium + Lighthouse; tarayıcı trafiği container içindeki SSRF korumalı egress proxy'den
   # geçer. Chromium --no-sandbox çalışır, izolasyon bu container'ın kısıtlarıdır (decisions.md).
   worker-deep:
+    logging: *default-logging
     build:
       context: ./apps/api
       dockerfile: Dockerfile.worker-deep
@@ -81,6 +95,7 @@ services:
         limits: { cpus: "4.0", memory: 6g }
 
   postgres:
+    logging: *default-logging
     image: postgres:16-alpine
     restart: unless-stopped
     environment:
@@ -95,6 +110,7 @@ services:
       retries: 10
 
   redis:
+    logging: *default-logging
     image: redis:7-alpine
     restart: unless-stopped
     command: ["redis-server", "--save", "", "--appendonly", "no"]
@@ -105,6 +121,7 @@ services:
       retries: 10
 
   caddy:
+    logging: *default-logging
     image: caddy:2-alpine
     restart: unless-stopped
     ports: ["80:80", "443:443"]

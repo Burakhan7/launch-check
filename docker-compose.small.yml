@@ -1,0 +1,75 @@
+# Küçük sunucu profili (ör. Hetzner CX23: 2 vCPU / 4 GB RAM / 40 GB disk) — Faz 1 + Faz 2, LLM yok.
+# Kullanım (önce swap: deploy/setup-swap.sh):
+#   docker compose -f docker-compose.yml -f docker-compose.small.yml up -d --build
+#
+# Bellek planı (RAM 4 GB + swap 4 GB). Ağır işler aynı anda nadiren çalışır; çakışırlarsa
+# fazlası swap'e taşar ve yavaşlar, ama OOM ile ölmez:
+#   postgres 384M · redis 96M · api 384M · web 384M · caddy 128M   ≈ 1,4 GB (boşta çok daha az)
+#   worker (Faz 1, APK'de jadx)   1,5 GB RAM (+1 GB swap)
+#   worker-deep (Chromium, Lighthouse) 2,5 GB RAM (+1,5 GB swap)
+# Ölçüm ve gerekçe: docs/decisions.md (P11b).
+
+x-small-env: &small-env
+  # Aynı anda en fazla 2 Faz 1 taraması (APK + web çakışması RAM'i aşmasın)
+  LC_WORKER_MAX_JOBS: "2"
+  LC_JAVA_MAX_HEAP: "1024m"
+  LC_JADX_THREADS: "1"
+  # Tek tarayıcı sekmesi: Chromium'un tepe belleği sekme sayısıyla büyüyor (ölçüm: 3 sekmede 4 GB)
+  LC_DEEP_RENDER_CONCURRENCY: "1"
+  LC_DEEP_BENCHMARK_CONCURRENCY: "1"
+  LC_DEEP_MAX_CONCURRENT: "1"
+
+services:
+  api:
+    environment: *small-env
+    deploy:
+      resources:
+        limits: { cpus: "1.0", memory: 384m }
+
+  web:
+    deploy:
+      resources:
+        limits: { cpus: "1.0", memory: 384m }
+
+  worker:
+    environment: *small-env
+    tmpfs:
+      # APK açma alanı; RAM'de durur, kullanılmayan kısmı swap'e gidebilir
+      - /tmp:size=1500m,mode=1777
+    deploy:
+      resources:
+        limits: { cpus: "1.0", memory: 1536m }
+    memswap_limit: 2560m
+
+  worker-deep:
+    environment: *small-env
+    tmpfs:
+      - /tmp:size=1g,mode=1777
+    deploy:
+      resources:
+        limits: { cpus: "2.0", memory: 2560m }
+    memswap_limit: 4g
+
+  postgres:
+    command:
+      - postgres
+      - -c
+      - shared_buffers=96MB
+      - -c
+      - max_connections=40
+      - -c
+      - work_mem=4MB
+    deploy:
+      resources:
+        limits: { memory: 384m }
+
+  redis:
+    command: ["redis-server", "--save", "", "--appendonly", "no", "--maxmemory", "64mb", "--maxmemory-policy", "noeviction"]
+    deploy:
+      resources:
+        limits: { memory: 96m }
+
+  caddy:
+    deploy:
+      resources:
+        limits: { memory: 128m }

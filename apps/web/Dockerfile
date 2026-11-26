@@ -6,6 +6,9 @@ RUN npm ci
 FROM node:22-alpine AS build
 WORKDIR /app
 ENV NEXT_TELEMETRY_DISABLED=1
+# Boşsa lib/site.ts'teki yer tutucu kullanılır; prod'da deploy/check-env.sh bunu engeller
+ARG NEXT_PUBLIC_CONTACT_URL=""
+ENV NEXT_PUBLIC_CONTACT_URL=$NEXT_PUBLIC_CONTACT_URL
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN npm run build

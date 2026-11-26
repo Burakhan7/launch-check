@@ -32,6 +32,13 @@ def test_parse_mem(text: str, expected: int | None) -> None:
     assert dm.parse_mem(text) == expected
 
 
+def test_parse_swap() -> None:
+    assert dm.parse_swap("1073741824\n") == 1024**3
+    assert dm.parse_swap("0") == 0
+    assert dm.parse_swap("") is None
+    assert dm.parse_swap("cat: no such file") is None
+
+
 def test_parse_cpu() -> None:
     assert dm.parse_cpu("312.45%") == 312.45
     assert dm.parse_cpu("--") is None
@@ -57,6 +64,7 @@ def test_summary_flags_target_and_hard_limit() -> None:
     ]
     results[2].partial_modules = ["render"]
     results[1].failed_modules = ["links"]
+    results[2].peak_swap_bytes = 700 * 1024**2
     summary = dm.summarize(results)
     assert (summary["sites"], summary["done"]) == (4, 3)
     assert summary["total_p50_s"] == 700 and summary["total_p90_s"] == 1300
@@ -72,10 +80,13 @@ def test_summary_flags_target_and_hard_limit() -> None:
     assert summary["modules"]["links"]["failed"] == 1
     assert summary["modules"]["links"]["p90"] == 90
     assert summary["peak_mem_bytes"] == 1300 * 1024**2
+    assert summary["peak_swap_bytes"] == 700 * 1024**2
 
     table = dm.markdown(results, summary)
     assert "| links | 60 sn | 1.5 dk | 1.5 dk | 0 | 1 |" in table
-    assert "| c | done |" in table and "| d | error |" in table
+    assert (
+        "| c | done |" in table and "| 1.27 GiB | 700 MiB |" in table and "| d | error |" in table
+    )
     assert "p90 ≤ 15 dk: hayır" in table
 
 

@@ -440,7 +440,7 @@ AGENTS.md'nin açık bıraktığı noktalarda verilen kararlar. En basit güvenl
 
 ## 2026-11-26 — Faz 2 / P11: süre bütçesinin gerçek sitelerde ölçülmesi
 
-- **Ortam:** Bu ölçüm geliştirme bilgisayarında yapıldı (Docker Desktop: 12 CPU, 8 GB). worker-deep, prod compose'taki limitlerle çalıştı (4 CPU / 6 GB); `GOOGLE_API_KEY` boştu, aynı anda 1 derin tarama vardı. Prod sunucusu (8 vCPU / 16 GB) farklı olduğu için rakamlar o ortamda tekrar doğrulanmalı. Aynı araç orada da aynı komutla çalışır (aşağıda).
+- **Ortam:** Bu ölçüm geliştirme bilgisayarında yapıldı (Docker Desktop: 12 CPU, 8 GB). worker-deep, prod compose'taki limitlerle çalıştı (4 CPU / 6 GB); `LC_GOOGLE_API_KEY` yerel `.env`'de tanımlıydı, yani CrUX saha verisi sorguları dahil (düzeltme: ilk yazımda yanlışlıkla "boştu" denmişti; CrUX çağrıları kısa ve ücretsiz, süreye etkisi saniyeler düzeyinde). Aynı anda 1 derin tarama vardı. Prod sunucusu (8 vCPU / 16 GB) farklı olduğu için rakamlar o ortamda tekrar doğrulanmalı. Aynı araç orada da aynı komutla çalışır (aşağıda).
 - **Siteler:** Kullanıcının onayıyla, kamuya açık 8 farklı yapı seçildi. Sahibi olmadığımız siteler oldukları için tarama tasarımı gereği pasifti: normal ziyaretçi davranışı, form gönderimi yok.
 
   | Yapı | Site |
@@ -498,3 +498,34 @@ AGENTS.md'nin açık bıraktığı noktalarda verilen kararlar. En basit güvenl
 - **Ölçüm aracı:** `python -m launchcheck.tools.deep_measure --container <worker-deep container> --out p11.jsonl etiket=https://... ...`. Normal bir kullanıcı gibi API'ye istek atar, `docker stats` ile bellek ve CPU tepe değerini örnekler. Çıktı: site başına JSON + p50/p90 Markdown özeti. Ölçüm ortamında `LC_RATE_LIMIT_DEEP_PER_DAY` ve `LC_RATE_LIMIT_WEB_PER_HOUR` geçici olarak yükseltilmeli; ürün varsayılanları değişmedi. Testleri respx ile, ağ kullanmadan.
 - **Geliştirme ortamı hatası:** `arq --watch`, worker'ı aynı Python sürecinde yeniden başlatıyor. İçe aktarılmış modüller yenilenmediği için kod değişiklikleri sessizce devreye girmiyordu: ikinci ölçüm koşusu yeni bütçeler yerine eskileriyle çalıştı ve atıldı. `docker-compose.dev.yml` artık `watchfiles` ile süreci baştan başlatıyor. Prod'u etkilemiyor.
 - **Temizlik:** Ölçüm taramaları (69 kayıt) veritabanından silindi. Ekran görüntüsü dosyalarını mevcut orphan süpürücüsü siliyor.
+
+## 2026-11-26 — Prod hazırlığı: küçük sunucu profili (P11b) ve dağıtım
+
+- **Sunucu:** Kullanıcının sunucusu Hetzner CX23 (2 vCPU paylaşımlı, 4 GB RAM, 40 GB disk). Faz 1 + Faz 2 bu sunucuda, LLM'siz açılacak; kullanıcı ölçüm beklemeden yayına çıkmayı seçti. LLM (P8) bu sunucuda mümkün değil: 7-8B model tek başına ~5 GB RAM ister.
+- **`docker-compose.small.yml`:**
+  - Servis başına bellek/CPU limitleri: worker-deep 2 CPU / 2,5 GB + 1,5 GB swap, worker 1 CPU / 1,5 GB + 1 GB swap, diğerleri 96-384 MB.
+  - Tarayıcıda tek sekme (`LC_DEEP_RENDER_CONCURRENCY=1`, kıyasta da 1). P11'deki 4 GB'lık tepe 3 sekmeyle ölçülmüştü.
+  - APK tarafında jadx tek iş parçacığı / 1 GB heap, aynı anda en fazla 2 Faz 1 taraması.
+  - Postgres ve Redis küçük bellek ayarlarıyla.
+  - Zaman bütçeleri değişmedi: tarama yavaşlarsa kapsam daralır (`meta.render`), süre sınırı korunur.
+- **Swap:** `deploy/setup-swap.sh` 4 GB swap dosyası açar, swappiness 10, kalıcı (fstab + sysctl). Taşmada OOM yerine yavaşlama.
+- **Duman testi** (bu bilgisayarda, prod compose + küçük profil, Caddy üzerinden):
+  - Hızlı tarama + derin tarama (nextjs.org): Faz 2 3,9 dk (büyük profilde 2,4 dk).
+  - Başarısız modül yok. worker-deep bellek tepe 1,8 GB, swap kullanımı 0, OOM 0.
+  - Sınırlama sadece worker-deep container'ında taklit edildi; gerçek sunucuda 2 vCPU tüm servislerce paylaşılacağı için daha yavaş olabilir.
+  - 8 sitelik ölçüm yapılmadı (kullanıcı kararı). İlk günlerde `free -h`, `docker stats` ve `dmesg | grep -i oom` ile izlenmeli (README → Dağıtım).
+- **Prod sertleştirmesi:**
+  - Tüm servislerde log rotasyonu (json-file, 3 × 10 MB).
+  - Rapordaki iletişim linki (`NEXT_PUBLIC_CONTACT_URL`) web imajına derleme argümanı olarak gömülüyor. Önceden derlemede değiştirilemiyor ve yer tutucu adrese düşüyordu.
+  - `deploy/check-env.sh` şunları kontrol eder:
+    - `LC_ENV=prod`
+    - alan adı
+    - `LC_PUBLIC_BASE_URL`
+    - Postgres şifresi (varsayılan/kısa olmamalı ve `LC_DATABASE_URL` ile tutarlı olmalı)
+    - IP hash tuzu
+    - bot User-Agent adresi
+    - iletişim adresi
+    - küçük sunucuda swap
+
+    Yer tutucu kalmışsa dağıtımı durdurur. Yerel `docker compose up` varsayılanlarla çalışmaya devam eder (AGENTS.md §16 M0).
+- **Ölçüm aracı:** container'ın swap tepe değerini de (`memory.swap.current`) raporluyor.

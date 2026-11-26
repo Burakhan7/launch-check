@@ -60,6 +60,7 @@ class SiteResult:
     failed_modules: list[str] = field(default_factory=list)
     findings: int = 0
     peak_mem_bytes: int | None = None
+    peak_swap_bytes: int | None = None
     peak_cpu_pct: float | None = None
 
 
@@ -78,6 +79,12 @@ def parse_mem(text: str) -> int | None:
     if not match:
         return None
     return int(float(match.group(1)) * _UNITS[match.group(2).lower()])
+
+
+def parse_swap(text: str) -> int | None:
+    """cgroup v2 `memory.swap.current` (bayt). Dosya yoksa (cgroup v1, swap kapalı) None."""
+    text = text.strip()
+    return int(text) if text.isdigit() else None
 
 
 def parse_cpu(text: str) -> float | None:
@@ -100,6 +107,7 @@ def summarize(results: Sequence[SiteResult]) -> dict[str, Any]:
         for m in modules
     }
     mems = [r.peak_mem_bytes for r in done if r.peak_mem_bytes is not None]
+    swaps = [r.peak_swap_bytes for r in done if r.peak_swap_bytes is not None]
     p90 = percentile(totals, 90)
     return {
         "sites": len(results),
@@ -110,6 +118,7 @@ def summarize(results: Sequence[SiteResult]) -> dict[str, Any]:
         "meets_p90_target": p90 is not None and p90 <= TARGET_P90_S,
         "over_hard_limit": [r.label for r in done if (r.deep_duration_s or 0) > HARD_LIMIT_S],
         "peak_mem_bytes": max(mems) if mems else None,
+        "peak_swap_bytes": max(swaps) if swaps else None,
         "modules": per_module,
     }
 
@@ -120,17 +129,24 @@ def _fmt_s(value: float | None) -> str:
     return f"{value / 60:.1f} dk" if value >= 90 else f"{value:.0f} sn"
 
 
+def _fmt_bytes(value: int | None) -> str:
+    if value is None:
+        return "-"
+    return f"{value / 1024**3:.2f} GiB" if value >= 1024**3 else f"{value / 1024**2:.0f} MiB"
+
+
 def markdown(results: Sequence[SiteResult], summary: dict[str, Any]) -> str:
     lines = [
-        "| Site | Durum | Faz 1 | Faz 2 | Kısmi | Başarısız | Bellek tepe |",
-        "|---|---|---|---|---|---|---|",
+        "| Site | Durum | Faz 1 | Faz 2 | Kısmi | Başarısız | Bellek tepe | Swap tepe |",
+        "|---|---|---|---|---|---|---|---|",
     ]
     for r in results:
-        mem = f"{r.peak_mem_bytes / 1024**3:.2f} GiB" if r.peak_mem_bytes else "-"
+        mem = _fmt_bytes(r.peak_mem_bytes)
+        swap = _fmt_bytes(r.peak_swap_bytes)
         lines.append(
             f"| {r.label} | {r.status} | {_fmt_s(r.phase1_s)} | {_fmt_s(r.deep_duration_s)} "
             f"| {', '.join(r.partial_modules) or '-'} | {', '.join(r.failed_modules) or '-'} "
-            f"| {mem} |"
+            f"| {mem} | {swap} |"
         )
     lines += [
         "",
@@ -158,6 +174,21 @@ class StatsSampler:
         self._task: asyncio.Task[None] | None = None
         self.peak_mem: int | None = None
         self.peak_cpu: float | None = None
+        self.peak_swap: int | None = None
+
+    async def _swap_now(self) -> int | None:
+        assert self._container
+        proc = await asyncio.create_subprocess_exec(
+            "docker",
+            "exec",
+            self._container,
+            "cat",
+            "/sys/fs/cgroup/memory.swap.current",
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+        )
+        out, _ = await proc.communicate()
+        return parse_swap(out.decode())
 
     async def _sample(self) -> None:
         assert self._container
@@ -179,6 +210,9 @@ class StatsSampler:
                 self.peak_mem = max(self.peak_mem or 0, mem)
             if cpu is not None:
                 self.peak_cpu = max(self.peak_cpu or 0.0, cpu)
+            swap = await self._swap_now()
+            if swap is not None:
+                self.peak_swap = max(self.peak_swap or 0, swap)
             await asyncio.sleep(STATS_EVERY_S)
 
     def __enter__(self) -> StatsSampler:
@@ -230,6 +264,7 @@ async def measure_site(
             report = await _poll(client, deep.json()["scan_id"], DEEP_TIMEOUT_S)
             result.deep_wall_s = round(time.monotonic() - started, 1)
         result.peak_mem_bytes, result.peak_cpu_pct = sampler.peak_mem, sampler.peak_cpu
+        result.peak_swap_bytes = sampler.peak_swap
 
         meta = (report.get("meta") or {}).get("deep") or {}
         result.status = report["status"]
