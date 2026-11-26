@@ -6,7 +6,11 @@ import { useEffect, useState } from "react";
 import { Link, useRouter } from "@/i18n/navigation";
 import { ApiError, getScan, startWebScan, type Category, type ScanReport } from "@/lib/api";
 import { buildCombinedPrompt } from "@/lib/combinedPrompt";
+import { canStartDeep } from "@/lib/deep";
 import { CONTACT_URL, POLL_INTERVAL_MS } from "@/lib/site";
+import { DeepProgress } from "../deep/DeepProgress";
+import { DeepReport } from "../deep/DeepReport";
+import { StartDeepScan } from "../deep/StartDeepScan";
 import { CopyButton } from "./CopyButton";
 import { FindingCard } from "./FindingCard";
 import { ScanProgress } from "./ScanProgress";
@@ -70,11 +74,13 @@ export function ReportView() {
   }
   const { report } = state;
   if (report.status === "queued" || report.status === "running") {
+    if (report.phase === 2) return <DeepProgress report={report} />;
     return <ScanProgress targetType={report.target_type} status={report.status} />;
   }
   if (report.status === "failed") {
     return <Notice title={t("failedTitle")} text={report.error?.message ?? ""} report={report} />;
   }
+  if (report.phase === 2) return <DeepReport report={report} />;
   return <Report report={report} />;
 }
 
@@ -125,6 +131,7 @@ function Report({ report }: { report: ScanReport }) {
       </section>
 
       <Actions report={report} />
+      {canStartDeep(report) && <StartDeepScan report={report} />}
 
       <section className="flex flex-col gap-4">
         <div className="flex items-baseline justify-between">
@@ -316,7 +323,7 @@ function RescanButton({ report }: { report: ScanReport }) {
   );
 }
 
-function PassedList({ report }: { report: ScanReport }) {
+export function PassedList({ report }: { report: ScanReport }) {
   const t = useTranslations("Report");
   const tc = useTranslations("Category");
   const groups = new Map<Category, string[]>();
@@ -354,7 +361,7 @@ function PassedList({ report }: { report: ScanReport }) {
   );
 }
 
-function HelpNote() {
+export function HelpNote() {
   const t = useTranslations("Report");
   return (
     <p className="text-center text-sm text-muted">

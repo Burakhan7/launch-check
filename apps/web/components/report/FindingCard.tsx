@@ -2,7 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import type { ReactNode } from "react";
-import type { Finding, Severity } from "@/lib/api";
+import type { Finding, Impact, Severity, Verification } from "@/lib/api";
 import { evidenceRows } from "@/lib/evidence";
 import { CopyButton } from "./CopyButton";
 
@@ -50,6 +50,9 @@ export function FindingCard({ finding, defaultOpen }: { finding: Finding; defaul
           <div className="flex flex-wrap items-center gap-2">
             <SeverityBadge severity={finding.severity} />
             <span className="text-xs text-muted">{tc(finding.category)}</span>
+            {finding.verification && finding.verification !== "not_verifiable" && (
+              <VerificationBadge value={finding.verification} />
+            )}
           </div>
           <h3 className="font-semibold text-pretty">{finding.title}</h3>
         </div>
@@ -62,6 +65,7 @@ export function FindingCard({ finding, defaultOpen }: { finding: Finding; defaul
             {finding.evidence.escalated_due_to ? t("sensitiveEscalated") : t("sensitiveNote")}
           </p>
         )}
+        {finding.impact && <ImpactBlock impact={finding.impact} />}
         <Section title={t("description")}>
           <p>{finding.description}</p>
         </Section>
@@ -98,6 +102,77 @@ export function FindingCard({ finding, defaultOpen }: { finding: Finding; defaul
         <EvidenceBlock evidence={finding.evidence} />
       </div>
     </details>
+  );
+}
+
+const VERIFICATION_STYLE: Record<Verification, string> = {
+  confirmed: "border-sev-high/40 text-sev-high",
+  escalated: "border-sev-critical/40 text-sev-critical",
+  refuted: "border-score-good/40 text-score-good",
+  not_verifiable: "border-line text-muted",
+};
+
+export function VerificationBadge({ value }: { value: Verification }) {
+  const t = useTranslations("Deep.verification");
+  return (
+    <span
+      className={`rounded-full border px-2.5 py-0.5 text-xs font-medium ${VERIFICATION_STYLE[value]}`}
+    >
+      {t(value)}
+    </span>
+  );
+}
+
+/** Etki kartı (PHASE2 §8.4): kim, ne kadar kolay, ne olur, yasal boyut, zaman çizelgesi. */
+function ImpactBlock({ impact }: { impact: Impact }) {
+  const t = useTranslations("Deep.impact");
+  const rows: [string, string][] = [
+    [t("who"), impact.who],
+    [t("ease"), t(`easeValue.${impact.ease}`)],
+    [t("consequence"), impact.consequence],
+  ];
+  if (impact.legal) rows.push([t("legal"), impact.legal]);
+  return (
+    <div className="flex flex-col gap-3 rounded-xl border border-line bg-surface p-4">
+      <div className="flex items-center justify-between gap-2">
+        <h4 className="text-xs font-semibold tracking-wide text-muted uppercase">{t("title")}</h4>
+        <MeasureTag />
+      </div>
+      <dl className="flex flex-col gap-2">
+        {rows.map(([label, value]) => (
+          <div key={label} className="flex flex-col gap-0.5 sm:flex-row sm:gap-3">
+            <dt className="shrink-0 text-xs font-medium text-muted sm:w-32">{label}</dt>
+            <dd className="min-w-0 flex-1">{value}</dd>
+          </div>
+        ))}
+        <div className="flex flex-col gap-0.5 sm:flex-row sm:gap-3">
+          <dt className="shrink-0 text-xs font-medium text-muted sm:w-32">{t("timeline")}</dt>
+          <dd className="min-w-0 flex-1">
+            <ul className="flex flex-col gap-1">
+              {impact.timeline.map((item) => (
+                <li key={item.when}>
+                  <span className="font-medium">{t(`when.${item.when}`)}:</span> {item.text}
+                </li>
+              ))}
+            </ul>
+          </dd>
+        </div>
+        <div className="flex flex-col gap-0.5 sm:flex-row sm:gap-3">
+          <dt className="shrink-0 text-xs font-medium text-muted sm:w-32">{t("fixTime")}</dt>
+          <dd>{t("minutes", { count: impact.fix_minutes })}</dd>
+        </div>
+      </dl>
+    </div>
+  );
+}
+
+/** Deterministik ölçüm etiketi; LLM yorumları "Yorum" etiketi taşır (PHASE2 §1.2-4). */
+export function MeasureTag({ kind = "measure" }: { kind?: "measure" | "comment" }) {
+  const t = useTranslations("Deep");
+  return (
+    <span className="rounded-md bg-surface-strong px-2 py-0.5 text-[11px] font-semibold text-muted">
+      {t(kind === "measure" ? "measureTag" : "commentTag")}
+    </span>
   );
 }
 

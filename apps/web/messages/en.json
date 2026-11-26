@@ -339,5 +339,266 @@
   "NotFound": {
     "title": "Page not found",
     "back": "Back to home"
+  },
+  "Deep": {
+    "badge": "Deep scan",
+    "measureTag": "Measurement",
+    "commentTag": "Commentary",
+    "newTitle": "Found in the deep scan ({count})",
+    "newHint": "We opened your site in a real browser on a phone and a computer, browsed it and measured it.",
+    "noNew": "The deep scan found no new problems.",
+    "phase1Title": "Quick scan findings and their verification",
+    "phase1Hint": "We checked the quick scan's findings in a real browser: confirmed, more serious, and unverifiable.",
+    "refutedTitle": "False alarms ({count})",
+    "refutedHint": "These didn't cause a problem in a real browser; they're not counted in the score.",
+    "doneTitle": "Deep scan finished",
+    "rescan": {
+      "title": "Compared with the previous deep scan",
+      "score": "Score: {before} → {after}",
+      "closed": "Closed ({count})",
+      "new": "New ({count})",
+      "persisting": "Still open ({count})"
+    },
+    "rescanFailed": "Couldn't start a new scan. Run the quick scan again and start the deep scan from there.",
+    "found": "{count, plural, =0 {no findings} one {# finding} other {# findings}}",
+    "verification": {
+      "confirmed": "Confirmed",
+      "refuted": "False alarm",
+      "escalated": "More serious",
+      "not_verifiable": "Not verifiable"
+    },
+    "impact": {
+      "title": "Impact",
+      "who": "Who could use it",
+      "ease": "How easy",
+      "easeValue": {
+        "easy": "Easy",
+        "moderate": "Moderate",
+        "hard": "Hard"
+      },
+      "consequence": "What happens",
+      "legal": "Legal side",
+      "timeline": "If you don't fix it",
+      "when": {
+        "today": "Today",
+        "week": "1 week",
+        "month": "1 month"
+      },
+      "fixTime": "Time to fix",
+      "minutes": "~{count} min"
+    },
+    "start": {
+      "title": "Shall we look deeper?",
+      "intro": "The deep scan opens your site in a real browser: it measures how it looks on phones, its speed, cookie consent, the sign-up path and how you compare with competitors. It takes about 15 minutes.",
+      "open": "Start the deep scan",
+      "details": "Optionally add up to 3 competitors. We only open pages like a normal visitor; we don't run security checks on competitors.",
+      "competitors": "Competitors (optional)",
+      "competitorsHint": "Your own site or its subdomains can't be competitors.",
+      "competitorPlaceholder": "https://competitor.com",
+      "competitorLabel": "Competitor {n}",
+      "addCompetitor": "+ Add competitor",
+      "category": "What kind of site is it?",
+      "categoryAuto": "Detect automatically",
+      "useReference": "Also compare with successful example sites in my category",
+      "passiveNote": "We never type into or submit forms or try to log in. Screenshots are deleted after 7 days.",
+      "starting": "Starting…",
+      "submit": "Start the deep scan",
+      "cancel": "Cancel"
+    },
+    "errors": {
+      "parent_not_ready": "A deep scan can only start from a finished website scan.",
+      "parent_too_old": "This report is too old for a deep scan. Scan the site again, then start the deep scan.",
+      "invalid_competitor_url": "One of the competitor addresses isn't a valid website.",
+      "competitor_same_origin": "You can't enter your own site or its subdomains as a competitor.",
+      "deep_rate_limited": "You've used today's deep scans. You can try again tomorrow.",
+      "queue_full": "The deep scan queue is full right now. Please try again a bit later.",
+      "invalid_category": "The category you chose wasn't recognised.",
+      "network_error": "Couldn't connect. Check your internet connection and try again.",
+      "internal_error": "Something went wrong. Please try again."
+    },
+    "progress": {
+      "title": "Deep scan in progress",
+      "subtitle": "Findings appear below section by section. You can close the page; the report link stays the same.",
+      "queued": "You're in the queue: position {position}, expected to start in about {minutes} min.",
+      "eta": "Estimated time left: ~{minutes} min",
+      "feed": "What's happening",
+      "notify": "Notify me in this browser when it's done",
+      "early": "Found so far ({count})"
+    },
+    "modules": {
+      "render": "Real visitor view",
+      "privacy": "Privacy and third-party code",
+      "funnel": "Sign-up/purchase path",
+      "benchmark": "Benchmark",
+      "perf": "Speed measurement",
+      "external": "External visibility",
+      "links": "Link and meta verification"
+    },
+    "moduleStatus": {
+      "pending": "Waiting",
+      "running": "Running…",
+      "done": "Done",
+      "partial": "Finished at its time limit",
+      "failed": "Couldn't complete"
+    },
+    "seen": {
+      "title": "What you see vs. what they see",
+      "hint": "Your home page on a computer, on a phone, and as bots that don't run JavaScript see it (Google at first glance, share bots always).",
+      "alt": {
+        "desktop": "Home page on a computer",
+        "mobile": "Home page on a phone",
+        "nojs": "Home page with JavaScript off"
+      },
+      "caption": {
+        "desktop": "Computer",
+        "mobile": "Phone",
+        "nojs": "JavaScript off (what bots see first)"
+      },
+      "noShot": "Screenshot couldn't be taken",
+      "imagePlaceholder": "Share image: {url}",
+      "noImage": "No share image",
+      "noTitle": "(no title)",
+      "noDescription": "(no description)",
+      "shareCaption": "Share preview in a messaging app (illustrative)",
+      "searchCaption": "Search result preview (illustrative)"
+    },
+    "funnel": {
+      "title": "Sign-up and pricing path",
+      "hint": "We started from the main button on the home page, on a phone. We didn't type into or submit any form.",
+      "shotAlt": "Phone screenshot of the {step} step",
+      "kind": {
+        "home": "Home page",
+        "cta": "Page opened by the button",
+        "login": "Login page",
+        "signup": "Sign-up",
+        "pricing": "Pricing"
+      },
+      "meta": "{seconds} s · {clicks} taps",
+      "signupSummary": "Sign-up form: {fields} fields, {required} required, quick sign-in: {social}",
+      "none": "none"
+    },
+    "benchmark": {
+      "title": "Comparison with similar sites",
+      "hint": "We inspected {count} example sites the same way as yours. We show patterns, not their text.",
+      "notEnough": "Not enough examples were found for a comparison. Add competitors and run the deep scan again.",
+      "source": {
+        "competitor": "your competitor",
+        "reference": "example site"
+      },
+      "popularityUnknown": "popularity not verified",
+      "patternsTitle": "What most examples have and you don't",
+      "patternLine": "{pattern}: present in {have} of {total} examples",
+      "aheadTitle": "Where you're ahead",
+      "aheadKey": {
+        "fewer_signup_fields": "Shorter sign-up form",
+        "faster": "Faster loading"
+      },
+      "speed": "Main content appears in {user} s on your site; the examples' median is {median} s ({method}).",
+      "method": {
+        "field": "real-user data",
+        "lab": "our own measurement under the same conditions"
+      },
+      "matrixTitle": "Full comparison",
+      "matrixCell": "You: {you} · present in {have}/{known} examples",
+      "unknown": "unknown",
+      "yes": "yes",
+      "no": "no",
+      "rebuildTitle": "Rebuild your landing page",
+      "rebuildHint": "A single prompt based on the examples' common section order, to fill in with your own product details.",
+      "copyRebuild": "Copy prompt",
+      "copied": "Copied",
+      "skipped": "{host} skipped: {reason}",
+      "reason": {
+        "robots_blocked": "the site disallows automated visits in robots.txt",
+        "unreachable": "the site couldn't be reached",
+        "bot_challenge": "the site showed a bot check",
+        "no_anatomy": "the page couldn't be inspected"
+      },
+      "you": "You",
+      "sideBySide": "First screens side by side (phone)",
+      "shotAlt": "First screen of {site}",
+      "rebuildIntro": "Rework the home page of my site at {target} ({title}) following the common structure of similar successful sites. Use these sections in this order:",
+      "rebuildSection": {
+        "hero": "a headline saying what I offer in one sentence, a subheadline saying who it's for and why it matters, one clear action button and a product visual",
+        "logos": "logos of customers or partners I really work with (skip this section if I have none)",
+        "testimonials": "real customer testimonials with names and roles (don't invent any)",
+        "pricing": "plans and prices; highlight the recommended plan",
+        "faq": "the questions visitors ask most, with short answers",
+        "how_it_works": "how it works in a few steps",
+        "integrations": "tools it works with",
+        "features": "the most important features, each with its benefit",
+        "final_cta": "a repeated call to action at the end of the page",
+        "unknown": "content"
+      },
+      "rebuildRules": "Rules: Write the copy for my product; ask me about my product, audience and the proof I have. Don't use other sites' text, slogans, images or brand names. Don't invent numbers, reviews or logos I don't have. Use my existing design components.",
+      "pattern": {
+        "social_proof_early": "Social proof in the first 3 sections",
+        "testimonials": "Customer testimonials",
+        "logo_band": "Customer/partner logos",
+        "user_count_claim": "User/customer count",
+        "security_badges": "Security/compliance badges",
+        "case_studies": "Case studies page",
+        "contact": "Contact details",
+        "company_info": "Company details",
+        "hero_subheadline": "Explanatory subheadline",
+        "hero_cta": "Action button on the first screen",
+        "hero_media": "Product visual/video on the first screen",
+        "faq_section": "FAQ on the home page",
+        "how_it_works": "\"How it works\" section",
+        "final_cta": "Final call to action",
+        "price_one_click": "Price at most 1 click away",
+        "free_tier": "Free plan",
+        "annual_discount": "Annual billing discount",
+        "highlighted_plan": "Highlighted plan",
+        "social_login": "Sign-up with Google/Apple",
+        "short_signup": "Sign-up with at most 3 fields",
+        "no_card_signup": "Sign-up without a card",
+        "og_image": "Share image"
+      },
+      "section": {
+        "hero": "Intro (hero)",
+        "logos": "Logos",
+        "testimonials": "Testimonials",
+        "pricing": "Pricing",
+        "faq": "FAQ",
+        "how_it_works": "How it works",
+        "integrations": "Integrations",
+        "features": "Features",
+        "final_cta": "Final call to action",
+        "unknown": "Other"
+      }
+    },
+    "diff": {
+      "phase1": "Quick scan:",
+      "phase1Line": "{findings} findings · score {score}",
+      "phase2": "Deep scan:",
+      "phase2Line": "{confirmed} findings confirmed, {refuted} turned out to be false alarms, {escalated} more serious · {fresh} new findings · {subdomains} forgotten subdomains · {gates} untested gates · score {score}",
+      "dropped": "The score is lower than the quick scan: the deeper we looked, the more we found. It doesn't mean the site got worse."
+    },
+    "plan": {
+      "title": "Priority plan",
+      "hint": "Ordered by severity and estimated fix time. You can paste each group's prompt into your AI tool at once.",
+      "today": "Today ({count})",
+      "week": "This week ({count})",
+      "month": "This month ({count})",
+      "minutes": "~{count} min",
+      "copy": "Copy this group's prompt",
+      "copied": "Copied"
+    },
+    "gates": {
+      "title": "Gates we didn't test",
+      "summary": "We found {endpoints} API addresses your site talks to, {projects} Supabase projects and {tables} tables named in the code.",
+      "notTested": "We only looked at these from the outside. We did not test whether they return data without login, whether tables are public, or whether one user can see another user's data.",
+      "endpoints": "API addresses",
+      "supabaseProjects": "Supabase projects",
+      "tables": "Tables and storage buckets named in the code",
+      "firebase": "Firebase projects",
+      "auth": "Authentication addresses",
+      "webhooks": "Webhook paths",
+      "forms": "Forms collecting personal data",
+      "admin": "Admin pages we couldn't verify",
+      "phase3": "Phase 3: verify that you own the site and we'll test these gates from the inside. (Coming soon)",
+      "phase3Cta": "Contact us"
+    }
   }
 }

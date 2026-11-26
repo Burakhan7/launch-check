@@ -339,5 +339,266 @@
   "NotFound": {
     "title": "Sayfa bulunamadı",
     "back": "Ana sayfaya dön"
+  },
+  "Deep": {
+    "badge": "Derin tarama",
+    "measureTag": "Ölçüm",
+    "commentTag": "Yorum",
+    "newTitle": "Derin taramada bulunanlar ({count})",
+    "newHint": "Siteni gerçek bir tarayıcıda telefonda ve bilgisayarda açtık, gezdik ve ölçtük.",
+    "noNew": "Derin taramada yeni bir sorun bulunmadı.",
+    "phase1Title": "Hızlı taramanın bulguları ve doğrulaması",
+    "phase1Hint": "Hızlı taramadaki bulguları gerçek tarayıcıda kontrol ettik: kanıtlananlar, daha ağır çıkanlar ve doğrulanamayanlar.",
+    "refutedTitle": "Yanlış alarm çıkanlar ({count})",
+    "refutedHint": "Bunlar gerçek tarayıcıda sorun çıkarmadı; skora dahil edilmedi.",
+    "doneTitle": "Derin tarama tamamlandı",
+    "rescan": {
+      "title": "Önceki derin taramaya göre",
+      "score": "Skor: {before} → {after}",
+      "closed": "Kapananlar ({count})",
+      "new": "Yeni çıkanlar ({count})",
+      "persisting": "Devam edenler ({count})"
+    },
+    "rescanFailed": "Yeni tarama başlatılamadı. Hızlı taramayı yeniden yapıp oradan derin taramayı başlat.",
+    "found": "{count, plural, =0 {bulgu yok} other {# bulgu}}",
+    "verification": {
+      "confirmed": "Kanıtlandı",
+      "refuted": "Yanlış alarm",
+      "escalated": "Daha ağır çıktı",
+      "not_verifiable": "Doğrulanamadı"
+    },
+    "impact": {
+      "title": "Etkisi",
+      "who": "Kim kullanabilir",
+      "ease": "Ne kadar kolay",
+      "easeValue": {
+        "easy": "Kolay",
+        "moderate": "Orta",
+        "hard": "Zor"
+      },
+      "consequence": "Ne olur",
+      "legal": "Yasal boyut",
+      "timeline": "Düzeltmezsen",
+      "when": {
+        "today": "Bugün",
+        "week": "1 hafta",
+        "month": "1 ay"
+      },
+      "fixTime": "Düzeltme süresi",
+      "minutes": "~{count} dk"
+    },
+    "start": {
+      "title": "Daha derine bakalım mı?",
+      "intro": "Derin tarama siteni gerçek bir tarayıcıda açar: telefonda nasıl göründüğünü, hızını, çerez onayını, kayıt yolunu ve rakiplerinle farkını ölçer. Yaklaşık 15 dakika sürer.",
+      "open": "Derin taramayı başlat",
+      "details": "İstersen en fazla 3 rakip ekle. Sadece normal bir ziyaretçi gibi sayfaları açarız; rakiplerde güvenlik kontrolü yapmayız.",
+      "competitors": "Rakipler (isteğe bağlı)",
+      "competitorsHint": "Kendi siten veya alt alan adın rakip olamaz.",
+      "competitorPlaceholder": "https://rakip.com",
+      "competitorLabel": "Rakip {n}",
+      "addCompetitor": "+ Rakip ekle",
+      "category": "Siten hangi türde?",
+      "categoryAuto": "Otomatik bulalım",
+      "useReference": "Kategorimdeki başarılı örnek sitelerle de karşılaştır",
+      "passiveNote": "Hiçbir forma yazmayız, form göndermeyiz, giriş denemeyiz. Ekran görüntüleri 7 gün sonra silinir.",
+      "starting": "Başlatılıyor…",
+      "submit": "Derin taramayı başlat",
+      "cancel": "Vazgeç"
+    },
+    "errors": {
+      "parent_not_ready": "Derin tarama sadece tamamlanmış bir web sitesi taramasından başlatılabilir.",
+      "parent_too_old": "Bu rapor derin tarama için çok eski. Siteyi yeniden tara, sonra derin taramayı başlat.",
+      "invalid_competitor_url": "Rakip adreslerinden biri geçerli bir web sitesi değil.",
+      "competitor_same_origin": "Kendi siteni veya alt alan adını rakip olarak giremezsin.",
+      "deep_rate_limited": "Bugünkü derin tarama hakkın doldu. Yarın tekrar deneyebilirsin.",
+      "queue_full": "Derin tarama sırası şu an dolu. Biraz sonra tekrar dene.",
+      "invalid_category": "Seçtiğin kategori tanınmadı.",
+      "network_error": "Bağlantı kurulamadı. İnternet bağlantını kontrol edip tekrar dene.",
+      "internal_error": "Bir şeyler ters gitti. Lütfen tekrar dene."
+    },
+    "progress": {
+      "title": "Derin tarama sürüyor",
+      "subtitle": "Bulgular bölüm bölüm aşağıda belirecek. Sayfayı kapatabilirsin; rapor linki aynı kalır.",
+      "queued": "Sıradasın: {position}. sıra, tahmini {minutes} dk içinde başlar.",
+      "eta": "Tahmini kalan süre: ~{minutes} dk",
+      "feed": "Neler oluyor",
+      "notify": "Bitince bu tarayıcıda bildirim gönder",
+      "early": "Şimdiye kadar bulunanlar ({count})"
+    },
+    "modules": {
+      "render": "Gerçek ziyaretçi görünümü",
+      "privacy": "Gizlilik ve üçüncü taraf kodlar",
+      "funnel": "Kayıt/satın alma yolu",
+      "benchmark": "Kıyas",
+      "perf": "Hız ölçümü",
+      "external": "Dış görünürlük",
+      "links": "Link ve meta doğrulaması"
+    },
+    "moduleStatus": {
+      "pending": "Bekliyor",
+      "running": "Çalışıyor…",
+      "done": "Bitti",
+      "partial": "Süre sınırında bitti",
+      "failed": "Tamamlanamadı"
+    },
+    "seen": {
+      "title": "Sen ne görüyorsun, onlar ne görüyor",
+      "hint": "Ana sayfan bilgisayarda, telefonda ve JavaScript çalıştırmayan botların gözünden (Google ilk bakışta, paylaşım botları her zaman böyle görür).",
+      "alt": {
+        "desktop": "Ana sayfanın bilgisayar görüntüsü",
+        "mobile": "Ana sayfanın telefon görüntüsü",
+        "nojs": "Ana sayfanın JavaScript kapalıyken görüntüsü"
+      },
+      "caption": {
+        "desktop": "Bilgisayar",
+        "mobile": "Telefon",
+        "nojs": "JavaScript kapalı (botların ilk gördüğü)"
+      },
+      "noShot": "Ekran görüntüsü alınamadı",
+      "imagePlaceholder": "Paylaşım görseli: {url}",
+      "noImage": "Paylaşım görseli yok",
+      "noTitle": "(başlık yok)",
+      "noDescription": "(açıklama yok)",
+      "shareCaption": "Mesajlaşma uygulamasında paylaşım önizlemesi (temsili)",
+      "searchCaption": "Arama sonucu önizlemesi (temsili)"
+    },
+    "funnel": {
+      "title": "Kayıt ve fiyat yolu",
+      "hint": "Telefonda ana sayfadaki ana düğmeden başladık. Hiçbir forma yazmadık, göndermedik.",
+      "shotAlt": "{step} adımının telefon görüntüsü",
+      "kind": {
+        "home": "Ana sayfa",
+        "cta": "Düğmenin açtığı sayfa",
+        "login": "Giriş sayfası",
+        "signup": "Kayıt",
+        "pricing": "Fiyatlar"
+      },
+      "meta": "{seconds} sn · {clicks} tık",
+      "signupSummary": "Kayıt formu: {fields} alan, {required} zorunlu, hızlı giriş: {social}",
+      "none": "yok"
+    },
+    "benchmark": {
+      "title": "Benzer sitelerle kıyas",
+      "hint": "{count} örnek siteyi seninkiyle aynı yöntemle inceledik. Desenleri gösteriyoruz; onların metnini değil.",
+      "notEnough": "Kıyas için yeterli örnek bulunamadı. Rakip ekleyip derin taramayı tekrar çalıştırabilirsin.",
+      "source": {
+        "competitor": "rakibin",
+        "reference": "örnek site"
+      },
+      "popularityUnknown": "popülerlik doğrulanamadı",
+      "patternsTitle": "Örneklerin çoğunda olup sende olmayanlar",
+      "patternLine": "{pattern}: {total} örneğin {have} tanesinde var",
+      "aheadTitle": "Önde olduğun yerler",
+      "aheadKey": {
+        "fewer_signup_fields": "Daha kısa kayıt formu",
+        "faster": "Daha hızlı açılış"
+      },
+      "speed": "Ana içeriğin görünme süresi: sende {user} sn, örneklerin ortancası {median} sn ({method}).",
+      "method": {
+        "field": "gerçek kullanıcı verisi",
+        "lab": "aynı koşullarda bizim ölçümümüz"
+      },
+      "matrixTitle": "Tüm karşılaştırma",
+      "matrixCell": "Sende: {you} · örneklerin {have}/{known} tanesinde var",
+      "unknown": "bilinmiyor",
+      "yes": "var",
+      "no": "yok",
+      "rebuildTitle": "Landing sayfanı yeniden kur",
+      "rebuildHint": "Örneklerin ortak bölüm sırasına göre hazırlanmış, kendi ürün bilginle doldurulacak tek prompt.",
+      "copyRebuild": "Prompt'u kopyala",
+      "copied": "Kopyalandı",
+      "skipped": "{host} atlandı: {reason}",
+      "reason": {
+        "robots_blocked": "site otomatik ziyareti robots.txt ile kapatmış",
+        "unreachable": "siteye ulaşılamadı",
+        "bot_challenge": "site bot doğrulaması gösterdi",
+        "no_anatomy": "sayfa incelenemedi"
+      },
+      "you": "Sen",
+      "sideBySide": "İlk ekranlar yan yana (telefon)",
+      "shotAlt": "{site} ilk ekranı",
+      "rebuildIntro": "{target} adresindeki sitemin ana sayfasını ({title}) benzer başarılı sitelerin ortak yapısına göre yeniden düzenle. Bölümler bu sırayla olsun:",
+      "rebuildSection": {
+        "hero": "ne sunduğumu tek cümlede anlatan başlık, kime ve neden önemli olduğunu söyleyen alt başlık, tek belirgin eylem düğmesi ve ürünün görseli",
+        "logos": "gerçekten çalıştığım müşteri veya iş ortağı logoları (yoksa bu bölümü atla)",
+        "testimonials": "gerçek müşteri yorumları, isim ve rolleriyle (uydurma yorum yazma)",
+        "pricing": "planlar ve fiyatlar; önerilen planı öne çıkar",
+        "faq": "ziyaretçilerin en sık sorduğu sorular ve kısa cevaplar",
+        "how_it_works": "birkaç adımda nasıl çalıştığı",
+        "integrations": "birlikte çalıştığı araçlar",
+        "features": "en önemli özellikler, her biri faydasıyla",
+        "final_cta": "sayfa sonunda tekrar eden eylem çağrısı",
+        "unknown": "içerik"
+      },
+      "rebuildRules": "Kurallar: Metinleri benim ürünüm için yaz; bana ürünümü, hedef kitlemi ve elimdeki kanıtları sor. Başka sitelerin metnini, sloganını, görselini veya marka adını kullanma. Elimde olmayan sayı, yorum veya logo uydurma. Mevcut tasarım bileşenlerimi kullan.",
+      "pattern": {
+        "social_proof_early": "İlk 3 bölümde sosyal kanıt",
+        "testimonials": "Müşteri yorumları",
+        "logo_band": "Müşteri/iş ortağı logoları",
+        "user_count_claim": "Kullanıcı/müşteri sayısı",
+        "security_badges": "Güvenlik/uyumluluk rozetleri",
+        "case_studies": "Başarı hikâyeleri sayfası",
+        "contact": "İletişim bilgisi",
+        "company_info": "Şirket bilgileri",
+        "hero_subheadline": "Açıklayıcı alt başlık",
+        "hero_cta": "İlk ekranda eylem düğmesi",
+        "hero_media": "İlk ekranda ürün görseli/video",
+        "faq_section": "Ana sayfada SSS",
+        "how_it_works": "\"Nasıl çalışır\" bölümü",
+        "final_cta": "Sayfa sonunda son çağrı",
+        "price_one_click": "Fiyat en fazla 1 tık uzakta",
+        "free_tier": "Ücretsiz plan",
+        "annual_discount": "Yıllık ödemede indirim",
+        "highlighted_plan": "Öne çıkarılmış plan",
+        "social_login": "Google/Apple ile kayıt",
+        "short_signup": "En fazla 3 alanlı kayıt",
+        "no_card_signup": "Kart istemeyen kayıt",
+        "og_image": "Paylaşım görseli"
+      },
+      "section": {
+        "hero": "Giriş (hero)",
+        "logos": "Logolar",
+        "testimonials": "Müşteri yorumları",
+        "pricing": "Fiyatlar",
+        "faq": "SSS",
+        "how_it_works": "Nasıl çalışır",
+        "integrations": "Entegrasyonlar",
+        "features": "Özellikler",
+        "final_cta": "Son çağrı",
+        "unknown": "Diğer"
+      }
+    },
+    "diff": {
+      "phase1": "Hızlı tarama:",
+      "phase1Line": "{findings} bulgu · skor {score}",
+      "phase2": "Derin tarama:",
+      "phase2Line": "{confirmed} bulgu kanıtlandı, {refuted} tanesi yanlış alarm çıktı, {escalated} tanesi daha ağır çıktı · {fresh} yeni bulgu · {subdomains} unutulmuş alt alan adı · {gates} test edilmemiş kapı · skor {score}",
+      "dropped": "Skor hızlı taramadan düşük çıktı: daha derine baktıkça daha çok şey bulduk. Bu, sitenin kötüleştiği anlamına gelmiyor."
+    },
+    "plan": {
+      "title": "Öncelik planı",
+      "hint": "Önem ve tahmini düzeltme süresine göre sıralandı. Her grubun prompt'unu tek seferde AI aracına yapıştırabilirsin.",
+      "today": "Bugün ({count})",
+      "week": "Bu hafta ({count})",
+      "month": "Bu ay ({count})",
+      "minutes": "~{count} dk",
+      "copy": "Bu grubun prompt'unu kopyala",
+      "copied": "Kopyalandı"
+    },
+    "gates": {
+      "title": "Test etmediğimiz kapılar",
+      "summary": "Sitenin konuştuğu {endpoints} API adresi, {projects} Supabase projesi ve kodda adı geçen {tables} tablo bulduk.",
+      "notTested": "Bunlara sadece dışarıdan baktık. Şunları test etmedik: giriş yapmadan veri dönüyorlar mı, tablolar herkese açık mı, bir kullanıcı başkasının verisini görebiliyor mu.",
+      "endpoints": "API adresleri",
+      "supabaseProjects": "Supabase projeleri",
+      "tables": "Kodda adı geçen tablolar ve depolar",
+      "firebase": "Firebase projeleri",
+      "auth": "Kimlik doğrulama adresleri",
+      "webhooks": "Webhook yolları",
+      "forms": "Kişisel veri toplayan formlar",
+      "admin": "Doğrulanamayan yönetim sayfaları",
+      "phase3": "Faz 3: sitenin sahibi olduğunu doğrula, bu kapıları içeriden test edelim. (Yakında)",
+      "phase3Cta": "Bize yaz"
+    }
   }
 }
