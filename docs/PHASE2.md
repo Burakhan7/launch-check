@@ -711,7 +711,7 @@ Bu dosyadaki veya gelecekteki prompt'lardaki "Gerçek örnek" kısımları sadec
 - [ ] Bir Faz 1 raporundan "Derin taramayı başlat" ile Faz 2 başlıyor, canlı ilerleme ve erken bulgular görünüyor, rapor TR ve EN tamamlanıyor
 - [ ] Bölüm 6 ve 7'deki tüm check'ler testleriyle mevcut; Faz 1 doğrulama etiketleri çalışıyor
 - [ ] Bölüm 12.1'deki tarayıcı SSRF testlerinin hepsi geçiyor
-- [ ] p90 süre ≤ 15 dk (P11 ölçümü, 8 farklı site); hiçbir tarama 20 dk'yı aşmıyor
+- [x] p90 süre ≤ 15 dk (P11 ölçümü, 8 farklı site); hiçbir tarama 20 dk'yı aşmıyor — yerel ölçüm 2026-11-26: p90 7,3 dk (decisions P11); prod sunucusunda aynı araçla tekrarlanacak
 - [ ] Rakip/örnek sitelerde hiçbir güvenlik check'i çalışmıyor ve `robots.txt`'e uyuluyor (test)
 - [ ] Ekran görüntüleri ve tüm Faz 2 verisi 7 gün sonra diskten ve DB'den siliniyor
 - [ ] LLM çıktıları düz metin render ediliyor; injection test fixture'ları (gizli talimat içeren sayfalar) skoru veya deterministik bulguları değiştiremiyor

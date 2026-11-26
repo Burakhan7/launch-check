@@ -85,6 +85,13 @@ class RenderModule(DeepModule):
             ctx.meta["deep_blocked"] = BLOCKED_CODE
             await ctx.events.emit(self.name, "deep.event.site_blocked")
             raise SiteBlockedError(BLOCKED_CODE) from exc
+        if ctx.render is not None:
+            ctx.meta["render"] = {
+                "pages": len(ctx.render.pages),
+                "planned": ctx.render.pages_planned,
+                "skipped_for_time": ctx.render.skipped_for_time,
+                "probes_skipped": ctx.render.probes_skipped,
+            }
         checks = [
             c
             for c in load_builtin_checks().for_target(TargetType.WEB, 2)

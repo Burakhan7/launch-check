@@ -777,6 +777,17 @@ def test_default_modules_lane_order() -> None:
     assert "web.links.insecure_http_links" in default_verification_rules()
     s = Settings()
     assert s.deep_budget_external_s + s.deep_budget_links_s <= s.deep_budget_network_s
+    # P11: links, external bittikten sonra render'ı bekler; bekleme render bütçesini karşılamalı
+    # ve beklemeden sonra link kontrolüne (ölçümde en fazla ~52 sn) yer kalmalı
+    assert s.deep_links_render_wait_s >= s.deep_budget_render_s
+    assert s.deep_budget_links_s - s.deep_links_render_wait_s >= 90
+    # p90 ≤ 15 dk hedefi: en uzun şerit bile 15 dakikayı aşamaz (sert sınır 20 dk ayrıca)
+    lanes_s = [
+        s.deep_budget_browser_s,
+        s.deep_budget_lighthouse_s,
+        s.deep_budget_network_s,
+    ]
+    assert max(lanes_s) <= 15 * 60 < s.deep_scan_timeout_s
     browser = (
         s.deep_budget_render_s
         + s.deep_budget_privacy_s

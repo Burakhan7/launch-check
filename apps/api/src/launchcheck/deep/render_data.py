@@ -220,6 +220,11 @@ class RenderData:
     sourcemap_source_count: int = 0
     # Proxy'nin engellediği hedefler (host, port, neden): localhost'a gerçekten istek atıldı mı?
     blocked_hosts: list[tuple[str, int, str]] = field(default_factory=list)
+    # Kapsam (P11 bütçe ayarı ve rapor dürüstlüğü): planlanan sayfa sayısı, süre bittiği için
+    # açılmayan sayfalar ve atlanan ek yoklamalar (derin link, 404, çevrimdışı, yönetim)
+    pages_planned: int = 0
+    skipped_for_time: int = 0
+    probes_skipped: bool = False
 
     @property
     def home(self) -> RenderedPage | None:

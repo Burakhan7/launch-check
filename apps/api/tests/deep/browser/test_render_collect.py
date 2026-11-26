@@ -69,6 +69,7 @@ async def collect(server: LocalHttpServer, **kw: object) -> tuple[RenderData, li
         sourcemap_urls=[base + "/assets/app.js.map"] if kw.get("sourcemap") else [],
         fetch=fetch,
         save_screenshot=save,  # type: ignore[arg-type]
+        deadline=kw.get("deadline"),  # type: ignore[arg-type]
     )
     allow = frozenset({("127.0.0.1", server.port)})
     async with BrowserSession.open(UrlGuard(resolver=resolve), UA, allow=allow) as session:
@@ -153,6 +154,21 @@ async def test_plain_clean_site_has_no_render_findings() -> None:
     assert data.pages[0].mobile is not None
     assert data.pages[0].mobile.primary_cta is not None  # "Randevu al" ilk ekranda
     assert len(data.pages) == 3
+    assert (data.pages_planned, data.skipped_for_time, data.probes_skipped) == (3, 0, False)
+
+
+async def test_time_budget_keeps_home_and_counts_skipped_pages() -> None:
+    """Süre biterse ana sayfa yine taranır; açılmayan sayfalar ve atlanan yoklamalar sayılır
+    (rapor ve P11 bütçe ayarı kapsamı buradan görür)."""
+    import time
+
+    page = CLEAN_PAGE
+    routes = {"/": Route(page), "/about": Route(page), "/contact": Route(page)}
+    async with LocalHttpServer(routes) as server:
+        data, _ = await collect(server, deadline=time.monotonic())
+    assert len(data.pages) == 1 and data.pages[0].url.endswith("/")
+    assert (data.pages_planned, data.skipped_for_time, data.probes_skipped) == (3, 2, True)
+    assert data.not_found is None and data.deep_links == []
 
 
 async def test_wp_like_site_server_rendered_issues() -> None:

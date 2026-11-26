@@ -437,3 +437,64 @@ AGENTS.md'nin açık bıraktığı noktalarda verilen kararlar. En basit güvenl
 
   Kalan +679 B, alt bilgideki yer tutucu ile atıf bağlantısı. Tema seçicinin kendi chunk'ı (6,3 KB) alt bilgi ekrana yaklaşınca yükleniyor. motion ve Rare UI bileşenleri hiçbir Faz 1 sayfasının JS'inde yok.
 - **Görsel kontrol:** Örnek bir Faz 1 + Faz 2 kaydıyla TR masaüstü (1440 px) ve EN mobil (390 px) ekran görüntüsü alındı. Kontrol edilenler: yan ray, mobil ilerleme hapı, skor sayaçları, plan listesi, modül kartları ve alt bilgideki tema seçici. Örnek kayıtlar kontrolden sonra silindi.
+
+## 2026-11-26 — Faz 2 / P11: süre bütçesinin gerçek sitelerde ölçülmesi
+
+- **Ortam:** Bu ölçüm geliştirme bilgisayarında yapıldı (Docker Desktop: 12 CPU, 8 GB). worker-deep, prod compose'taki limitlerle çalıştı (4 CPU / 6 GB); `GOOGLE_API_KEY` boştu, aynı anda 1 derin tarama vardı. Prod sunucusu (8 vCPU / 16 GB) farklı olduğu için rakamlar o ortamda tekrar doğrulanmalı. Aynı araç orada da aynı komutla çalışır (aşağıda).
+- **Siteler:** Kullanıcının onayıyla, kamuya açık 8 farklı yapı seçildi. Sahibi olmadığımız siteler oldukları için tarama tasarımı gereği pasifti: normal ziyaretçi davranışı, form gönderimi yok.
+
+  | Yapı | Site |
+  |---|---|
+  | Next.js | nextjs.org |
+  | Vite SPA | hoppscotch.io |
+  | WordPress | wordpress.org |
+  | Wix | wix.com |
+  | Düz HTML | paulgraham.com |
+  | E-ticaret (Shopify) | allbirds.com |
+  | Topluluk (Discourse) | meta.discourse.org |
+  | Kurumsal | siemens.com |
+
+  İlk seçimdeki Vite SPA excalidraw.com, bot kimliğimizle gelen tarayıcıya gerçek bir *Vercel Security Checkpoint* gösterdi ("Kod 21"). Render bunu doğru tespit edip modülü `site_blocked_bot` ile durdurdu. Bu tasarım gereği, ölçüm için siteyi değiştirdik. gnu.org bu ağdan erişilemedi, info.cern.ch ise HTTPS sunmuyor; ikisi de listeden çıkarıldı.
+- **Referans kütüphanesi:** Kıyas modülünün gerçek maliyetini ölçmek için 36 örnek siteli kütüphane bir kez önceden dolduruldu. Prod'da bu iş saatte 1 site hızıyla cron tarafından yapılıyor. Doldurma ~35 dk ve ~515 MB indirme tuttu (sayfa içeriği saklanmaz). Kalıcı olarak kalan: site başına ~65 KB ekran görüntüsü ve ~1,3 KB anatomi özeti. 34 site işlendi, 2 site erişilemedi.
+- **Sonuç** (son koşu, ayarlanmış bütçelerle; Faz 2 süresi `meta.deep.duration_s`):
+
+  | Site | Faz 1 | Faz 2 | Render sayfası | Bellek tepe |
+  |---|---|---|---|---|
+  | nextjs | 10 sn | 2,4 dk | 22/22 | 1,57 GiB |
+  | vite_spa | 12 sn | 3,2 dk | 4/4 | 2,53 GiB |
+  | wordpress | 9 sn | 2,2 dk | 25/25 | 1,68 GiB |
+  | wix | 9 sn | 5,5 dk | 25/25 | 3,05 GiB |
+  | html | 6 sn | 39 sn | 3/3 | 1,09 GiB |
+  | ecommerce | 18 sn | 7,3 dk | 22/25 | 4,00 GiB |
+  | community | 9 sn | 2,1 dk | 25/25 | 1,48 GiB |
+  | corporate | 6 sn | 3,2 dk | 25/25 | 2,45 GiB |
+
+  - **Süre:** p50 2,4 dk, p90 7,3 dk, en uzun 7,3 dk. Hedef (p90 ≤ 15 dk) tuttu; 20 dk sert sınıra yaklaşan tarama yok. 8 örnekte p90 en yakın sıra yöntemiyle en uzun taramaya eşit.
+  - **Hatalar:** Başarısız veya bütçe aşan modül yok.
+  - **Kaynak:** CPU tepe değeri ~%430 (4 çekirdek limitine dayanıyor). Bellek tepe değeri 4,00 GiB, 6 GB limitin %67'si.
+  - **Modül p50 / p90:**
+
+    | Modül | p50 | p90 |
+    |---|---|---|
+    | render | 1,9 dk | 5,4 dk |
+    | perf (Lighthouse) | 2,0 dk | 4,6 dk |
+    | links (render beklemesi dahil) | 1,5 dk | 5,3 dk |
+    | external | 49 sn | 73 sn |
+    | privacy | 22 sn | 56 sn |
+    | benchmark | 8 sn | 30 sn |
+    | funnel | 5 sn | 25 sn |
+- **Ölçümün bulduğu sorunlar ve ayarlanan bütçeler:**
+  - **Links render'a yetişemiyordu.** Links, ağ şeridinde external'dan sonra başlıyor ve render'ı en fazla 90 sn bekliyordu. Render ağır sitelerde 216 sn sürdü. Bekleme dolunca links Faz 1 sayfalarına düşüyordu. allbirds.com'da Faz 1 bağlamı art arda isteklere bot engeli yediği için bu yedek de boştu ve modül tamamen başarısız oldu.
+
+    Bekleme render bütçesine eşitlendi: `deep_links_render_wait_s` 90 → 420. Render bittikten sonra link kontrolü ölçümde en fazla ~52 sn sürdü; pay ile 90 sn eklendi: `deep_budget_links_s` 120 → 510, ağ şeridi 300 → 660.
+  - **Render ağır sitelerde kapsamı kaybediyordu.** Yeni `meta.render` kaydı (`pages`, `planned`, `skipped_for_time`, `probes_skipped`) şunu gösterdi: 240 sn bütçeyle wix.com'da 25 sayfanın 16'sı, allbirds.com'da 10'u açılabiliyor; ek yoklamalar (404, derin link, çevrimdışı, yönetim) da atlanıyordu.
+
+    Hedefe pay olduğu için `deep_budget_render_s` 240 → 420, tarayıcı şeridi 540 → 720 oldu. Sonuç: wix 25/25, allbirds 22/25. allbirds'te hâlâ 3 sayfa ve ek yoklamalar süreye takılıyor. Kabul edildi, çünkü kapsam `meta.render`'da görünür ve bulgu üretmeyen check'ler "geçti" sayılmaz.
+  - **Lighthouse:** en uzun ölçüm 212 sn idi, bütçenin %88'i. Şerit 240 → 300 sn.
+  - **En kötü durum:** En uzun şerit 720 sn (12 dk). Hedef aşılmadığı için LLM girdilerini veya sayfa sayısını kısmak gerekmedi. Bu artık test edilen bir değişmez: en uzun şerit ≤ 15 dk < sert sınır. links beklemesi ≥ render bütçesi.
+- **Yeni ölçüm alanları:**
+  - `meta.deep.module_durations` ve ilerleme kaydında modül başına `duration_s`.
+  - `meta.render` kapsamı.
+- **Ölçüm aracı:** `python -m launchcheck.tools.deep_measure --container <worker-deep container> --out p11.jsonl etiket=https://... ...`. Normal bir kullanıcı gibi API'ye istek atar, `docker stats` ile bellek ve CPU tepe değerini örnekler. Çıktı: site başına JSON + p50/p90 Markdown özeti. Ölçüm ortamında `LC_RATE_LIMIT_DEEP_PER_DAY` ve `LC_RATE_LIMIT_WEB_PER_HOUR` geçici olarak yükseltilmeli; ürün varsayılanları değişmedi. Testleri respx ile, ağ kullanmadan.
+- **Geliştirme ortamı hatası:** `arq --watch`, worker'ı aynı Python sürecinde yeniden başlatıyor. İçe aktarılmış modüller yenilenmediği için kod değişiklikleri sessizce devreye girmiyordu: ikinci ölçüm koşusu yeni bütçeler yerine eskileriyle çalıştı ve atıldı. `docker-compose.dev.yml` artık `watchfiles` ile süreci baştan başlatıyor. Prod'u etkilemiyor.
+- **Temizlik:** Ölçüm taramaları (69 kayıt) veritabanından silindi. Ekran görüntüsü dosyalarını mevcut orphan süpürücüsü siliyor.

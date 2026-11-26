@@ -263,7 +263,12 @@ async def test_render_continues_without_phase1_context() -> None:
 
     async def fake_collect(ctx: DeepContext, base: Any, out: Any) -> RenderData:
         seen["base"] = base
-        return RenderData(pages=[rendered("/", console_errors=[ConsoleError("x", "exception")])])
+        return RenderData(
+            pages=[rendered("/", console_errors=[ConsoleError("x", "exception")])],
+            pages_planned=25,
+            skipped_for_time=14,
+            probes_skipped=True,
+        )
 
     from launchcheck.deep.modules import ModuleOutput
 
@@ -272,3 +277,9 @@ async def test_render_continues_without_phase1_context() -> None:
     await RenderModule(Settings(), collect=fake_collect, collect_base=no_base).run(ctx, out)  # type: ignore[arg-type]
     assert seen["base"] is None
     assert [f.check_id for f in out.findings] == ["web.render.js_runtime_errors"]
+    assert ctx.meta["render"] == {
+        "pages": 1,
+        "planned": 25,
+        "skipped_for_time": 14,
+        "probes_skipped": True,
+    }

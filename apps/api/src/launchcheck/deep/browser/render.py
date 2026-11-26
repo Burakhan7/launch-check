@@ -327,6 +327,7 @@ class RenderCollector:
             home.internal_links,
             s.deep_max_pages,
         )
+        out.pages_planned = len(urls)
         ordered_keys = key_pages(urls, home.priority_links, s.deep_key_pages)
         keys = set(ordered_keys)
         if data.on_key_pages:
@@ -340,6 +341,7 @@ class RenderCollector:
             nonlocal done
             async with sem:
                 if not data.time_left():
+                    out.skipped_for_time += 1
                     return None
                 try:
                     page = await self._render(session, desktop, mobile, url)
@@ -361,6 +363,8 @@ class RenderCollector:
             out.not_found = await self._not_found(session, desktop, home, data.baseline_path)
             out.offline = await self._offline(session, home)
             out.admin = await self._admin(session, desktop, data, home)
+        else:
+            out.probes_skipped = True
         out.storage, out.cookies = await self._storage_and_cookies(session, desktop, home)
         if data.fetch:
             out.sourcemap_sources, out.sourcemap_source_count = await self._sourcemaps(data)

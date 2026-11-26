@@ -419,11 +419,13 @@ class Settings(BaseSettings):
     deep_max_competitors: int = 3
     deep_competitor_max_pages: int = 6
     # Şerit bütçeleri: aşınca modül elindekiyle biter (meta.deep.partial_modules)
-    # Tarayıcı şeridi: render 240 + gizlilik 90 + huni 75 + kıyas 120 (P9'da 420'den yükseltildi)
-    deep_budget_browser_s: float = 540
-    deep_budget_lighthouse_s: float = 240
-    # Ağ şeridi: dış görünürlük (150) + linkler (120). P6'da 180'den yükseltildi (decisions).
-    deep_budget_network_s: float = 300
+    # P11 ölçümüyle ayarlandı (docs/decisions.md, 8 site): en uzun şerit 720 sn = 12 dk < 15 dk.
+    # Tarayıcı şeridi: render 420 + gizlilik 90 + huni 75 + kıyas 120 (P9: 540, P11: 720)
+    deep_budget_browser_s: float = 720
+    # Lighthouse: ölçümde en uzun 212 sn (240'ın %88'i) → pay için 300
+    deep_budget_lighthouse_s: float = 300
+    # Ağ şeridi: dış görünürlük (150) + linkler (510, render beklemesi dahil)
+    deep_budget_network_s: float = 660
     deep_budget_llm_s: float = 360
     # Tek bir modülün bütçesi (şerit bütçesinden de sınırlıdır)
     deep_budget_module_s: float = 420
@@ -462,7 +464,9 @@ class Settings(BaseSettings):
     deep_render_max_wait_s: float = 10
     deep_render_concurrency: int = 3
     # Render modülünün payı (tarayıcı şeridi: render → gizlilik → [P7 huni] → [P9 kıyas])
-    deep_budget_render_s: float = 240
+    # P11: 240→420. 240 sn'de ağır sitelerde (Wix, Shopify) 25 sayfanın 10-16'sı açılabiliyor ve
+    # ek yoklamalar (404, derin link, yönetim) atlanıyordu; kapsam meta.render'da görünür.
+    deep_budget_render_s: float = 420
     # Ana sayfa + en fazla bu kadar kilit sayfa (fiyat > kayıt > ürün > ilk menü linki):
     # 5 genişlikte ölçülür, ekran görüntüsü ve JS kapalı görüntü alınır
     deep_key_pages: int = 2
@@ -656,9 +660,13 @@ class Settings(BaseSettings):
         ]
     )
     # --- Linkler, meta ve yapılandırılmış veri (P6, PHASE2 §6.4; ağ şeridi) ---
-    deep_budget_links_s: float = 120
-    # Render modülünün linkleri toplaması en fazla bu kadar beklenir (sonra Faz 1 sayfalarıyla)
-    deep_links_render_wait_s: float = 90
+    # Bekleme dahil. P11: 120→510 = render beklemesi (420) + link kontrolü (ölçümde render
+    # bittikten sonra en fazla ~52 sn; pay ile 90).
+    deep_budget_links_s: float = 510
+    # Render modülünün linkleri toplaması en fazla bu kadar beklenir (sonra Faz 1 sayfalarıyla).
+    # P11: 90→420 (= render bütçesi). 90 sn'de, render'ı uzun süren sitelerde links render'a
+    # yetişemiyor ve Faz 1 sayfaları da yoksa (bot engeli) tamamen başarısız oluyordu.
+    deep_links_render_wait_s: float = 420
     deep_links_max_internal: int = 100
     deep_links_max_external: int = 40
     deep_links_concurrency: int = 6

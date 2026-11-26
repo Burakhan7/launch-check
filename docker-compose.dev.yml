@@ -22,14 +22,24 @@ services:
       - ./apps/api/alembic:/app/alembic
     ports: ["8000:8000"]
 
+  # `arq --watch` worker'ı aynı süreçte yeniden başlatır; içe aktarılmış modüller yenilenmez ve
+  # değişiklikler sessizce devreye girmez (P11'de görüldü). watchfiles süreci baştan başlatır.
   worker:
-    command: ["arq", "--watch", "/app/src", "launchcheck.worker.settings.WorkerSettings"]
+    command:
+      ["watchfiles", "--filter", "python", "arq launchcheck.worker.settings.WorkerSettings", "/app/src"]
     read_only: false
     volumes:
       - ./apps/api/src:/app/src
 
   worker-deep:
-    command: ["arq", "--watch", "/app/src", "launchcheck.worker.deep_settings.DeepWorkerSettings"]
+    command:
+      [
+        "watchfiles",
+        "--filter",
+        "python",
+        "arq launchcheck.worker.deep_settings.DeepWorkerSettings",
+        "/app/src",
+      ]
     read_only: false
     volumes:
       - ./apps/api/src:/app/src

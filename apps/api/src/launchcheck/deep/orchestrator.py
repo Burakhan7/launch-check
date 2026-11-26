@@ -202,6 +202,7 @@ class DeepOrchestrator:
         self, ctx: DeepContext, module: DeepModule, budget_s: float, state: _RunState
     ) -> None:
         out = ModuleOutput()
+        started = time.monotonic()
         await self._set_module(ctx, state, module.name, ModuleStatus.RUNNING, 0)
         await ctx.events.emit(module.name, "deep.event.module_started", module=module.name)
         status = ModuleStatus.DONE
@@ -214,7 +215,14 @@ class DeepOrchestrator:
             # Sert sınır: eldekiler yazılır, iptal yukarı iletilir
             await self._store_output(ctx, module.name, out)
             state.partial.append(module.name)
-            await self._set_module(ctx, state, module.name, ModuleStatus.PARTIAL, len(out.findings))
+            await self._set_module(
+                ctx,
+                state,
+                module.name,
+                ModuleStatus.PARTIAL,
+                len(out.findings),
+                time.monotonic() - started,
+            )
             raise
         except Exception as exc:
             # İstisna mesajı sayfa içeriği taşıyabilir: sadece tipi logla
@@ -225,7 +233,7 @@ class DeepOrchestrator:
             state.partial.append(module.name)
         elif status == ModuleStatus.FAILED:
             state.failed.append(module.name)
-        await self._set_module(ctx, state, module.name, status, found)
+        await self._set_module(ctx, state, module.name, status, found, time.monotonic() - started)
         key = {
             ModuleStatus.DONE: "deep.event.module_done",
             ModuleStatus.PARTIAL: "deep.event.module_partial",
@@ -258,10 +266,20 @@ class DeepOrchestrator:
         return len(escalated)
 
     async def _set_module(
-        self, ctx: DeepContext, state: _RunState, name: str, status: str, found: int
+        self,
+        ctx: DeepContext,
+        state: _RunState,
+        name: str,
+        status: str,
+        found: int,
+        duration_s: float | None = None,
     ) -> None:
+        entry: dict[str, object] = {"status": status, "found": found}
+        if duration_s is not None:
+            # P11 ölçümü ve bütçe ayarı için: modülün kendi süresi (saniye, 1 ondalık)
+            entry["duration_s"] = round(duration_s, 1)
         async with state.lock:
-            state.progress[name] = {"status": status, "found": found}
+            state.progress[name] = entry
         await self._save_progress(ctx.scan_id, state)
 
     async def _save_progress(self, scan_id: uuid.UUID, state: _RunState) -> None:
@@ -341,6 +359,11 @@ class DeepOrchestrator:
                     "partial_modules": state.partial,
                     "failed_modules": state.failed,
                     "duration_s": round(duration_s),
+                    "module_durations": {
+                        name: info["duration_s"]
+                        for name, info in state.progress.items()
+                        if "duration_s" in info
+                    },
                 },
             }
             scan.progress = {"modules": state.progress}

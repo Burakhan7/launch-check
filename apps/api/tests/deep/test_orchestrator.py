@@ -138,7 +138,10 @@ async def test_modules_write_findings_and_progress(sessionmaker: SM) -> None:
     (row,) = await rows(sessionmaker, deep)
     assert (row.check_id, row.source_phase, row.module) == ("web.deep.quick", 2, "quick")
     scan = await get_scan(sessionmaker, deep)
-    assert scan.progress == {"modules": {"quick": {"status": "done", "found": 1}}}
+    quick = scan.progress["modules"]["quick"]
+    assert (quick["status"], quick["found"]) == ("done", 1)
+    assert quick["duration_s"] >= 0
+    assert scan.meta["deep"]["module_durations"] == {"quick": quick["duration_s"]}
     assert ("quick", "deep.event.module_done", {"module": "quick", "found": 1}) in sink.events
 
 
@@ -153,7 +156,10 @@ async def test_module_timeout_keeps_collected_findings(sessionmaker: SM) -> None
 
     scan = await get_scan(sessionmaker, deep)
     assert scan.meta["deep"]["partial_modules"] == ["sleepy"]
-    assert scan.progress["modules"]["sleepy"] == {"status": "partial", "found": 1}
+    sleepy = scan.progress["modules"]["sleepy"]
+    assert (sleepy["status"], sleepy["found"]) == ("partial", 1)
+    # Bütçe aşımında süre bütçe civarında kalır (P11 ölçümü bu alana dayanır)
+    assert 0.1 <= scan.meta["deep"]["module_durations"]["sleepy"] < 1.5
     assert scan.progress["modules"]["quick"]["status"] == "done"
     assert {r.check_id for r in await rows(sessionmaker, deep)} == {
         "web.deep.sleepy",
