@@ -5,6 +5,8 @@ import { useEffect, useRef, useState } from "react";
 import { getEvents, type DeepEvent, type ModuleStatus, type ScanReport } from "@/lib/api";
 import { DEEP_MODULES } from "@/lib/deep";
 import { POLL_INTERVAL_MS } from "@/lib/site";
+import { AiStatus } from "../rare/ai-status";
+import FluidOrb from "../rare/fluid-orb";
 import { FindingCard } from "../report/FindingCard";
 
 const MAX_EVENTS = 12;
@@ -25,6 +27,9 @@ export function DeepProgress({ report }: { report: ScanReport }) {
         <p className="font-mono text-sm text-muted">{report.target_label}</p>
       </header>
 
+      {report.status === "queued" && (
+        <FluidOrb size={120} color="#7c3aed" className="self-center" aria-hidden />
+      )}
       {report.status === "queued" && (
         <p className="rounded-2xl border border-line bg-surface p-4" role="status">
           {t("queued", {
@@ -78,12 +83,13 @@ export function DeepProgress({ report }: { report: ScanReport }) {
   );
 }
 
-const STATUS_STYLE: Record<ModuleStatus, string> = {
-  pending: "text-muted",
-  running: "border-brand bg-brand-soft",
-  done: "text-score-good",
-  partial: "text-sev-medium",
-  failed: "text-sev-critical",
+// Modül durumu → Rare UI AI Status durumu (bekleyen: etkin olmayan özel durum)
+const AI_STATE: Record<ModuleStatus, string> = {
+  pending: "waiting",
+  running: "analyzing",
+  done: "done",
+  partial: "done",
+  failed: "error",
 };
 
 function ModuleCard({
@@ -95,17 +101,21 @@ function ModuleCard({
 }) {
   const t = useTranslations("Deep");
   const status = info?.status ?? "pending";
+  const finished = status !== "pending" && status !== "running";
+  const detail = finished
+    ? `${t(`moduleStatus.${status}`)} · ${t("found", { count: info?.found ?? 0 })}`
+    : t(`moduleStatus.${status}`);
   return (
     <li
-      className={`flex flex-col gap-1 rounded-2xl border border-line p-4 ${STATUS_STYLE[status]}`}
+      className={`rounded-2xl border p-3 ${status === "running" ? "border-brand bg-brand-soft" : "border-line"}`}
     >
-      <span className="font-medium text-foreground">{t(`modules.${name}`)}</span>
-      <span className="text-sm">
-        {t(`moduleStatus.${status}`)}
-        {status !== "pending" && status !== "running" && (
-          <> · {t("found", { count: info?.found ?? 0 })}</>
-        )}
-      </span>
+      <AiStatus
+        state={AI_STATE[status]}
+        states={{ waiting: { active: false } }}
+        label={t(`modules.${name}`)}
+        detail={detail}
+        timer={false}
+      />
     </li>
   );
 }

@@ -1,9 +1,12 @@
 @import "tailwindcss";
 
+/* dark: varyantı da aynı kuralı izlesin (Rare UI bileşenleri dahil) */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
 /*
  * Launch Check teması: mor + beyaz.
  * Renkler token olarak tanımlı; bileşenler bg-surface, text-muted, border-line, bg-brand... kullanır.
- * Karanlık mod: işletim sistemi tercihine göre (prefers-color-scheme).
+ * Karanlık mod: kullanıcı seçimi (data-theme) veya işletim sistemi tercihi (prefers-color-scheme).
  */
 :root {
   --background: #ffffff;
@@ -34,8 +37,39 @@
   --score-good: #059669;
 }
 
+/* Karanlık mod: kullanıcı seçtiyse (data-theme, alt bilgideki tema seçici) o; seçmediyse
+ * işletim sistemi tercihi. Değişkenler iki yerde aynıdır. */
+:root[data-theme="dark"] {
+  --background: #0e0a1a;
+  --foreground: #f4f0ff;
+  --surface: #171127;
+  --surface-strong: #211936;
+  --line: #2e2448;
+  --muted: #a99bc9;
+  --brand: #a78bfa;
+  --brand-strong: #c4b5fd;
+  --brand-soft: #2a1f4a;
+  --brand-contrast: #160f2b;
+  --ring: #8b5cf6;
+
+  --sev-critical: #f87171;
+  --sev-critical-soft: #3b1219;
+  --sev-high: #fb923c;
+  --sev-high-soft: #3a1d0c;
+  --sev-medium: #fbbf24;
+  --sev-medium-soft: #36290a;
+  --sev-low: #c4b5fd;
+  --sev-low-soft: #261c45;
+  --sev-info: #94a3b8;
+  --sev-info-soft: #1c2230;
+
+  --score-bad: #fb7185;
+  --score-mid: #fbbf24;
+  --score-good: #34d399;
+}
+
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     --background: #0e0a1a;
     --foreground: #f4f0ff;
     --surface: #171127;

@@ -60,3 +60,4 @@ Launch Check aşağıdaki açık veri ve araçları kullanır (lisans kararları
 - [can-i-take-over-xyz](https://github.com/EdOverflow/can-i-take-over-xyz) — CC BY 4.0
 - [Majestic Million](https://majestic.com/reports/majestic-million) — CC BY 3.0
 - [Playwright](https://playwright.dev) ve [Lighthouse](https://github.com/GoogleChrome/lighthouse) — Apache-2.0
+- [Rare UI](https://rareui.com) arayüz bileşenleri (Swami Malode) — MIT + Commons Clause + Attribution. Kopyalanan dosyalar `apps/web/components/rare/` altında, her birinde telif notu var; lisans metni `apps/web/components/rare/LICENSE`. Sitede alt bilgide "UI: Rare UI" bağlantısı bulunur.

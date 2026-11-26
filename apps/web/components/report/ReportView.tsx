@@ -2,15 +2,18 @@
 
 import { useFormatter, useLocale, useTranslations } from "next-intl";
 import { useParams } from "next/navigation";
+import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
 import { Link, useRouter } from "@/i18n/navigation";
 import { ApiError, getScan, startWebScan, type Category, type ScanReport } from "@/lib/api";
 import { buildCombinedPrompt } from "@/lib/combinedPrompt";
 import { canStartDeep } from "@/lib/deep";
 import { CONTACT_URL, POLL_INTERVAL_MS } from "@/lib/site";
-import { DeepProgress } from "../deep/DeepProgress";
-import { DeepReport } from "../deep/DeepReport";
 import { StartDeepScan } from "../deep/StartDeepScan";
+
+// Faz 2 görünümleri (animasyonlu Rare UI bileşenleri dahil) sadece Faz 2 raporunda yüklenir
+const DeepProgress = dynamic(() => import("../deep/DeepProgress").then((m) => m.DeepProgress));
+const DeepReport = dynamic(() => import("../deep/DeepReport").then((m) => m.DeepReport));
 import { CopyButton } from "./CopyButton";
 import { FindingCard } from "./FindingCard";
 import { ScanProgress } from "./ScanProgress";

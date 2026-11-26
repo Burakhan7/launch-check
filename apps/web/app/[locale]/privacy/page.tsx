@@ -18,8 +18,17 @@ const DEEP = [
   "services",
   "ai",
   "values",
+  "local",
 ] as const;
-const CREDITS = ["easyprivacy", "retire", "axe", "takeover", "majestic", "playwright"] as const;
+const CREDITS = [
+  "easyprivacy",
+  "retire",
+  "axe",
+  "takeover",
+  "majestic",
+  "playwright",
+  "rareui",
+] as const;
 
 export default async function PrivacyPage() {
   const t = await getTranslations("Privacy");

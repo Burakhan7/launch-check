@@ -313,7 +313,8 @@
     "tagline": "Pre-launch checks for apps built with vibe coding.",
     "privacy": "Privacy",
     "contact": "Contact",
-    "bot": "Bot"
+    "bot": "Bot",
+    "rareUi": "UI: Rare UI"
   },
   "Privacy": {
     "title": "Privacy",
@@ -345,7 +346,8 @@
       "google": "For real-user speed data (CrUX), only the site's address is sent to Google.",
       "services": "For subdomain and archive checks only the domain is sent to crt.sh, Cert Spotter, the Internet Archive and RDAP; for video checks only the video ID is sent to YouTube.",
       "ai": "Page content isn't sent to any third-party AI service. Content commentary (when enabled) is done by a local model running on our own server.",
-      "values": "We don't read cookie or browser storage VALUES; we only record their names and security settings."
+      "values": "We don't read cookie or browser storage VALUES; we only record their names and security settings.",
+      "local": "Your theme choice and the items you tick in the priority plan are kept only in this browser (localStorage); they are never sent to our server. Clearing browser data removes them."
     },
     "creditsTitle": "Open data and tools we use",
     "credits": {
@@ -354,7 +356,8 @@
       "axe": "axe-core accessibility engine (Deque), MPL-2.0",
       "takeover": "can-i-take-over-xyz (EdOverflow), CC BY 4.0",
       "majestic": "Majestic Million popularity list, CC BY 3.0",
-      "playwright": "Playwright and Lighthouse, Apache-2.0"
+      "playwright": "Playwright and Lighthouse, Apache-2.0",
+      "rareui": "Rare UI interface components (rareui.com, Swami Malode), MIT + Commons Clause + Attribution"
     }
   },
   "NotFound": {
@@ -594,7 +597,8 @@
       "phase1Line": "{findings} findings · score {score}",
       "phase2": "Deep scan:",
       "phase2Line": "{confirmed} findings confirmed, {refuted} turned out to be false alarms, {escalated} more serious · {fresh} new findings · {subdomains} forgotten subdomains · {gates} untested gates · score {score}",
-      "dropped": "The score is lower than the quick scan: the deeper we looked, the more we found. It doesn't mean the site got worse."
+      "dropped": "The score is lower than the quick scan: the deeper we looked, the more we found. It doesn't mean the site got worse.",
+      "scores": "Score: {before} in the quick scan, {after} in the deep scan"
     },
     "plan": {
       "title": "Priority plan",
@@ -621,7 +625,19 @@
       "phase3": "Phase 3: verify that you own the site and we'll test these gates from the inside. (Coming soon)",
       "phase3Cta": "Contact us"
     },
-    "rescanButton": "Fixed it? Run the deep scan again"
+    "rescanButton": "Fixed it? Run the deep scan again",
+    "nav": {
+      "title": "In this report",
+      "diff": "Summary",
+      "seen": "Appearance",
+      "new": "New findings",
+      "phase1": "Verification",
+      "funnel": "Sign-up path",
+      "benchmark": "Benchmark",
+      "plan": "Priority plan",
+      "gates": "Untested gates",
+      "rescan": "Previous scan"
+    }
   },
   "Bot": {
     "title": "LaunchCheckBot",
@@ -646,5 +662,11 @@
     "blockNote": "When site owners scan their own site, robots.txt isn't consulted; that scan is the owner's request.",
     "contactTitle": "Something wrong?",
     "contact": "Write to us about a problem with our bot or a removal request."
+  },
+  "Theme": {
+    "label": "Theme",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
   }
 }

@@ -1,6 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { CONTACT_URL } from "@/lib/site";
+import { LazyThemeSwitcher } from "./LazyThemeSwitcher";
 import { LocaleSwitcher } from "./LocaleSwitcher";
 import { LogoMark } from "./Logo";
 
@@ -29,7 +30,10 @@ export async function Footer() {
   return (
     <footer className="mt-auto border-t border-line/70">
       <div className="mx-auto flex w-full max-w-5xl flex-col gap-3 px-4 py-8 text-sm text-muted sm:flex-row sm:items-center sm:justify-between">
-        <p>{t("tagline")}</p>
+        <div className="flex flex-col gap-3">
+          <p>{t("tagline")}</p>
+          <LazyThemeSwitcher />
+        </div>
         <div className="flex gap-5">
           <Link href="/privacy" className="hover:text-brand">
             {t("privacy")}
@@ -39,6 +43,10 @@ export async function Footer() {
           </Link>
           <a href={CONTACT_URL} className="hover:text-brand">
             {t("contact")}
+          </a>
+          {/* Rare UI lisansı görünür atıf ister */}
+          <a href="https://rareui.com" className="hover:text-brand" rel="noopener">
+            {t("rareUi")}
           </a>
         </div>
       </div>

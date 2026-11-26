@@ -313,7 +313,8 @@
     "tagline": "Vibe coding ile yapılmış uygulamalar için yayın öncesi kontrol.",
     "privacy": "Gizlilik",
     "contact": "İletişim",
-    "bot": "Bot"
+    "bot": "Bot",
+    "rareUi": "UI: Rare UI"
   },
   "Privacy": {
     "title": "Gizlilik",
@@ -345,7 +346,8 @@
       "google": "Gerçek kullanıcı hız verisi (CrUX) için Google'a sadece sitenin adresi gönderilir.",
       "services": "Alt alan adları ve arşiv kontrolü için crt.sh, Cert Spotter, Internet Archive ve RDAP'a; video kontrolü için YouTube'a sadece alan adı veya video kimliği gönderilir.",
       "ai": "Sayfa içeriği üçüncü taraf bir yapay zekâ servisine gönderilmez. İçerik yorumu (açıldığında) kendi sunucumuzda çalışan yerel bir modelle yapılır.",
-      "values": "Çerez ve tarayıcı depolama DEĞERLERİNİ okumayız; sadece adlarını ve güvenlik ayarlarını kaydederiz."
+      "values": "Çerez ve tarayıcı depolama DEĞERLERİNİ okumayız; sadece adlarını ve güvenlik ayarlarını kaydederiz.",
+      "local": "Tema tercihin ve öncelik planında işaretlediğin maddeler sadece bu tarayıcıda (localStorage) tutulur; sunucumuza gönderilmez. Tarayıcı verilerini silince kaybolur."
     },
     "creditsTitle": "Kullandığımız açık veriler ve araçlar",
     "credits": {
@@ -354,7 +356,8 @@
       "axe": "axe-core erişilebilirlik motoru (Deque), MPL-2.0",
       "takeover": "can-i-take-over-xyz (EdOverflow), CC BY 4.0",
       "majestic": "Majestic Million popülerlik listesi, CC BY 3.0",
-      "playwright": "Playwright ve Lighthouse, Apache-2.0"
+      "playwright": "Playwright ve Lighthouse, Apache-2.0",
+      "rareui": "Rare UI arayüz bileşenleri (rareui.com, Swami Malode), MIT + Commons Clause + Attribution"
     }
   },
   "NotFound": {
@@ -594,7 +597,8 @@
       "phase1Line": "{findings} bulgu · skor {score}",
       "phase2": "Derin tarama:",
       "phase2Line": "{confirmed} bulgu kanıtlandı, {refuted} tanesi yanlış alarm çıktı, {escalated} tanesi daha ağır çıktı · {fresh} yeni bulgu · {subdomains} unutulmuş alt alan adı · {gates} test edilmemiş kapı · skor {score}",
-      "dropped": "Skor hızlı taramadan düşük çıktı: daha derine baktıkça daha çok şey bulduk. Bu, sitenin kötüleştiği anlamına gelmiyor."
+      "dropped": "Skor hızlı taramadan düşük çıktı: daha derine baktıkça daha çok şey bulduk. Bu, sitenin kötüleştiği anlamına gelmiyor.",
+      "scores": "Skor: hızlı taramada {before}, derin taramada {after}"
     },
     "plan": {
       "title": "Öncelik planı",
@@ -621,7 +625,19 @@
       "phase3": "Faz 3: sitenin sahibi olduğunu doğrula, bu kapıları içeriden test edelim. (Yakında)",
       "phase3Cta": "Bize yaz"
     },
-    "rescanButton": "Düzelttin mi? Derin taramayı tekrar çalıştır"
+    "rescanButton": "Düzelttin mi? Derin taramayı tekrar çalıştır",
+    "nav": {
+      "title": "Bu raporda",
+      "diff": "Özet",
+      "seen": "Görünüm",
+      "new": "Yeni bulgular",
+      "phase1": "Doğrulama",
+      "funnel": "Kayıt yolu",
+      "benchmark": "Kıyas",
+      "plan": "Öncelik planı",
+      "gates": "Test edilmemiş kapılar",
+      "rescan": "Önceki tarama"
+    }
   },
   "Bot": {
     "title": "LaunchCheckBot",
@@ -646,5 +662,11 @@
     "blockNote": "Sitenin sahibi kendi sitesini taramayı başlattığında robots.txt'e bakılmaz; bu tarama sahibin isteğidir.",
     "contactTitle": "Bir sorun mu var?",
     "contact": "Botumuzla ilgili bir sorun veya kaldırma talebin için bize yazabilirsin."
+  },
+  "Theme": {
+    "label": "Tema",
+    "light": "Açık",
+    "dark": "Koyu",
+    "system": "Sistem"
   }
 }

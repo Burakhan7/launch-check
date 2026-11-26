@@ -377,3 +377,63 @@ AGENTS.md'nin açık bıraktığı noktalarda verilen kararlar. En basit güvenl
   - `Deep.rescan` anahtarı hem düğme metni hem bölüm nesnesi olarak tanımlanmıştı. JSON'da sonraki tanım öncekini ezdiği için sayfa `INSUFFICIENT_PATH` hatasıyla yüklenemiyordu; düğme anahtarı `rescanButton` oldu.
   - Huni haritası, raporda karşılığı olmayan check'i ham kimliğiyle gösteriyordu; artık sadece başlığı bilinen bulgular gösteriliyor.
   Telefonda ekran görüntülerinin yüksekliği de sınırlandı. Örnek kayıtlar ve dosyalar kontrolden sonra silindi.
+
+## 2026-11-26 — Faz 2 / P10d: Rare UI bileşenleri
+
+- **Kaynak ve lisans:** Rare UI (rareui.com, Swami Malode), `github.com/swamimalode07/rare-ui` @ `0e9f0ef86bd690b16175fb81950ce38a5e689cd4`. Lisans MIT + Commons Clause + Attribution. Commons Clause yazılımın kendisini satmayı yasaklar; ücretsiz bir ürünün parçası olarak kullanmak serbesttir. Faz 3 ücretli olsa bile satılan şey bileşenler değil hizmettir. Lisans metni `apps/web/components/rare/LICENSE`'ta. Her kopyalanan dosyanın başında telif satırı, lisans işaretçisi, kaynak yol + SHA ve "Launch Check uyarlaması" notu var. Alt bilgide görünür "UI: Rare UI" bağlantısı, README Credits'te ve gizlilik sayfasındaki atıf listesinde kayıt var.
+- **Kullanılan bileşenler:**
+  - **AI Status:** derin tarama modül kartları. Bekleyen modül için etkin olmayan `waiting` durumu kullanılıyor, süre sayacı kapalı.
+  - **Fluid Orb:** kuyrukta bekleme ekranı, `aria-hidden`.
+  - **Animated counter:** fark panelinde hızlı → derin skor. Sayaçlar `aria-hidden`; ekran okuyucu tek bir `aria-label` cümlesi duyar.
+  - **Rail TOC:** masaüstünde bölüm gezinmesi.
+  - **Scroll progress:** telefonda bölüm gezinmesi.
+  - **Task list:** öncelik planı maddeleri. İşaretler sadece localStorage'da (`lc-plan-<scan_id>`) tutulur.
+  - **Theme selector:** alt bilgide açık/koyu seçimi, yanında "Sistem" düğmesi.
+
+  Gezinmeye sadece raporda gerçekten görünen bölümler girer.
+- **Alınmayanlar:**
+  - **Toast, Step player, Code block:** ek bağımlılık istiyorlar (yasak) ve yerine geçecekleri yerde zaten bir çözümümüz var.
+  - **Streaming response:** Markdown işleyici bağımlılığı istiyor, ayrıca LLM metni düz metin basılmalı. P8 (yerel LLM) askıda olduğu için ertelendi. Spec'teki "Streaming Response HTML kaçışı" testi de P8'e taşındı; LLM metni bugün olduğu gibi React'in kaçışlı metni olarak basılacak.
+- **Uyarlamalar:**
+  - **ai-status:** `react-use-measure` yerine ResizeObserver ile yerel bir `useMeasure`. Metin grisi `#868593`, beyaz zeminde yaklaşık 3,6:1 kontrastla AA'nın altında kaldığı için sitenin `--muted` rengine çevrildi; ikonlarda kaldı (grafik için 3:1 yeterli).
+  - **fluid-orb:** sekme arka plandayken `visibilitychange` ile çizim duruyor.
+  - **scroll-progress:** render sırasında ref okuyan etiket sayacı (`react-hooks/refs` hatası) kaldırıldı, anahtar olarak etiketin kendisi kullanılıyor. Düğme etiketi prop olarak geliyor (i18n).
+  - **task-list ve theme-selector:** renkler site token'larına bağlandı; grup etiketi prop olarak geliyor.
+- **Bağımlılıklar:**
+  - `motion` 14.14.0, sürüm sabitlenmiş.
+  - Test için (dev): `jsdom` 31.0.1, `@testing-library/react` 16.3.3, `@testing-library/dom` 10.4.2.
+  - Rare UI'nin `cn`'i `clsx` + `tailwind-merge` kullanıyor. Bunlar başta eklendi, sonra kaldırıldı: tema seçici her sayfada yüklendiği için tailwind-merge (~29 KB) her sayfanın JS'ine giriyordu. `lib/utils.ts`'teki `cn` artık bağımlılıksız bir birleştirici ve çakışma birleştirmesi yapmıyor. Taban sınıfı ezmek gereken üç yerde Tailwind `!` önceliği kullanılıyor: tema seçicide `gap-2!` ve `w-14!`, plan listesinde `w-full!`.
+- **Yükleme:**
+  - `DeepProgress` ve `DeepReport` (motion ve animasyonlu bileşenlerin hepsi) `ReportView` içinde `next/dynamic` ile yükleniyor. Sadece Faz 2 raporu açılınca iniyorlar.
+  - Tema seçici animasyonlu değil. Alt bilgi ekrana 200 px yaklaşınca `React.lazy` ile yükleniyor. `next/dynamic` kullanılmadı, çünkü loadable çalışma zamanı her sayfanın ilk yüküne ~5 KB ekliyordu. Yer tutucunun yüksekliği sabit, yüklenince düzen kaymaz.
+- **Tema altyapısı:**
+  - `<head>`'deki satır içi betik ilk boyamadan önce `data-theme`'i yazar, yanıp sönme olmaz. Tailwind `dark:` varyantı `data-theme="dark"`'a bağlı.
+  - Seçim yoksa sistem tercihi (`prefers-color-scheme`) geçerli.
+  - Tercih sadece localStorage'da (`lc-theme`) tutulur. Gizlilik sayfasına "tema ve plan işaretleri sadece bu tarayıcıda" maddesi eklendi.
+  - localStorage'a erişim tek yerden geçiyor (`lib/storage.ts`). Safari'de çerezler kapalıyken `window.localStorage`'ı okumak bile SecurityError attığı için bu erişim de korunuyor. Depolama yoksa liste işaretsiz başlar ve işaretler sadece o sayfada kalır.
+- **Hareket azaltma:** `prefers-reduced-motion` açıkken:
+  - motion animasyonları anında olur.
+  - AI Status parıltısı yerine düz metin gösterilir.
+  - Fluid Orb tek kare çizer, döngü başlatmaz.
+- **Testler** (Vitest + jsdom, `tests/*.test.tsx`):
+  - planStorage: bozuk JSON, hata atan ve erişimi engellenmiş depolama.
+  - PlanChecklist: diğer grupların işaretleri korunuyor; depolama hata atarken de çalışıyor.
+  - Tema: okuma/yazma/silme ve `data-theme` çözümü.
+  - Reduced motion: AI Status düz metin gösteriyor; Fluid Orb'da `requestAnimationFrame` çağrılmıyor.
+  - Fluid Orb: sekme gizlenince duruyor, görünür olunca devam ediyor.
+
+  Toplam 37 test.
+- **Ölçüm (2026-11-26, yerel, worker-deep imajındaki Chromium + Lighthouse):**
+  - Karşılaştırma: P10c commit'i (`63e968f`) ayrı bir worktree'de derlendi, bu değişiklikle aynı koşulda karşılaştırıldı.
+  - P10c'de kaydedilen JS bayt rakamları (229 318 / 59 011) güvenilir değil: ölçüm betiği yanıt gövdelerini sayfa yüklendikten sonra da okuyordu, sonuç koşudan koşuya oynuyordu. Bu yüzden yerine tarayıcının Resource Timing kaydı (`decodedBodySize`) kullanıldı; 3 koşuda da aynı sonucu veriyor.
+  - Bugün tüm sayfalar ilk yükte aynı paylaşılan chunk'ları yüklüyor.
+
+  | Ölçüm | Önce (63e968f) | Sonra |
+  |---|---|---|
+  | İlk yük JS (/tr, /tr/privacy, /tr/bot) | 521 062 B | 521 741 B (+679 B, +%0,13) |
+  | Lighthouse /tr (perf / a11y, 3 koşu medyanı) | 94 / 100 | 95 / 100 |
+  | Lighthouse /tr/privacy | 94 / 96 | 96 / 96 |
+  | Lighthouse /en | 95 / 100 | 96 / 100 |
+
+  Kalan +679 B, alt bilgideki yer tutucu ile atıf bağlantısı. Tema seçicinin kendi chunk'ı (6,3 KB) alt bilgi ekrana yaklaşınca yükleniyor. motion ve Rare UI bileşenleri hiçbir Faz 1 sayfasının JS'inde yok.
+- **Görsel kontrol:** Örnek bir Faz 1 + Faz 2 kaydıyla TR masaüstü (1440 px) ve EN mobil (390 px) ekran görüntüsü alındı. Kontrol edilenler: yan ray, mobil ilerleme hapı, skor sayaçları, plan listesi, modül kartları ve alt bilgideki tema seçici. Örnek kayıtlar kontrolden sonra silindi.

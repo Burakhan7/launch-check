@@ -8,10 +8,14 @@ import { buildCombinedPrompt } from "@/lib/combinedPrompt";
 import { notifyDone, phase1Findings, phase2Findings, planGroups } from "@/lib/deep";
 import { CONTACT_URL } from "@/lib/site";
 import { CopyButton } from "../report/CopyButton";
-import { FindingCard, SeverityBadge } from "../report/FindingCard";
+import { FindingCard } from "../report/FindingCard";
 import { HelpNote, PassedList } from "../report/ReportView";
 import { CategoryBar, SCORE_COLOR, ScoreRing } from "../report/Score";
+import { AnimatedCounter } from "../rare/animated-counter";
+import { RailToc } from "../rare/rail-toc";
+import { ScrollProgress } from "../rare/scroll-progress";
 import { BenchmarkSection } from "./BenchmarkSection";
+import { PlanChecklist } from "./PlanChecklist";
 import { FunnelMap } from "./FunnelMap";
 import { SectionHeader, SeenVsSeen } from "./SeenVsSeen";
 
@@ -24,57 +28,105 @@ export function DeepReport({ report }: { report: ScanReport }) {
   const newFindings = phase2Findings(report);
   const label = report.score_label ?? "not_ready";
 
+  const sections = navSections(report, (key) => t(`nav.${key}`));
+
   return (
-    <div className="mx-auto flex w-full max-w-4xl flex-col gap-10 px-4 py-10">
-      <section className="flex flex-col gap-6 rounded-3xl border border-line bg-surface p-6 sm:flex-row sm:items-center sm:p-8">
-        <ScoreRing score={report.score ?? 0} label={label} />
-        <div className="flex min-w-0 flex-1 flex-col gap-2">
-          <p className="text-xs font-semibold tracking-wide text-brand uppercase">{t("badge")}</p>
-          <p className="text-2xl font-bold" style={{ color: SCORE_COLOR[label] }}>
-            {ts(label)}
-          </p>
-          <p className="truncate font-mono text-sm text-muted">{report.target_label}</p>
+    <div className="mx-auto flex w-full max-w-6xl gap-10 px-4 py-10">
+      <div className="flex min-w-0 max-w-4xl flex-1 flex-col gap-10">
+        <section className="flex flex-col gap-6 rounded-3xl border border-line bg-surface p-6 sm:flex-row sm:items-center sm:p-8">
+          <ScoreRing score={report.score ?? 0} label={label} />
+          <div className="flex min-w-0 flex-1 flex-col gap-2">
+            <p className="text-xs font-semibold tracking-wide text-brand uppercase">{t("badge")}</p>
+            <p className="text-2xl font-bold" style={{ color: SCORE_COLOR[label] }}>
+              {ts(label)}
+            </p>
+            <p className="truncate font-mono text-sm text-muted">{report.target_label}</p>
+          </div>
+          {report.category_scores && (
+            <div className="flex w-full flex-col gap-3 sm:w-56">
+              {Object.entries(report.category_scores).map(([name, value]) => (
+                <CategoryBar key={name} name={tc(name as Finding["category"])} score={value} />
+              ))}
+            </div>
+          )}
+        </section>
+
+        <div id="diff" className="flex scroll-mt-24 flex-col gap-4">
+          <PhaseDiff report={report} />
+          <DeepActions report={report} />
         </div>
-        {report.category_scores && (
-          <div className="flex w-full flex-col gap-3 sm:w-56">
-            {Object.entries(report.category_scores).map(([name, value]) => (
-              <CategoryBar key={name} name={tc(name as Finding["category"])} score={value} />
-            ))}
-          </div>
-        )}
-      </section>
+        <div id="seen" className="scroll-mt-24">
+          <SeenVsSeen report={report} />
+        </div>
 
-      <PhaseDiff report={report} />
-      <DeepActions report={report} />
-      <SeenVsSeen report={report} />
+        <section id="new" className="flex scroll-mt-24 flex-col gap-4">
+          <SectionHeader title={t("newTitle", { count: newFindings.length })} hint={t("newHint")} />
+          {newFindings.length === 0 ? (
+            <p className="rounded-2xl border border-line bg-surface p-6 text-center">
+              {t("noNew")}
+            </p>
+          ) : (
+            <div className="flex flex-col gap-3">
+              {newFindings.map((f, i) => (
+                <FindingCard
+                  key={f.id ?? `${f.check_id}-${i}`}
+                  finding={f}
+                  defaultOpen={i === 0 && f.severity === "critical"}
+                />
+              ))}
+            </div>
+          )}
+        </section>
 
-      <section className="flex flex-col gap-4">
-        <SectionHeader title={t("newTitle", { count: newFindings.length })} hint={t("newHint")} />
-        {newFindings.length === 0 ? (
-          <p className="rounded-2xl border border-line bg-surface p-6 text-center">{t("noNew")}</p>
-        ) : (
-          <div className="flex flex-col gap-3">
-            {newFindings.map((f, i) => (
-              <FindingCard
-                key={f.id ?? `${f.check_id}-${i}`}
-                finding={f}
-                defaultOpen={i === 0 && f.severity === "critical"}
-              />
-            ))}
-          </div>
-        )}
-      </section>
-
-      <VerificationSection report={report} />
-      <FunnelMap report={report} />
-      <BenchmarkSection report={report} />
-      <PriorityPlan report={report} />
-      <GatesSection report={report} />
-      <RescanSection report={report} />
-      {report.passed.length > 0 && <PassedList report={report} />}
-      <HelpNote />
+        <div id="phase1" className="scroll-mt-24">
+          <VerificationSection report={report} />
+        </div>
+        <div id="funnel" className="scroll-mt-24">
+          <FunnelMap report={report} />
+        </div>
+        <div id="benchmark" className="scroll-mt-24">
+          <BenchmarkSection report={report} />
+        </div>
+        <div id="plan" className="scroll-mt-24">
+          <PriorityPlan report={report} />
+        </div>
+        <div id="gates" className="scroll-mt-24">
+          <GatesSection report={report} />
+        </div>
+        <div id="rescan" className="scroll-mt-24">
+          <RescanSection report={report} />
+        </div>
+        {report.passed.length > 0 && <PassedList report={report} />}
+        <HelpNote />
+      </div>
+      {/* Bölüm gezinmesi: masaüstünde yan ray, telefonda alttaki ilerleme hapı (Rare UI) */}
+      <aside className="hidden w-56 shrink-0 lg:block">
+        <RailToc items={sections} title={t("nav.title")} className="sticky top-24" />
+      </aside>
+      <ScrollProgress sections={sections} buttonLabel={t("nav.title")} className="lg:hidden" />
     </div>
   );
+}
+
+/** Sadece raporda gerçekten görünen bölümler gezinmeye girer. */
+function navSections(
+  report: ScanReport,
+  label: (key: string) => string,
+): { id: string; label: string }[] {
+  const meta = report.meta as Record<string, { steps?: unknown[]; status?: unknown } | undefined>;
+  const s = report.sections;
+  const visible: [string, boolean][] = [
+    ["diff", true],
+    ["seen", true],
+    ["new", true],
+    ["phase1", phase1Findings(report).length > 0],
+    ["funnel", (meta.funnel?.steps?.length ?? 0) > 0],
+    ["benchmark", !!meta.benchmark?.status],
+    ["plan", !!s && Object.values(s.plan).some((ids) => ids.length > 0)],
+    ["gates", !!s?.gates?.total],
+    ["rescan", !!s?.rescan],
+  ];
+  return visible.filter(([, ok]) => ok).map(([id]) => ({ id, label: label(id) }));
 }
 
 function useDoneTitle(report: ScanReport) {
@@ -94,6 +146,18 @@ function PhaseDiff({ report }: { report: ScanReport }) {
   const v = diff.phase2.verification;
   return (
     <section className="flex flex-col gap-3 rounded-2xl border border-line bg-background p-5 text-sm">
+      {diff.phase1.score !== null && diff.phase2.score !== null && (
+        <p
+          className="flex items-center gap-3 text-2xl font-bold"
+          aria-label={t("scores", { before: diff.phase1.score, after: diff.phase2.score })}
+        >
+          <AnimatedCounter value={diff.phase1.score} aria-hidden />
+          <span className="text-muted" aria-hidden>
+            →
+          </span>
+          <AnimatedCounter value={diff.phase2.score} aria-hidden />
+        </p>
+      )}
       <p>
         <span className="font-semibold">{t("phase1")}</span>{" "}
         {t("phase1Line", { findings: diff.phase1.findings, score: diff.phase1.score ?? "—" })}
@@ -172,19 +236,11 @@ function PriorityPlan({ report }: { report: ScanReport }) {
               className="flex flex-col gap-3 rounded-2xl border border-line bg-surface p-4"
             >
               <h3 className="font-semibold">{t(group, { count: items.length })}</h3>
-              <ul className="flex flex-col gap-2 text-sm">
-                {items.map((f) => (
-                  <li key={f.id} className="flex flex-col gap-1">
-                    <SeverityBadge severity={f.severity} />
-                    <span>{f.title}</span>
-                    {f.impact && (
-                      <span className="text-xs text-muted">
-                        {t("minutes", { count: f.impact.fix_minutes })}
-                      </span>
-                    )}
-                  </li>
-                ))}
-              </ul>
+              <PlanChecklist
+                scanId={report.scan_id}
+                findings={items}
+                minutesLabel={(count) => t("minutes", { count })}
+              />
               {combined.included > 0 && (
                 <CopyButton text={combined.text} label={t("copy")} copiedLabel={t("copied")} />
               )}
